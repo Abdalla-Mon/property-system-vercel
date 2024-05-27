@@ -1,0 +1,34 @@
+.ql-editor {
+    width: 21cm;
+    overflow: auto;
+}
+
+.ql-toolbar, .ql-container {
+    /*height: ;*/
+    width: auto;
+
+}
+
+
+.ql-toolbar {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+
+.ql-container {
+    height: 100%
+}
+
+.ql-editor {
+    max-height: 29.7cm;
+    margin: 15px;
+    border: 1px solid;
+    padding: 15px;
+    /*overflow: auto;*/
+    direction: rtl;
+    text-align: right;
+}
