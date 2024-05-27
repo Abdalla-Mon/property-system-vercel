@@ -1,15 +1,14 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Editor } from "@tinymce/tinymce-react";
 
 const TinyMCEEditor = ({ description, setDescription }) => {
   const editorRef = useRef(null);
   const [loading, setLoading] = useState(true);
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const [api, setApi] = useState(null);
+
   const firstApi = "3wbwceq8t9db1z356t0bg2g9ii1qls53vr1m86lnnuyxh58t";
   const secondApi = "n3w0cw05ayt3w378c9wy0jaoy3dwap07n1x308vjtb6h5atr";
-  const getCurrentHalfOfMonthMessage = () => {
+  const getCurrentHalfOfMonthMessage = async () => {
     const today = new Date();
     const dayOfMonth = today.getDate();
 
@@ -18,11 +17,16 @@ const TinyMCEEditor = ({ description, setDescription }) => {
     } else {
       return secondApi;
     }
+    await setApi(api);
     setLoading(false);
   };
+  useEffect(() => {
+    getCurrentHalfOfMonthMessage();
+  }, []);
 
-  const api = getCurrentHalfOfMonthMessage();
-
+  if (loading) {
+    return <div>Loading...</div>;
+  }
   return (
     <div style={{ margin: "auto", width: "26.5cm" }}>
       <Editor

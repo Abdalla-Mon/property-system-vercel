@@ -14,12 +14,13 @@ export default function CustomPagination({
   };
 
   const handleRowsPerPageChange = (event) => {
-    setLimit(parseInt(event.target.value, 10));
-    setPage(1);
+    const newLimit = parseInt(event.target.value, 10);
+    setLimit(newLimit);
+    setPage(1); // Reset to first page when limit changes
   };
 
   return (
-    <div className="flex flex-col sm:flex-row  gap-5  justify-between items-center p-4">
+    <div className="flex flex-col sm:flex-row gap-5 justify-between items-center p-4">
       <div className="flex items-center space-x-2">
         <Typography>عرض</Typography>
         <Select
