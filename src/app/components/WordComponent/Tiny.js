@@ -13,11 +13,10 @@ const TinyMCEEditor = ({ description, setDescription }) => {
     const dayOfMonth = today.getDate();
 
     if (dayOfMonth <= 15) {
-      return firstApi;
+      setApi(firstApi);
     } else {
-      return secondApi;
+      setApi(secondApi);
     }
-    await setApi(api);
     setLoading(false);
   };
   useEffect(() => {
