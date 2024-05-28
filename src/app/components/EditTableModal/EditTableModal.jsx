@@ -14,6 +14,8 @@ const modalStyle = (fullWidth) => ({
   p: 4,
   borderRadius: "10px",
   maxWidth: fullWidth ? "100%" : "50%",
+  maxHeight: "90%",
+  overflow: "auto",
 });
 
 export function EditTableModal({

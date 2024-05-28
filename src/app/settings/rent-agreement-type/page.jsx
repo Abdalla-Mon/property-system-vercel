@@ -93,7 +93,6 @@ const RentAgreementTypeWrapper = () => {
   ];
 
   const [description, setDescription] = useState("");
-
   return (
     <>
       <ViewComponent
