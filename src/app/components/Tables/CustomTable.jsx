@@ -64,7 +64,13 @@ export default function CustomTable({
   );
 
   return (
-    <Paper className="p-4">
+    <Paper
+      className="p-4"
+      sx={{
+        maxWidth: 1600,
+        mx: "auto",
+      }}
+    >
       {loading && <FullScreenLoader />}
 
       <Toolbar className="flex justify-between">
@@ -94,44 +100,57 @@ export default function CustomTable({
           </IconButton>
         </div>
       </Toolbar>
-      <TableContainer ref={componentRef}>
-        <Table aria-label="custom table">
-          <TableHead>
-            <TableRow>
-              {(printMode ? printableColumns : columns).map((column) => (
-                <TableCell
-                  key={column.field}
-                  className="bg-blue-600"
-                  sx={{
-                    color: "white",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {column.headerName}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((row) => (
-              <TableRow key={row.id}>
+      <div>
+        <TableContainer
+          ref={componentRef}
+          sx={{
+            width: "100%",
+            overflow: "auto",
+          }}
+        >
+          <Table
+            aria-label="custom table"
+            sx={{
+              minWidth: 650,
+            }}
+          >
+            <TableHead>
+              <TableRow>
                 {(printMode ? printableColumns : columns).map((column) => (
                   <TableCell
                     key={column.field}
-                    className="border border-gray-200"
+                    className="bg-blue-600"
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                    }}
                   >
-                    {column.renderCell
-                      ? column.renderCell({ row })
-                      : column.type === "size"
-                        ? row[column.field].length
-                        : row[column.field]}
+                    {column.headerName}
                   </TableCell>
                 ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow key={row.id}>
+                  {(printMode ? printableColumns : columns).map((column) => (
+                    <TableCell
+                      key={column.field}
+                      className="border border-gray-200"
+                    >
+                      {column.renderCell
+                        ? column.renderCell({ row })
+                        : column.type === "size"
+                          ? row[column.field].length
+                          : row[column.field]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
 
       <CustomPagination
         setLimit={setLimit}
