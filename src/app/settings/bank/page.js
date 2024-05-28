@@ -118,7 +118,6 @@ const BankWrapper = () => {
         id={id}
         loading={loading}
         setData={setData}
-        setTotalPages={setTotalPages}
         setTotal={setTotal}
         total={total}
       />
