@@ -11,7 +11,7 @@ const TinyMCEEditor = ({ description, setDescription }) => {
     script.onload = () => {
       tinymce.init({
         selector: "textarea",
-        height: 500,
+        height: "29.5cm",
         directionality: "rtl",
         menubar: "file edit insert view format table tools",
         fontsize_formats: "8pt 10pt 12pt 14pt 18pt 24pt 36pt",
@@ -32,7 +32,7 @@ const TinyMCEEditor = ({ description, setDescription }) => {
   }, []);
 
   return (
-    <div style={{ margin: "auto", width: "26.5cm" }}>
+    <div style={{ margin: "auto", width: "20.2cm" }}>
       <textarea
         ref={editorRef}
         value={description}
