@@ -15,7 +15,13 @@ const TinyMCEEditor = ({ description, setDescription }) => {
         directionality: "rtl",
         menubar: "file edit insert view format table tools",
         fontsize_formats: "8pt 10pt 12pt 14pt 18pt 24pt 36pt",
-        setup: (editor) => {},
+        setup: (editor) => {
+          if (description) {
+            editor.on("init", () => {
+              editor.setContent(description);
+            });
+          }
+        },
         content_style: `
           .bordered-content { border: 2px solid black; padding: 0; }
           body { direction: rtl; text-align: right; width: 25.5cm; }
