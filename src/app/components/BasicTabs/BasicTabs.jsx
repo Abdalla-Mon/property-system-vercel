@@ -50,8 +50,7 @@ const tabLinks = [
   { label: "إعدادات نوع الوحدة", href: "/settings/unit-type" },
   { label: "إعدادات البنك", href: "/settings/bank" },
   { label: "إعدادات الامارات", href: "/settings/state" },
-  // { label: "إعدادات المنطقة", href: "/settings/district" },
-  // { label: "إعدادات المدينة", href: "/settings/city" },
+
   { label: "اعدادات مصروفات العقود", href: "/settings/contract-expense-type" },
   {
     label: "إعدادات  مصروفات العقار",

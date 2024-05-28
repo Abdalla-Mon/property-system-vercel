@@ -18,8 +18,19 @@ export default function RentAgreementTypePage() {
 }
 
 const RentAgreementTypeWrapper = () => {
-  const { data, loading, page, setPage, limit, setLimit, totalPages, setData } =
-    useDataFetcher("settings/rent-agreement-types");
+  const {
+    data,
+    loading,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    totalPages,
+    setData,
+    setRender,
+    total,
+    setTotal,
+  } = useDataFetcher("settings/rent-agreement-types");
   const { setOpenModal, setId, id, submitData } = useTableForm();
   const handleEdit = (id) => {
     setId(id);
@@ -28,8 +39,15 @@ const RentAgreementTypeWrapper = () => {
 
   async function handleDelete(id) {
     const res = await submitData(null, null, id, "DELETE");
+
     const filterData = data.filter((item) => item.id !== res.id);
     setData(filterData);
+    setTotal((old) => old - 1);
+    if (page === 1) {
+      setRender((old) => !old);
+    } else {
+      setPage((old) => (old > 1 ? old - 1 : 1) || 1);
+    }
   }
 
   const columns = [
@@ -95,6 +113,8 @@ const RentAgreementTypeWrapper = () => {
         extraDataName={"description"}
         setExtraData={setDescription}
         fullWidth={true}
+        setTotal={setTotal}
+        total={total}
       >
         <TinyMCEEditor
           description={description}

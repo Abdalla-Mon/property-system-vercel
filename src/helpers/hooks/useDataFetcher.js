@@ -14,6 +14,7 @@ export function useDataFetcher(url) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({});
   const [printMode, setPrintMode] = useState(false);
+  const [render, setRender] = useState(false);
   useEffect(() => {
     async function fetchData() {
       if (printMode) return;
@@ -32,7 +33,7 @@ export function useDataFetcher(url) {
     }
 
     fetchData();
-  }, [page, limit, filters, search, sort]);
+  }, [page, limit, filters, search, sort, render]);
 
   return {
     data,
@@ -49,5 +50,7 @@ export function useDataFetcher(url) {
     total,
     setTotal,
     setPrintMode,
+    setTotalPages,
+    setRender,
   };
 }

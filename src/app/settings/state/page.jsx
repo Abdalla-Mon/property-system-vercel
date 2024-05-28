@@ -22,8 +22,19 @@ export default function StatePage() {
 }
 
 const StateWrapper = () => {
-  const { data, loading, page, setPage, limit, setLimit, totalPages, setData } =
-    useDataFetcher("settings/states");
+  const {
+    data,
+    loading,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    totalPages,
+    setData,
+    setRender,
+    total,
+    setTotal,
+  } = useDataFetcher("settings/states");
   const { setOpenModal, setId, id, submitData } = useTableForm();
 
   const handleEdit = (id) => {
@@ -33,8 +44,15 @@ const StateWrapper = () => {
 
   async function handleDelete(id) {
     const res = await submitData(null, null, id, "DELETE");
+
     const filterData = data.filter((item) => item.id !== res.id);
     setData(filterData);
+    setTotal((old) => old - 1);
+    if (page === 1) {
+      setRender((old) => !old);
+    } else {
+      setPage((old) => (old > 1 ? old - 1 : 1) || 1);
+    }
   }
 
   const columns = [
@@ -115,6 +133,8 @@ const StateWrapper = () => {
         extraData={cities}
         extraDataName={"cities"}
         setExtraData={setCities}
+        total={total}
+        setTotal={setTotal}
       >
         <CitiesForm cities={cities} setCities={setCities} />
       </ViewComponent>

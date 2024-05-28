@@ -17,8 +17,19 @@ export default function ContractExpensePage() {
 }
 
 const ContractExpenseWrapper = () => {
-  const { data, loading, page, setPage, limit, setLimit, totalPages, setData } =
-    useDataFetcher("settings/contract-expense-type");
+  const {
+    data,
+    loading,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    totalPages,
+    setData,
+    setRender,
+    total,
+    setTotal,
+  } = useDataFetcher("settings/contract-expense-type");
   const { setOpenModal, setId, id, submitData } = useTableForm();
   const handleEdit = (id) => {
     setId(id);
@@ -27,8 +38,15 @@ const ContractExpenseWrapper = () => {
 
   async function handleDelete(id) {
     const res = await submitData(null, null, id, "DELETE");
+
     const filterData = data.filter((item) => item.id !== res.id);
     setData(filterData);
+    setTotal((old) => old - 1);
+    if (page === 1) {
+      setRender((old) => !old);
+    } else {
+      setPage((old) => (old > 1 ? old - 1 : 1) || 1);
+    }
   }
 
   const columns = [
@@ -96,6 +114,8 @@ const ContractExpenseWrapper = () => {
         id={id}
         loading={loading}
         setData={setData}
+        total={total}
+        setTotal={setTotal}
       />
     </>
   );

@@ -25,6 +25,8 @@ export default function ViewComponent({
   extraDataName,
   setExtraData,
   fullWidth,
+  setTotal,
+  total,
 }) {
   const [view, setView] = useState("table");
   const [showForm, setShowForm] = useState(false); // State to toggle form visibility
@@ -33,7 +35,12 @@ export default function ViewComponent({
   async function create(data) {
     data = { ...data, extraData };
     const newData = await submitData(data, null, null, "POST");
-    setData((old) => [...old, newData]);
+
+    if (rows.length < limit) {
+      setData((old) => [...old, newData]);
+    } else {
+      setTotal((old) => old + 1);
+    }
   }
 
   useEffect(() => {
@@ -99,11 +106,12 @@ export default function ViewComponent({
           columns={columns}
           rows={rows}
           page={page}
-          totalPages={totalPages}
           limit={limit}
           setPage={setPage}
           setLimit={setLimit}
           loading={loading}
+          total={total}
+          setTotal={setTotal}
         />
       )}
 
@@ -112,11 +120,12 @@ export default function ViewComponent({
           columns={columns}
           rows={rows}
           page={page}
-          totalPages={totalPages}
           limit={limit}
           setPage={setPage}
           setLimit={setLimit}
           loading={loading}
+          total={total}
+          setTotal={setTotal}
         />
       )}
     </div>

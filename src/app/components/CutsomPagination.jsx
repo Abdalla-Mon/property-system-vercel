@@ -1,16 +1,17 @@
 import React from "react";
-import { Button, Select, MenuItem, Typography } from "@mui/material";
+import { Select, MenuItem, Typography, Pagination } from "@mui/material";
 import { paginationOptions } from "@/app/constants/constants";
 
 export default function CustomPagination({
   page,
-  totalPages,
   limit,
   setPage,
   setLimit,
+  total,
 }) {
-  const handlePageChange = (newPage) => {
-    setPage(newPage);
+  const totalPages = Math.ceil(total / limit);
+  const handlePageChange = (event, value) => {
+    setPage(value);
   };
 
   const handleRowsPerPageChange = (event) => {
@@ -36,25 +37,14 @@ export default function CustomPagination({
           ))}
         </Select>
         <Typography>صفوف</Typography>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button
+        <Pagination
+          count={totalPages}
+          page={page}
+          onChange={handlePageChange}
           variant="outlined"
-          onClick={() => handlePageChange(page - 1)}
-          disabled={page === 1}
-        >
-          السابق
-        </Button>
-        <Typography>
-          صفحة {page} من {totalPages}
-        </Typography>
-        <Button
-          variant="outlined"
-          onClick={() => handlePageChange(page + 1)}
-          disabled={page === totalPages}
-        >
-          التالي
-        </Button>
+          shape="rounded"
+          size="small"
+        />
       </div>
     </div>
   );

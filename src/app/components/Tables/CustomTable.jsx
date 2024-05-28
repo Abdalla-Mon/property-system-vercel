@@ -30,6 +30,8 @@ export default function CustomTable({
   setPage,
   setLimit,
   loading,
+  total,
+  setTotal,
 }) {
   const componentRef = useRef();
   const [printMode, setPrintMode] = useState(false);
@@ -57,7 +59,6 @@ export default function CustomTable({
     }));
   };
 
-  // Exclude actions buttons from being printable
   const printableColumns = columns.filter(
     (column) => selectedColumns[column.field] && column.field !== "actions",
   );
@@ -138,6 +139,8 @@ export default function CustomTable({
         setPage={setPage}
         page={page}
         totalPages={totalPages}
+        total={total}
+        setTotal={setTotal}
       />
     </Paper>
   );

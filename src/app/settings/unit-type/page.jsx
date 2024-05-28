@@ -19,8 +19,19 @@ export default function UnitTypePage() {
 }
 
 const UnitTypeWrapper = () => {
-  const { data, loading, page, setPage, limit, setLimit, totalPages, setData } =
-    useDataFetcher("settings/unit-types");
+  const {
+    data,
+    loading,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    totalPages,
+    setData,
+    total,
+    setTotal,
+    setRender,
+  } = useDataFetcher("settings/unit-types");
   const { setOpenModal, setId, id, submitData } = useTableForm();
 
   const handleEdit = (id) => {
@@ -30,8 +41,15 @@ const UnitTypeWrapper = () => {
 
   async function handleDelete(id) {
     const res = await submitData(null, null, id, "DELETE");
+
     const filterData = data.filter((item) => item.id !== res.id);
     setData(filterData);
+    setTotal((old) => old - 1);
+    if (page === 1) {
+      setRender((old) => !old);
+    } else {
+      setPage((old) => (old > 1 ? old - 1 : 1) || 1);
+    }
   }
 
   const columns = [
@@ -91,6 +109,8 @@ const UnitTypeWrapper = () => {
         id={id}
         loading={loading}
         setData={setData}
+        setTotal={setTotal}
+        total={total}
       />
     </>
   );

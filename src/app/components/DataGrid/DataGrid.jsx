@@ -12,12 +12,14 @@ import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import DataCard from "@/app/UiComponents/Cards/DataCard";
 import FullScreenLoader from "@/app/components/Loaders/SpinnerLoader";
 import { paginationOptions } from "@/app/constants/constants";
+import CustomPagination from "@/app/components/CutsomPagination";
 
 export default function DataGrid({
   columns,
   rows = [], // Default to an empty array
   page,
-  totalPages,
+  total,
+  setTotal,
   limit,
   setPage,
   setLimit,
@@ -35,14 +37,6 @@ export default function DataGrid({
     },
     onAfterPrint: () => setPrintMode(false),
   });
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage + 1);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setLimit(parseInt(event.target.value, 10));
-  };
 
   const printableColumns = columns.filter((column) => column.printable);
 
@@ -71,14 +65,14 @@ export default function DataGrid({
           />
         ))}
       </div>
-      <TablePagination
-        rowsPerPageOptions={paginationOptions}
-        component="div"
-        count={totalPages}
-        rowsPerPage={limit}
-        page={page - 1}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
+      <CustomPagination
+        setLimit={setLimit}
+        limit={limit}
+        setPage={setPage}
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        setTotal={setTotal}
       />
     </Paper>
   );
