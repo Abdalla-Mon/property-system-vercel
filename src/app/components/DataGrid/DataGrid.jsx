@@ -27,7 +27,7 @@ export default function DataGrid({
 }) {
   const componentRef = useRef();
   const [printMode, setPrintMode] = useState(false);
-
+  const totalPages = Math.ceil(total / limit);
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
     pageStyle: "@media print { .MuiTablePagination-root { display: none; } }",
