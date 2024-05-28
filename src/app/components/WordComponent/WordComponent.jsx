@@ -5,7 +5,6 @@ import { FaRedo, FaUndo, FaRegWindowMinimize } from "react-icons/fa";
 import "./quil-snow.css";
 import "./quill-custom.css"; // Custom CSS for additional styles
 
-// Dynamically import ReactQuill to support SSR
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 const UndoButton = () => <FaUndo />;
