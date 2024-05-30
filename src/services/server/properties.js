@@ -142,23 +142,28 @@ export async function updateProperty(id, data) {
       builtArea: +data.builtArea,
       location: data.location || "",
       electricityMeters: {
-        deleteMany: {}, // Remove existing electricityMeters
-        create: electricityMeters
-          ? electricityMeters.map((meter) => ({ ...meter }))
+        upsert: electricityMeters
+          ? electricityMeters.map((meter) => ({
+              where: { id: meter.id },
+              update: { ...meter },
+              create: { ...meter },
+            }))
           : [],
       },
       units: {
-        deleteMany: {}, // Remove existing units
-        create: units
+        upsert: units
           ? units.map((unit) => ({
-              ...unit,
-              floor: 0,
+              where: { id: unit.id },
+              update: { ...unit },
+              create: { ...unit },
             }))
           : [],
       },
       buildingGuard: {
-        deleteMany: {}, // Remove existing buildingGuard
-        create: buildingGuard ? buildingGuard : {},
+        update: {
+          where: { id: buildingGuard.id },
+          data: { ...buildingGuard },
+        },
       },
       type: {
         connect: {
