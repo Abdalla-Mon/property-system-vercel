@@ -11,7 +11,8 @@ import { TextField, IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
-import { CitiesForm } from "@/app/UiComponents/FormComponents/Forms/Settings/CiticeForm";
+import { CitiesForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/CiticeForm";
+import Link from "next/link";
 
 export default function StatePage() {
   return (
@@ -69,6 +70,9 @@ const StateWrapper = () => {
       width: 200,
       printable: true,
       cardWidth: 48,
+      renderCell: (params) => (
+        <Link href={`state/${params.row.id}`}>{params.row.name}</Link>
+      ),
     },
     {
       field: "location",
@@ -80,7 +84,7 @@ const StateWrapper = () => {
     {
       field: "cities",
       type: "size",
-      headerName: "عدد المناطق",
+      headerName: "عدد المدن",
       width: 150,
       printable: true,
       cardWidth: 48,

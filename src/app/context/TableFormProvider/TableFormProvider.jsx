@@ -14,9 +14,16 @@ export default function TableFormProvider({ children, url }) {
     setOpenModal,
     id,
     method = "PUT",
+    extra,
     bodyType = "json",
   ) {
-    const route = id ? url + "/" + id : url;
+    const { extraId, id: handlerId } = extra || {};
+    const route = id
+      ? `${url}/${id}`
+      : extra
+        ? `${url}?id=${handlerId}&extraId=${extraId}`
+        : url;
+
     const res = await postData(route, data, setLoading, method, bodyType);
     setOpen(true);
     if (res.status === 200) {
@@ -30,7 +37,7 @@ export default function TableFormProvider({ children, url }) {
       setMessage("حدث خطأ ما");
       setSeverity("error");
     }
-    return res.data;
+    return res.data ? res.data : res;
   }
 
   return (

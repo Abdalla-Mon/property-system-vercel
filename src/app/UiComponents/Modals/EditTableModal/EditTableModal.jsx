@@ -5,15 +5,24 @@ import { useEffect } from "react";
 
 const modalStyle = (fullWidth) => ({
   position: "absolute",
-  width: fullWidth ? "29.5cm" : "50%",
+  width: fullWidth
+    ? "29.5cm"
+    : {
+        xs: "90%",
+        sm: "80%",
+        md: "50%",
+      },
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
   bgcolor: "background.paper",
   boxShadow: 24,
-  p: 4,
+  p: {
+    xs: 1,
+    md: 3,
+  },
   borderRadius: "10px",
-  maxWidth: fullWidth ? "100%" : "50%",
+  maxWidth: fullWidth ? "100%" : { xs: "90%", md: "50%" },
   maxHeight: "90%",
   overflow: "auto",
 });

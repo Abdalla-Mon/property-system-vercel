@@ -1,6 +1,6 @@
 import { createCollector, getCollectors } from "@/services/server/settings";
 
-import { createHandler } from "@/app/api/settings/settings-handler";
+import { createHandler } from "@/app/api/handler";
 
 const handler = createHandler({
   getService: getCollectors,

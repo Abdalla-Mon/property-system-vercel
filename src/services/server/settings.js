@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma"; // Adjust the path to your Prisma instance
 
-// State
+/// State creation and update functions
 export async function createState(data) {
   const { extraData: cities, ...stateData } = data;
 
@@ -11,47 +11,14 @@ export async function createState(data) {
         create: cities.map((city) => ({
           name: city.name,
           location: city.location,
-          districts: {
-            create: city.districts.map((district) => ({
-              name: district.name,
-              location: district.location,
-            })),
-          },
         })),
       },
     },
     include: {
-      cities: {
-        include: {
-          districts: true,
-        },
-      },
+      cities: true,
     },
   });
   return { ...newState, citiesLength: newState.cities.length };
-}
-
-export async function getStates(page, limit) {
-  const offset = (page - 1) * limit;
-  const states = await prisma.state.findMany({
-    skip: offset,
-    take: limit,
-    include: {
-      cities: {
-        include: {
-          districts: true,
-        },
-      },
-    },
-  });
-  const totalStates = await prisma.state.count();
-  const totalPages = Math.ceil(totalStates / limit);
-
-  return {
-    data: states,
-    totalPages,
-    total: totalStates,
-  };
 }
 
 export async function updateState(id, data) {
@@ -66,30 +33,197 @@ export async function updateState(id, data) {
         create: cities.map((city) => ({
           name: city.name,
           location: city.location,
-          districts: {
-            create: city.districts.map((district) => ({
-              name: district.name,
-              location: district.location,
-            })),
-          },
         })),
       },
     },
     include: {
-      cities: {
-        include: {
-          districts: true,
-        },
-      },
+      cities: true,
     },
   });
 
   return { ...updatedState, citiesLength: updatedState.cities.length };
 }
 
+export async function getStates(page, limit) {
+  const offset = (page - 1) * limit;
+  const states = await prisma.state.findMany({
+    skip: offset,
+    take: limit,
+    include: {
+      cities: true,
+    },
+  });
+  const totalStates = await prisma.state.count();
+  const totalPages = Math.ceil(totalStates / limit);
+
+  return {
+    data: states,
+    totalPages,
+    total: totalStates,
+  };
+}
+
 export async function deleteState(id) {
   return await prisma.state.delete({
     where: { id },
+  });
+}
+
+// City CRUD operations
+export async function createCity(data, params) {
+  const { extraData: districts, ...cityData } = data;
+  const { id: stateId } = params;
+  const newCity = await prisma.city.create({
+    data: {
+      ...cityData,
+      state: {
+        connect: { id: +stateId },
+      },
+      districts: {
+        create: districts.map((district) => ({
+          name: district.name,
+          location: district.location,
+        })),
+      },
+    },
+    include: {
+      districts: true,
+    },
+  });
+  return { ...newCity, districtsLength: newCity.districts.length };
+}
+
+export async function getCities(page, limit, searchParams, params) {
+  const { id: stateId } = params;
+  const offset = (page - 1) * limit;
+  const cities = await prisma.city.findMany({
+    where: { stateId: +stateId },
+    skip: offset,
+    take: limit,
+    include: {
+      districts: true,
+    },
+  });
+  const totalCities = await prisma.city.count({ where: { stateId: +stateId } });
+  const totalPages = Math.ceil(totalCities / limit);
+
+  return {
+    data: cities,
+    totalPages,
+    total: totalCities,
+  };
+}
+
+export async function updateCity(id, data, params) {
+  const { extraData: districts, ...cityData } = data;
+  const { cityId } = params;
+
+  const updatedCity = await prisma.city.update({
+    where: { id: +cityId },
+    data: {
+      ...cityData,
+      districts: {
+        deleteMany: {},
+        create: districts.map((district) => ({
+          name: district.name,
+          location: district.location,
+        })),
+      },
+    },
+    include: {
+      districts: true,
+    },
+  });
+
+  return { ...updatedCity, districtsLength: updatedCity.districts.length };
+}
+
+export async function deleteCity(id, params) {
+  const { cityId } = params;
+  return await prisma.city.delete({
+    where: { id: +cityId },
+  });
+}
+
+// District CRUD operations
+export async function createDistrict(data, params) {
+  const { extraData: neighbours, ...districtData } = data;
+  const { cityId } = params;
+
+  const newDistrict = await prisma.district.create({
+    data: {
+      ...districtData,
+      city: {
+        connect: { id: +cityId },
+      },
+      neighbours: {
+        create: neighbours.map((neighbour) => ({
+          name: neighbour.name,
+          location: neighbour.location,
+        })),
+      },
+    },
+    include: {
+      neighbours: true,
+    },
+  });
+  return { ...newDistrict, neighboursLength: newDistrict.neighbours.length };
+}
+
+export async function getDistricts(page, limit, searchParams, params) {
+  const { cityId } = params;
+  const offset = (page - 1) * limit;
+  const districts = await prisma.district.findMany({
+    where: { cityId: +cityId },
+    skip: offset,
+    take: limit,
+    include: {
+      neighbours: true,
+    },
+  });
+  const totalDistricts = await prisma.district.count({
+    where: { cityId: +cityId },
+  });
+  const totalPages = Math.ceil(totalDistricts / limit);
+
+  return {
+    data: districts,
+    totalPages,
+    total: totalDistricts,
+  };
+}
+
+export async function updateDistrict(id, data, params) {
+  const { extraData: neighbours, ...districtData } = data;
+  const { districtId } = params;
+
+  const updatedDistrict = await prisma.district.update({
+    where: { id: +districtId },
+    data: {
+      ...districtData,
+      neighbours: {
+        deleteMany: {},
+        create: neighbours.map((neighbour) => ({
+          name: neighbour.name,
+          location: neighbour.location,
+        })),
+      },
+    },
+    include: {
+      neighbours: true,
+    },
+  });
+
+  return {
+    ...updatedDistrict,
+    neighboursLength: updatedDistrict.neighbours.length,
+  };
+}
+
+export async function deleteDistrict(id, params) {
+  const { districtId } = params;
+  return await prisma.district.delete({
+    where: { id: +districtId },
   });
 }
 

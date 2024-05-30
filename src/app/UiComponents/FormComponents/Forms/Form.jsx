@@ -1,7 +1,7 @@
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { useForm } from "react-hook-form";
-import { Button, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import TextAreaField from "@/app/UiComponents/FormComponents/MUIInputs/TextAreaField";
 import { MuiTextField } from "@/app/UiComponents/FormComponents/MUIInputs/MuiTextField";
 import { MuiSelect } from "@/app/UiComponents/FormComponents/MUIInputs/MuiSelect";
@@ -20,18 +20,25 @@ export function Form({
   btnText,
   differentButton,
   children,
+  extraData,
+  disabled,
+  reFetch,
 }) {
   const { formState, register, handleSubmit, watch, trigger, control } =
     useForm();
   const { errors } = formState;
   return (
-    <div className="bg-white p-6 rounded shadow-md my-4">
+    <Box
+      className="bg-white  rounded shadow-md my-4"
+      sx={{
+        p: { xs: 2, md: 4 },
+      }}
+    >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <form
           noValidate
           onSubmit={handleSubmit(onSubmit)}
           style={{ ...formStyle }}
-          className="space-y-4"
         >
           <Typography
             variant="h4"
@@ -46,7 +53,7 @@ export function Form({
           <Typography variant="subtitle1" className="mb-4 font-bold">
             {subTitle}
           </Typography>
-          <div className="main w-full flex flex-col gap-4">
+          <div className="main w-full flex  gap-4 flex-wrap">
             {inputs.map((input) => {
               switch (input.data.type) {
                 case "text":
@@ -80,6 +87,9 @@ export function Form({
                       variant={variant}
                       select={input}
                       key={input.data.id}
+                      extraData={extraData}
+                      disabled={disabled}
+                      reFetch={reFetch}
                     />
                   );
                 case "date":
@@ -88,6 +98,7 @@ export function Form({
                       input={input}
                       control={control}
                       key={input.data.id}
+                      errors={errors}
                     />
                   );
                 case "file":
@@ -144,6 +155,6 @@ export function Form({
           )}
         </form>
       </LocalizationProvider>
-    </div>
+    </Box>
   );
 }

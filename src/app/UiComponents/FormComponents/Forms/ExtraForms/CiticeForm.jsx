@@ -16,7 +16,7 @@ export const CitiesForm = ({ cities, setCities }) => {
   }, [openModal]);
 
   const handleAddCity = () => {
-    setCities([...cities, { name: "", location: "", districts: [] }]);
+    setCities([...cities, { name: "", location: "" }]);
     setEditableCities([...editableCities, true]);
   };
 
@@ -35,12 +35,6 @@ export const CitiesForm = ({ cities, setCities }) => {
     setCities(newCities);
   };
 
-  const handleDistrictsChange = (index, districts) => {
-    const newCities = [...cities];
-    newCities[index].districts = districts;
-    setCities(newCities);
-  };
-
   return (
     <div className="cities-form">
       {cities?.map((city, index) => (
@@ -48,14 +42,14 @@ export const CitiesForm = ({ cities, setCities }) => {
           <h3 className="text-lg font-semibold mb-2">المدينه</h3>
           <div className="flex items-center gap-4">
             <TextField
-              label="اسم المنطقه"
+              label="اسم المدينه"
               variant="outlined"
               value={city.name}
               onChange={(e) => handleCityChange(index, "name", e.target.value)}
               className="mr-2"
             />
             <TextField
-              label="موقع المنطقه"
+              label="موقع المدينه"
               variant="outlined"
               value={city.location}
               onChange={(e) =>
@@ -70,71 +64,10 @@ export const CitiesForm = ({ cities, setCities }) => {
               <DeleteIcon />
             </IconButton>
           </div>
-          <DistrictsForm
-            districts={city.districts}
-            setDistricts={(districts) =>
-              handleDistrictsChange(index, districts)
-            }
-          />
         </div>
       ))}
       <Button onClick={handleAddCity} variant="contained">
         إضافة مدينة
-      </Button>
-    </div>
-  );
-};
-
-export const DistrictsForm = ({ districts, setDistricts }) => {
-  const handleAddDistrict = () => {
-    setDistricts([...districts, { name: "", location: "" }]);
-  };
-
-  const handleRemoveDistrict = (index) => {
-    const newDistricts = [...districts];
-    newDistricts.splice(index, 1);
-    setDistricts(newDistricts);
-  };
-
-  const handleDistrictChange = (index, key, value) => {
-    const newDistricts = [...districts];
-    newDistricts[index][key] = value;
-    setDistricts(newDistricts);
-  };
-
-  return (
-    <div className="districts-form">
-      <h4 className="text-md font-semibold mb-2">الأحياء</h4>
-      {districts?.map((district, index) => (
-        <div key={index} className="flex items-center mb-2 gap-4">
-          <TextField
-            label="اسم الحي"
-            variant="outlined"
-            value={district.name}
-            onChange={(e) =>
-              handleDistrictChange(index, "name", e.target.value)
-            }
-            className="mr-2"
-          />
-          <TextField
-            label="موقع الحي"
-            variant="outlined"
-            value={district.location}
-            onChange={(e) =>
-              handleDistrictChange(index, "location", e.target.value)
-            }
-            className="mr-2"
-          />
-          <IconButton
-            onClick={() => handleRemoveDistrict(index)}
-            color="secondary"
-          >
-            <DeleteIcon />
-          </IconButton>
-        </div>
-      ))}
-      <Button onClick={handleAddDistrict} variant="contained">
-        إضافة حي
       </Button>
     </div>
   );

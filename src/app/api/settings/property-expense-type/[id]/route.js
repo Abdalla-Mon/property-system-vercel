@@ -1,4 +1,4 @@
-import { createHandler } from "@/app/api/settings/settings-handler";
+import { createHandler } from "@/app/api/handler";
 import {
   deletePropertyExpenseType,
   updatePropertyExpenseType,

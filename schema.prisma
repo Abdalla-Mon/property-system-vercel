@@ -34,6 +34,18 @@ model District {
   location  String
   cityId    Int
   city      City      @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  neighbours Neighbour[]
+  properties Property[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Neighbour {
+  id        Int       @id @default(autoincrement())
+  name      String
+  location  String
+  districtId Int
+  district  District  @relation(fields: [districtId], references: [id], onDelete: Cascade)
   properties Property[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -61,12 +73,15 @@ model Property {
   type                PropertyType @relation(fields: [typeId], references: [id], onDelete: Restrict)
   propertyId          String   // معرف العقار
   voucherNumber       String   // رقم القسيمة
+  plateNumber         String   // رقم اللوحة
   location            String
   street              String   // الشارع
   cityId              Int
   city                City     @relation(fields: [cityId], references: [id], onDelete: Restrict)
   districtId          Int?
   district            District? @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  neighbourId         Int?
+  neighbour           Neighbour? @relation(fields: [neighbourId], references: [id], onDelete: SetNull)
   price               Float    // قيمة العقار
   dateOfBuilt         DateTime // تاريخ البناء
   numElevators        Int      // عدد المصاعد
@@ -84,7 +99,8 @@ model Property {
   collector           Collector? @relation(fields: [collectorId], references: [id], onDelete: SetNull)
   deletedAt           DateTime? // null means the property is not deleted
   attachments         Attachment[] // Relation to the new Attachment model
-  expenses            Expense[] // Add this line
+  incomes Income[]
+  expenses Expense[]
   invoices            Invoice[]
   units               Unit[]
   maintenances        Maintenance[]
@@ -343,11 +359,13 @@ model Client {
   nationalId       String   // هوية المالك
   phone            String?  // رقم هاتف المالك
   email            String?  // الايميل (Optional)
+  role                ClientRole
   properties       Property[]
   rentAgreementsRenter RentAgreement[] @relation("Renter")
   rentAgreementsOwner RentAgreement[] @relation("Owner")
   units            Unit[]  // This now references units correctly
-  incomes          Income[]
+  incomes Income[]
+  expenses Expense[]
   invoices         Invoice[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -369,29 +387,34 @@ model Contact {
 }
 
 model Income {
-  id                      Int       @id @default(autoincrement())
-  amount                  Float
-  date                    DateTime
-  description             String
-  clientId                Int
-  client                  Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  invoiceId               Int
-  invoice                 Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  id          Int       @id @default(autoincrement())
+  amount      Float
+  date        DateTime
+  description String
+  clientId    Int
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  propertyId  Int
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  invoiceId   Int
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
+
 model Expense {
-  id                      Int       @id @default(autoincrement())
-  amount                  Float
-  date                    DateTime
-  description             String
-  propertyId              Int
-  property                Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  invoiceId               Int
-  invoice                 Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  isPaid                  Boolean @default(false)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  id          Int       @id @default(autoincrement())
+  amount      Float
+  date        DateTime
+  description String
+  propertyId  Int
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  clientId    Int
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  invoiceId   Int
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  isPaid      Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Collector {

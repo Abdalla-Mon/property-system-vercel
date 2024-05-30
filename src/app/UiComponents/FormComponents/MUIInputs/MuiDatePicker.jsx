@@ -2,11 +2,11 @@ import { FormControl, TextField } from "@mui/material";
 import { Controller } from "react-hook-form";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
-export function MuiDatePicker({ control, input }) {
+export function MuiDatePicker({ control, input, errors }) {
   const inputData = input.data;
 
   return (
-    <FormControl fullWidth error={!!errors.startDate}>
+    <FormControl fullWidth error={!!errors.startDate} sx={input.sx}>
       <Controller
         name={inputData.label}
         control={control}

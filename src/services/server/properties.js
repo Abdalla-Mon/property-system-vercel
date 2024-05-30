@@ -1,70 +1,90 @@
-import prisma from '@/lib/prisma'; // Adjust the path to your Prisma instance
+import prisma from "@/lib/prisma";
 
-export async function createProperty(data) {
-    return await prisma.property.create({ data });
+export async function createProperty(data, extraData) {
+  const { electricityMeters, units } = extraData;
+
+  const newProperty = await prisma.property.create({
+    data: {
+      ...data,
+      electricityMeters: {
+        create: electricityMeters
+          ? electricityMeters.map((meter) => ({ ...meter }))
+          : [],
+      },
+      units: {
+        create: units ? units.map((unit) => ({ ...unit })) : [],
+      },
+    },
+  });
+
+  return newProperty;
+}
+
+export async function getProperties(page, limit) {
+  const offset = (page - 1) * limit;
+  const properties = await prisma.property.findMany({
+    skip: offset,
+    take: limit,
+    include: {
+      units: true,
+    },
+  });
+  const totalProperties = await prisma.property.count();
+  const totalPages = Math.ceil(totalProperties / limit);
+
+  const data = properties.map((property) => ({
+    ...property,
+    unitsLength: property.units.length,
+  }));
+
+  return {
+    data,
+    totalPages,
+    total: totalProperties,
+  };
 }
 
 export async function getPropertyById(id) {
-    return await prisma.property.findUnique({
-        where: { id },
-        include: {
-            client: {
-                select: { name: true, id: true }
-            },
-            units: true
-        }
-    });
-}
+  const property = await prisma.property.findUnique({
+    where: { id },
+    include: {
+      units: true,
+    },
+  });
 
-export async function getProperties({ page = 1, limit = 10, filters = {}, sort = '' }) {
-    const skip = (page - 1) * limit;
-
-    const where = {
-        AND: [
-            filters.dateFrom && filters.dateTo ? {
-                dateOfBuilt: {
-                    gte: new Date(filters.dateFrom),
-                    lte: new Date(filters.dateTo)
-                }
-            } : {}
-        ]
+  if (property) {
+    return {
+      ...property,
+      unitsLength: property.units.length,
     };
+  }
 
-    let orderBy = {};
-    if (sort) {
-        const [field, order] = sort.split('_');
-        orderBy[field] = order;
-    }
-
-    const properties = await prisma.property.findMany({
-        skip,
-        take: limit,
-        where,
-        orderBy,
-        include: {
-            client: {
-                select: { name: true, id: true }
-            },
-            _count: {
-                select: { units: true }
-            }
-        }
-    });
-
-    const totalItems = await prisma.property.count({ where });
-
-    return { properties, totalItems };
+  return null;
 }
 
-export async function updateProperty(id, data) {
-    return await prisma.property.update({
-        where: { id },
-        data
-    });
+export async function updateProperty(id, data, extraData) {
+  const { electricMetrics, units, ...propertyData } = data;
+
+  const updatedProperty = await prisma.property.update({
+    where: { id },
+    data: {
+      ...propertyData,
+      electricMetrics: {
+        deleteMany: {}, // Remove existing electricMetrics
+        create: electricMetrics ? electricMetrics : [],
+      },
+      units: {
+        deleteMany: {}, // Remove existing units
+        create: units ? units.map((unit) => ({ ...unit })) : [],
+      },
+    },
+  });
+
+  return updatedProperty;
 }
 
 export async function deleteProperty(id) {
-    return await prisma.property.delete({
-        where: { id }
-    });
+  return await prisma.property.delete({
+    where: { id },
+  });
 }

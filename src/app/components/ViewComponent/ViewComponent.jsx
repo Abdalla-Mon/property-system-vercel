@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import MainTable from "@/app/components/Tables/MainTable";
 import DataGrid from "@/app/components/DataGrid/DataGrid";
 import CustomTable from "@/app/components/Tables/CustomTable";
-import { EditTableModal } from "@/app/components/EditTableModal/EditTableModal";
+import { EditTableModal } from "@/app/UiComponents/Modals/EditTableModal/EditTableModal";
 import { useTableForm } from "@/app/context/TableFormProvider/TableFormProvider";
 import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
 
@@ -12,7 +12,6 @@ export default function ViewComponent({
   columns,
   rows = [],
   page,
-  totalPages,
   limit,
   setPage,
   setLimit,
@@ -27,9 +26,14 @@ export default function ViewComponent({
   fullWidth,
   setTotal,
   total,
+  noModal = false,
+  directEdit = false,
+  disabled,
+  createModalsData,
+  reFetch,
 }) {
   const [view, setView] = useState("table");
-  const [showForm, setShowForm] = useState(false); // State to toggle form visibility
+  const [showForm, setShowForm] = useState(directEdit);
   const { openModal, submitData } = useTableForm();
 
   async function create(data) {
@@ -44,13 +48,13 @@ export default function ViewComponent({
   }
 
   useEffect(() => {
-    if (openModal && setShowForm) {
+    if (openModal && !noModal) {
       setShowForm(false);
     }
   }, [openModal]);
   return (
     <div className="">
-      {openModal && (
+      {openModal && !noModal && (
         <EditTableModal
           fullWidth={fullWidth}
           inputs={inputs}
@@ -95,7 +99,10 @@ export default function ViewComponent({
               create(data);
             }}
             variant={"outlined"}
-            btnText={"إضافة"}
+            btnText={directEdit ? "تعديل" : "إضافة"}
+            disabled={disabled}
+            extraData={createModalsData}
+            reFetch={reFetch}
           >
             {children}
           </Form>

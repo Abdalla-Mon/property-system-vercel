@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import {
   Box,
   Drawer,
@@ -13,6 +12,8 @@ import {
   Hidden,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
+import HouseIcon from "@mui/icons-material/House";
+
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import BuildIcon from "@mui/icons-material/Build";
@@ -21,18 +22,20 @@ import PeopleIcon from "@mui/icons-material/People";
 import SettingsIcon from "@mui/icons-material/Settings";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import GroupIcon from "@mui/icons-material/Group";
 import { usePathname } from "next/navigation";
 
 const drawerWidth = 240;
 
 const navItems = [
   { href: "/", Icon: HomeIcon, text: "الرئيسيه" },
-  { href: "/properties", Icon: ApartmentIcon, text: "العفارات" },
+  // { href: "/properties", Icon: HouseIcon, text: "العقارات" },
   { href: "/units", Icon: ApartmentIcon, text: "الوحدات" },
   { href: "/rent", Icon: PaymentIcon, text: "عقود الايجار" },
   { href: "/invoices", Icon: ReceiptIcon, text: "الفواتير" },
   { href: "/maintenance", Icon: BuildIcon, text: "الصيانه" },
-  { href: "/users", Icon: PeopleIcon, text: "المستخدمين" },
+  // { href: "/owners", Icon: PeopleIcon, text: "الملاك" },
+  // { href: "/renters", Icon: GroupIcon, text: "المستأجرين" },
   { href: "/settings", Icon: SettingsIcon, text: "الاعدادات" },
 ];
 
