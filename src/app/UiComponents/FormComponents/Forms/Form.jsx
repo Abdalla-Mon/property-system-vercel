@@ -9,6 +9,7 @@ import { MuiDatePicker } from "@/app/UiComponents/FormComponents/MUIInputs/MuiDa
 import MuiFileField from "@/app/UiComponents/FormComponents/MUIInputs/MuiFileField";
 import MuiSwitchField from "@/app/UiComponents/FormComponents/MUIInputs/MuiSwitchField";
 import { MuiNumberField } from "@/app/UiComponents/FormComponents/MUIInputs/MuiNumberField";
+import { useRef } from "react";
 
 export function Form({
   formStyle,
@@ -27,6 +28,7 @@ export function Form({
   const { formState, register, handleSubmit, watch, trigger, control } =
     useForm();
   const { errors } = formState;
+  const formRef = useRef();
   return (
     <Box
       className="bg-white  rounded shadow-md my-4"
@@ -39,6 +41,7 @@ export function Form({
           noValidate
           onSubmit={handleSubmit(onSubmit)}
           style={{ ...formStyle }}
+          ref={formRef}
         >
           <Typography
             variant="h4"
@@ -90,6 +93,7 @@ export function Form({
                       extraData={extraData}
                       disabled={disabled}
                       reFetch={reFetch}
+                      control={control}
                     />
                   );
                 case "date":
@@ -123,13 +127,14 @@ export function Form({
                   );
                 case "number":
                   return (
-                    <MuiNumberField
+                    <MuiTextField
                       variant={variant}
                       register={register}
                       input={input}
                       errors={errors}
-                      watch={watch}
                       trigger={trigger}
+                      watch={watch}
+                      key={input.data.id}
                     />
                   );
                 default:

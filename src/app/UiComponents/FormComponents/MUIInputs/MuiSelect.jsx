@@ -8,12 +8,13 @@ import {
   TextField,
   MenuItem,
 } from "@mui/material";
+import { Controller } from "react-hook-form";
 import { CreateModal } from "@/app/UiComponents/Modals/CreateModal/CreateModal";
 
 export function MuiSelect({
   select,
   variant,
-  register,
+  control,
   errors,
   extraData,
   disabled,
@@ -25,7 +26,7 @@ export function MuiSelect({
         select={select}
         errors={errors}
         variant={variant}
-        register={register}
+        control={control}
         extraData={extraData}
         disabled={disabled}
         reFetch={reFetch}
@@ -37,13 +38,13 @@ export function MuiSelect({
         select={select}
         errors={errors}
         variant={variant}
-        register={register}
+        control={control}
       />
     );
   }
 }
 
-function Select({ select, variant, register, errors, extraData, disabled }) {
+function Select({ select, variant, control, errors }) {
   const getData = select.getData;
   const selectData = select.data;
   const [options, setOptions] = useState(select.options);
@@ -54,6 +55,7 @@ function Select({ select, variant, register, errors, extraData, disabled }) {
   const handleChange = (event) => {
     setValue(event.target.value);
   };
+
   useEffect(() => {
     if (!options && getData) {
       async function fetchOptions() {
@@ -65,26 +67,37 @@ function Select({ select, variant, register, errors, extraData, disabled }) {
 
       fetchOptions();
     }
-  }, []);
+  }, [getData, options]);
 
   return (
     <FormControl fullWidth={fullWidth} sx={select.sx}>
       <InputLabel id="demo-simple-select-label">{selectData.label}</InputLabel>
-      <Select
-        {...register(selectData.id, select.pattern)}
-        {...selectData}
-        value={value}
-        onChange={handleChange}
-        error={errors?.[selectData.id]}
-        variant={variant}
-      >
-        {loading && "جاري تحميل الخيارات"}
-        {options?.map((option) => (
-          <MenuItem value={option.value} key={option.label}>
-            {option.label}
-          </MenuItem>
-        ))}
-      </Select>
+      <Controller
+        name={selectData.id}
+        control={control}
+        defaultValue={value}
+        rules={select.pattern}
+        render={({ field }) => (
+          <Select
+            {...field}
+            {...selectData}
+            value={value}
+            onChange={(event) => {
+              handleChange(event);
+              field.onChange(event);
+            }}
+            error={errors?.[selectData.id]}
+            variant={variant}
+          >
+            {loading && "جاري تحميل الخيارات"}
+            {options?.map((option) => (
+              <MenuItem value={option.value} key={option.label}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        )}
+      />
       <FormHelperText>{errors[selectData.id]?.message}</FormHelperText>
     </FormControl>
   );
@@ -93,7 +106,7 @@ function Select({ select, variant, register, errors, extraData, disabled }) {
 function MUIAutoComplete({
   select,
   variant,
-  register,
+  control,
   errors,
   extraData,
   disabled,
@@ -109,14 +122,11 @@ function MUIAutoComplete({
   const onChange = select.onChange;
   const [opened, setOpened] = useState(false);
   const [id, setId] = useState(false);
+
   const handleOpen = async () => {
     setOpen(true);
-    if (getData && !opened) {
-      if (select.rerender && !reFetch[selectData.id]) {
-        return;
-      }
+    if (getData && (!opened || select.rerender)) {
       setLoading(true);
-
       const fetchedOptions = await getData();
       setOptions(fetchedOptions.data);
       setId(fetchedOptions.id);
@@ -132,7 +142,7 @@ function MUIAutoComplete({
   };
 
   const handleChange = (event, newValue) => {
-    setValue(newValue);
+    setValue(newValue ? newValue.id : "");
     if (onChange) {
       onChange(newValue ? newValue.id : null);
     }
@@ -150,35 +160,45 @@ function MUIAutoComplete({
       }}
     >
       <div className={"flex-1 w-full"}>
-        <Autocomplete
-          open={open}
-          onOpen={handleOpen}
-          onClose={handleClose}
-          onChange={handleChange}
-          value={value}
-          options={options}
-          loading={loading}
-          disabled={disabled[selectData.id]}
-          getOptionLabel={(option) => option.name}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              {...register(selectData.id, select.pattern)}
-              label={selectData.label}
-              variant={variant}
-              error={Boolean(errors[selectData.id])}
-              helperText={errors[selectData.id]?.message}
-              InputProps={{
-                ...params.InputProps,
-                endAdornment: (
-                  <>
-                    {loading ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
+        <Controller
+          name={selectData.id}
+          control={control}
+          defaultValue={value}
+          rules={select.pattern}
+          render={({ field }) => (
+            <Autocomplete
+              open={open}
+              onOpen={handleOpen}
+              onClose={handleClose}
+              onChange={(event, newValue) => {
+                handleChange(event, newValue);
+                field.onChange(newValue ? newValue.id : null);
               }}
+              value={options.find((option) => option.id === value) || null}
+              options={options}
+              loading={loading}
+              disabled={disabled[selectData.id]}
+              getOptionLabel={(option) => option.name || ""}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={selectData.label}
+                  variant={variant}
+                  error={Boolean(errors[selectData.id])}
+                  helperText={errors[selectData.id]?.message}
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {loading ? (
+                          <CircularProgress color="inherit" size={20} />
+                        ) : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
             />
           )}
         />

@@ -31,6 +31,7 @@ export default function ViewComponent({
   disabled,
   createModalsData,
   reFetch,
+  url,
 }) {
   const [view, setView] = useState("table");
   const [showForm, setShowForm] = useState(directEdit);
@@ -38,7 +39,16 @@ export default function ViewComponent({
 
   async function create(data) {
     data = { ...data, extraData };
-    const newData = await submitData(data, null, null, "POST");
+
+    const newData = await submitData(
+      data,
+      null,
+      null,
+      "POST",
+      null,
+      "json",
+      url,
+    );
 
     if (rows.length < limit) {
       setData((old) => [...old, newData]);

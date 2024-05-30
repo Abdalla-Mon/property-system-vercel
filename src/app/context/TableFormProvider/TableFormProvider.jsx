@@ -16,7 +16,9 @@ export default function TableFormProvider({ children, url }) {
     method = "PUT",
     extra,
     bodyType = "json",
+    otherUrl,
   ) {
+    url = otherUrl ? otherUrl : url;
     const { extraId, id: handlerId } = extra || {};
     const route = id
       ? `${url}/${id}`
@@ -42,7 +44,13 @@ export default function TableFormProvider({ children, url }) {
 
   return (
     <TableContext.Provider
-      value={{ id, setId, openModal, setOpenModal, submitData }}
+      value={{
+        id,
+        setId,
+        openModal,
+        setOpenModal,
+        submitData,
+      }}
     >
       {children}
     </TableContext.Provider>

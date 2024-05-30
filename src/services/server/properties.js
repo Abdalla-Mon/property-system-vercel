@@ -1,18 +1,69 @@
 import prisma from "@/lib/prisma";
 
-export async function createProperty(data, extraData) {
+export async function createProperty(data) {
+  const { extraData } = data;
   const { electricityMeters, units } = extraData;
+  delete data.stateId;
+  delete data.extraData;
+
+  const buildingGuard = {
+    name: data.buildingGuardName,
+    number: +data.buildingGuardPhone,
+    nationalId: data.buildingGuardId,
+  };
 
   const newProperty = await prisma.property.create({
     data: {
-      ...data,
+      name: data.name,
+      propertyId: data.propertyId,
+      voucherNumber: data.voucherNumber,
+      street: data.street,
+      plateNumber: data.plateNumber,
+      price: +data.price,
+      dateOfBuilt: data.dateOfBuilt,
+      bankAccountNumber: data.bankAccountNumber,
+      managementCommission: +data.managementCommission,
+      numElevators: +data.numElevators,
+      numParkingSpaces: +data.numParkingSpaces,
+      builtArea: +data.builtArea,
+      location: data.location || "",
       electricityMeters: {
         create: electricityMeters
           ? electricityMeters.map((meter) => ({ ...meter }))
           : [],
       },
       units: {
-        create: units ? units.map((unit) => ({ ...unit })) : [],
+        create: units
+          ? units.map((unit) => ({
+              ...unit,
+
+              floor: 0,
+            }))
+          : [],
+      },
+      buildingGuard: {
+        create: buildingGuard ? buildingGuard : {},
+      },
+      type: {
+        connect: {
+          id: +data.typeId,
+        },
+      },
+      city: {
+        connect: {
+          id: +data.cityId,
+        },
+      },
+
+      bank: {
+        connect: {
+          id: +data.bankId,
+        },
+      },
+      client: {
+        connect: {
+          id: +data.clientId,
+        },
       },
     },
   });

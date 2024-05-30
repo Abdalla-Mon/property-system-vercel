@@ -7,7 +7,7 @@ import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { useState } from "react";
 import { propertyInputs } from "@/app/properties/propertyInputs";
-import { MetersForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/MetersForm";
+import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
 
 export default function PropertyPage() {
   return (
@@ -31,7 +31,7 @@ const PropertyWrapper = () => {
     setTotal,
     setRender,
   } = useDataFetcher("main/properties");
-  const { id, submitData } = useTableForm();
+  const { id, submitData, editableUrl, setUrl } = useTableForm();
 
   const [stateId, setStateId] = useState(null);
   const [cityId, setCityId] = useState(null);
@@ -189,7 +189,15 @@ const PropertyWrapper = () => {
   });
 
   async function handleDelete(id) {
-    const res = await submitData(null, null, id, "DELETE");
+    const res = await submitData(
+      null,
+      null,
+      id,
+      "DELETE",
+      null,
+      null,
+      "main/properties",
+    );
 
     const filterData = data.filter((item) => item.id !== res.id);
     setData(filterData);
@@ -286,8 +294,14 @@ const PropertyWrapper = () => {
       ),
     },
   ];
-  const [meters, setMeters] = useState([]);
+  const [electricityMeters, setMeters] = useState([]);
   const [attachments, setAttachments] = useState([]);
+  const [units, setUnits] = useState([]);
+  const metersFields = [
+    { id: "name", label: "اسم العداد" },
+    { id: "meterId", label: "رقم العداد" },
+  ];
+  const unitsFields = [{ id: "name", label: "اسم الوحدة" }];
 
   return (
     <>
@@ -305,13 +319,25 @@ const PropertyWrapper = () => {
         loading={loading}
         setData={setData}
         setTotal={setTotal}
-        extraData={{ meters, attachments }}
+        extraData={{ electricityMeters, units }}
         total={total}
         noModal={true}
         disabled={disabled}
         reFetch={reFetch}
+        url={"main/properties"}
       >
-        <MetersForm setMeters={setMeters} meters={meters} />
+        <ExtraForm
+          setItems={setMeters}
+          items={electricityMeters}
+          fields={metersFields}
+          title={"عداد"}
+        />
+        <ExtraForm
+          setItems={setUnits}
+          items={units}
+          fields={unitsFields}
+          title={"وحدة"}
+        />
       </ViewComponent>
     </>
   );

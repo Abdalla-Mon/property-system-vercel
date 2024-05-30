@@ -442,7 +442,7 @@ export const propertyInputs = [
   {
     data: {
       id: "buildingGuardPhone",
-      type: "text",
+      type: "number",
       label: "رقم جوال حارس",
       name: "buildingGuardPhone",
     },
@@ -457,7 +457,7 @@ export const propertyInputs = [
   {
     data: {
       id: "buildingGuardId",
-      type: "text",
+      type: "number",
       label: "هوية حارس",
       name: "buildingGuardId",
     },

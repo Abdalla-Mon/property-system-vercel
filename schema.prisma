@@ -72,10 +72,9 @@ model Property {
   typeId              Int
   type                PropertyType @relation(fields: [typeId], references: [id], onDelete: Restrict)
   propertyId          String   // معرف العقار
-  voucherNumber       String   // رقم القسيمة
-  plateNumber         String   // رقم اللوحة
-  location            String
-  street              String   // الشارع
+  voucherNumber       String?   // رقم القسيمة
+  location            String?
+  street              String?   // الشارع
   cityId              Int
   city                City     @relation(fields: [cityId], references: [id], onDelete: Restrict)
   districtId          Int?
@@ -93,6 +92,7 @@ model Property {
   bank                Bank     @relation(fields: [bankId], references: [id], onDelete: Restrict, name: "PropertyBank") // Updated relation to Bank
   bankAccountNumber   String   // رقم الحساب البنكي
   managementCommission Float   // عمولة اداره العقار
+  plateNumber         String   // رقم اللوحة
   clientId            Int
   client              Client   @relation(fields: [clientId], references: [id], onDelete: Cascade) // This represents the owner
   collectorId         Int?
@@ -131,20 +131,20 @@ model Attachment {
 model Unit {
   id               Int       @id @default(autoincrement())
   name             String
-  number           String    // رقم الوحدة
-  yearlyRentPrice  Float     // سعر الإيجار السنوي
-  electricityMeter String    // رقم عداد الكهرباء
-  numBedrooms      Int       // عدد غرف النوم
+  number           String?    // رقم الوحدة
+  yearlyRentPrice  Float?     // سعر الإيجار السنوي
+  electricityMeter String?    // رقم عداد الكهرباء
+  numBedrooms      Int?       // عدد غرف النوم
   floor            Int       // الدور
-  numBathrooms     Int       // عدد الحمامات
-  numACs           Int       // عدد مكيف
-  numLivingRooms   Int       // عدد غرف الجلوس
-  numKitchens      Int       // عدد المطابخ
-  numSaloons       Int       // عدد الصالة
-  unitId           String    // معرف الوحده
+  numBathrooms     Int?       // عدد الحمامات
+  numACs           Int?       // عدد مكيف
+  numLivingRooms   Int?       // عدد غرف الجلوس
+  numKitchens      Int?       // عدد المطابخ
+  numSaloons       Int?       // عدد الصالة
+  unitId           String?    // معرف الوحده
   notes            String?
-  typeId           Int
-  type             UnitType  @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  typeId           Int?
+  type             UnitType?  @relation(fields: [typeId], references: [id], onDelete: Restrict)
   propertyId       Int
   property         Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   clientId         Int?      // Optional reference to Client
