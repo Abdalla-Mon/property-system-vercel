@@ -113,20 +113,72 @@ export async function getPropertyById(id) {
   return null;
 }
 
-export async function updateProperty(id, data, extraData) {
-  const { electricMetrics, units, ...propertyData } = data;
+export async function updateProperty(id, data) {
+  const { extraData } = data;
+  const { electricityMeters, units } = extraData;
+  delete data.stateId;
+  delete data.extraData;
+
+  const buildingGuard = {
+    name: data.buildingGuardName,
+    number: +data.buildingGuardPhone,
+    nationalId: data.buildingGuardId,
+  };
 
   const updatedProperty = await prisma.property.update({
     where: { id },
     data: {
-      ...propertyData,
-      electricMetrics: {
-        deleteMany: {}, // Remove existing electricMetrics
-        create: electricMetrics ? electricMetrics : [],
+      name: data.name,
+      propertyId: data.propertyId,
+      voucherNumber: data.voucherNumber,
+      street: data.street,
+      plateNumber: data.plateNumber,
+      price: +data.price,
+      dateOfBuilt: data.dateOfBuilt,
+      bankAccountNumber: data.bankAccountNumber,
+      managementCommission: +data.managementCommission,
+      numElevators: +data.numElevators,
+      numParkingSpaces: +data.numParkingSpaces,
+      builtArea: +data.builtArea,
+      location: data.location || "",
+      electricityMeters: {
+        deleteMany: {}, // Remove existing electricityMeters
+        create: electricityMeters
+          ? electricityMeters.map((meter) => ({ ...meter }))
+          : [],
       },
       units: {
         deleteMany: {}, // Remove existing units
-        create: units ? units.map((unit) => ({ ...unit })) : [],
+        create: units
+          ? units.map((unit) => ({
+              ...unit,
+              floor: 0,
+            }))
+          : [],
+      },
+      buildingGuard: {
+        deleteMany: {}, // Remove existing buildingGuard
+        create: buildingGuard ? buildingGuard : {},
+      },
+      type: {
+        connect: {
+          id: +data.typeId,
+        },
+      },
+      city: {
+        connect: {
+          id: +data.cityId,
+        },
+      },
+      bank: {
+        connect: {
+          id: +data.bankId,
+        },
+      },
+      client: {
+        connect: {
+          id: +data.clientId,
+        },
       },
     },
   });
