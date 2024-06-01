@@ -124,9 +124,12 @@ export async function createProperty(data) {
   return newProperty;
 }
 
-export async function getProperties(page, limit) {
+export async function getProperties(page, limit, searchParams) {
+  const filters = searchParams.get("filters");
+  const jsonFilters = filters?.length > 0 ? JSON.parse(filters) : null;
   const offset = (page - 1) * limit;
   const properties = await prisma.property.findMany({
+    where: jsonFilters.clientId ? { clientId: +jsonFilters.clientId } : {},
     skip: offset,
     take: limit,
     include: {
@@ -315,6 +318,7 @@ export async function getUnitsByPropertyId(page, limit, searchParams, params) {
           name: true,
         },
       },
+      rentAgreements: true,
     },
     skip: offset,
     take: limit,

@@ -66,6 +66,11 @@ const StateWrapper = () => {
       width: 100,
       printable: true,
       cardWidth: 48,
+      renderCell: (params) => (
+        <Link href={`state/${params.row.id}`}>
+          <Button variant={"text"}>{params.row.id}</Button>
+        </Link>
+      ),
     },
     {
       field: "name",
@@ -74,7 +79,9 @@ const StateWrapper = () => {
       printable: true,
       cardWidth: 48,
       renderCell: (params) => (
-        <Link href={`state/${params.row.id}`}>{params.row.name}</Link>
+        <Link href={`state/${params.row.id}`}>
+          <Button variant={"text"}>{params.row.name}</Button>
+        </Link>
       ),
     },
     {

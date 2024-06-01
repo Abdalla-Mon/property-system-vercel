@@ -34,9 +34,7 @@ const PropertyWrapper = () => {
     setTotal,
     setRender,
   } = useDataFetcher("main/units");
-
   const { id, submitData } = useTableForm();
-  const searchParams = useSearchParams();
   const [disabled, setDisabled] = useState({});
 
   const [reFetch, setRefetch] = useState({});
@@ -156,7 +154,18 @@ const PropertyWrapper = () => {
       printable: true,
       cardWidth: 48,
     },
-
+    {
+      field: "property",
+      headerName: "العقار",
+      width: 200,
+      printable: true,
+      cardWidth: 48,
+      renderCell: (params) => (
+        <Link href={"/properties/" + params.row.property?.id}>
+          <Button variant={"text"}>{params.row.property?.name}</Button>
+        </Link>
+      ),
+    },
     {
       field: "actions",
       width: 250,

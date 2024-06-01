@@ -36,7 +36,6 @@ const useEditState = (initialItems) => {
         allChecksPassed = false;
       }
     });
-    console.log(allChecksPassed, "allChecksPassed");
     return allChecksPassed;
   };
 

@@ -34,6 +34,7 @@ export default function ViewComponent({
   reFetch,
   url,
   handleEditBeforeSubmit,
+  noTabs,
 }) {
   const [view, setView] = useState("table");
   const [showForm, setShowForm] = useState(directEdit);
@@ -42,7 +43,6 @@ export default function ViewComponent({
   async function create(data) {
     if (handleEditBeforeSubmit) {
       const continueCreation = handleEditBeforeSubmit();
-      console.log(continueCreation);
       if (!continueCreation) return;
     }
     data = { ...data, extraData };
@@ -87,31 +87,34 @@ export default function ViewComponent({
           {children}
         </EditTableModal>
       )}
-      <div className="flex justify-end mb-4 gap-3">
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => setShowForm(!showForm)} // Toggle form visibility
-        >
-          {showForm ? "إخفاء النموذج" : "اظهار نموذج الانشاء"}
-        </Button>
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => setView("table")}
-        >
-          عرض الجدول
-        </Button>
+      {!noTabs && (
+        <div className="flex justify-end mb-4 gap-3">
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => setShowForm(!showForm)} // Toggle form visibility
+          >
+            {showForm ? "إخفاء النموذج" : "اظهار نموذج الانشاء"}
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => setView("table")}
+          >
+            عرض الجدول
+          </Button>
 
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => setView("dataGrid")}
-        >
-          عرض كارت
-        </Button>
-      </div>
-      {showForm && (
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => setView("dataGrid")}
+          >
+            عرض كارت
+          </Button>
+        </div>
+      )}
+
+      {showForm && !noTabs && (
         <div className="mb-4">
           <Form
             formTitle={"إضافة"}

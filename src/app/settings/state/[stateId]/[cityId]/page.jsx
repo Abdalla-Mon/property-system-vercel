@@ -139,7 +139,7 @@ const DistrictWrapper = ({ cityId, stateId }) => {
     snackbarMessage,
     setSnackbarMessage,
     handleEditBeforeSubmit,
-  } = useEditState([{ districts: "neighbours", message: "المناطق" }]);
+  } = useEditState([{ name: "neighbours", message: "المناطق" }]);
 
   return (
     <>

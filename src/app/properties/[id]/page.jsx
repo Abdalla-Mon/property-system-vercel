@@ -36,7 +36,7 @@ const PropertyWrapper = ({ urlId }) => {
     total,
     setTotal,
     setRender,
-  } = useDataFetcher("main/properties/" + urlId + "/units");
+  } = useDataFetcher("main/properties/" + urlId + "/units", true);
   const { submitData } = useTableForm();
 
   const [stateId, setStateId] = useState(null);
@@ -99,9 +99,6 @@ const PropertyWrapper = ({ urlId }) => {
       window.setTimeout(() => setRenderedDefault(true), 100);
     }
   }, [loading, data]);
-
-  if (loading) return <div>Loading...</div>;
-  if (!renderdDefault) return;
 
   async function getStatesData() {
     const res = await fetch("/api/fast-handler?id=state");
@@ -298,7 +295,7 @@ const PropertyWrapper = ({ urlId }) => {
       cardWidth: 48,
       renderCell: (params) => (
         <Link href={"/units/" + params.row.id}>
-          <MUILINK>{params.row.id}</MUILINK>
+          <Button variant={"text"}>{params.row.id}</Button>
         </Link>
       ),
     },
@@ -310,7 +307,7 @@ const PropertyWrapper = ({ urlId }) => {
       cardWidth: 48,
       renderCell: (params) => (
         <Link href={"/units/" + params.row.id}>
-          <MUILINK>{params.row.name}</MUILINK>
+          <Button variant={"text"}>{params.row.name}</Button>
         </Link>
       ),
     },
@@ -334,7 +331,7 @@ const PropertyWrapper = ({ urlId }) => {
       width: 200,
       printable: true,
       cardWidth: 48,
-      renderCell: (params) => <>{params.row.name}</>,
+      renderCell: (params) => <>{params.row.type?.name}</>,
     },
     {
       field: "yearlyRentPrice",
@@ -344,11 +341,16 @@ const PropertyWrapper = ({ urlId }) => {
       cardWidth: 48,
     },
     {
-      field: "electricityMeter",
-      headerName: "رقم عداد الكهرباء",
+      field: "client",
+      headerName: "اسم المستاجر",
       width: 200,
       printable: true,
       cardWidth: 48,
+      renderCell: (params) => (
+        <Link href={`/owners/${params.row.client?.id}`}>
+          <Button variant={"text"}>{params.row.client?.name}</Button>
+        </Link>
+      ),
     },
     {
       field: "floor",
@@ -378,50 +380,68 @@ const PropertyWrapper = ({ urlId }) => {
 
   return (
     <div>
-      <div className={"flex gap-3 items-center"}>
-        اضافه وحده جديده لهذا العقار؟
-        <CreateUnit propertyId={urlId} setUnits={setUnits} units={units} />
-      </div>
+      {loading || !renderdDefault ? (
+        <div>جاري تحميل بيانات العقار</div>
+      ) : (
+        <>
+          {unitsLoading && !units ? (
+            <div>جاري تحميل </div>
+          ) : (
+            <div className={"flex gap-3 items-center"}>
+              اضافه وحده جديده لهذا العقار؟
+              <CreateUnit
+                propertyId={urlId}
+                setUnits={setUnits}
+                units={units}
+              />
+            </div>
+          )}
 
-      <div className="mb-4">
-        <Form
-          formTitle={"تعديل العقار"}
-          inputs={dataInputs}
-          onSubmit={(data) => {
-            create(data);
-          }}
-          disabled={disabled}
-          variant={"outlined"}
-          btnText={"تعديل"}
-          reFetch={reFetch}
-        >
-          <ExtraForm
-            setItems={setMeters}
-            items={electricityMeters}
-            fields={metersFields}
-            title={"عداد"}
-            formTitle={"عدادات الكهرباء"}
-            name={"meters"}
-            setSnackbarMessage={setSnackbarMessage}
-            setSnackbarOpen={setSnackbarOpen}
-            snackbarMessage={snackbarMessage}
-            snackbarOpen={snackbarOpen}
-            isEditing={isMetersEditing}
-            setIsEditing={setIsMetersEditing}
-          />
-        </Form>
-      </div>
-      <CustomTable
-        rows={units}
-        columns={columns}
-        loading={unitsLoading}
-        setTotal={setTotal}
-        total={total}
-        page={page}
-        setPage={setPage}
-        limit={limit}
-        setLimit={setLimit}
-      />
+          <div className="mb-4">
+            <Form
+              formTitle={"تعديل العقار"}
+              inputs={dataInputs}
+              onSubmit={(data) => {
+                create(data);
+              }}
+              disabled={disabled}
+              variant={"outlined"}
+              btnText={"تعديل"}
+              reFetch={reFetch}
+            >
+              <ExtraForm
+                setItems={setMeters}
+                items={electricityMeters}
+                fields={metersFields}
+                title={"عداد"}
+                formTitle={"عدادات الكهرباء"}
+                name={"meters"}
+                setSnackbarMessage={setSnackbarMessage}
+                setSnackbarOpen={setSnackbarOpen}
+                snackbarMessage={snackbarMessage}
+                snackbarOpen={snackbarOpen}
+                isEditing={isMetersEditing}
+                setIsEditing={setIsMetersEditing}
+              />
+            </Form>
+          </div>
+        </>
+      )}
+      {unitsLoading && !units ? (
+        <div>جاري تحميل وحدات العقار</div>
+      ) : (
+        <CustomTable
+          rows={units ? units : []}
+          columns={columns}
+          loading={unitsLoading || !units}
+          setTotal={setTotal}
+          total={total}
+          page={page}
+          setPage={setPage}
+          limit={limit}
+          setLimit={setLimit}
+        />
+      )}
     </div>
   );
 };

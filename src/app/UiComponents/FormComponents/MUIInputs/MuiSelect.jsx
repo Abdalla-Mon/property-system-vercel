@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import { Controller } from "react-hook-form";
 import { CreateModal } from "@/app/UiComponents/Modals/CreateModal/CreateModal";
-import { useForm } from "react-hook-form";
 
 export function MuiSelect({
   select,
@@ -126,6 +125,7 @@ function MUIAutoComplete({
   const onChange = select.onChange;
   const [opened, setOpened] = useState(false);
   const [id, setId] = useState(false);
+
   useEffect(() => {
     if (select.value && !value) {
       handleOpen();

@@ -63,6 +63,11 @@ const CityWrapper = ({ stateId }) => {
       width: 100,
       printable: true,
       cardWidth: 48,
+      renderCell: (params) => (
+        <Link href={`/settings/state/${stateId}/${params.row.id}/`}>
+          <Button variant={"text"}>{params.row.id}</Button>
+        </Link>
+      ),
     },
     {
       field: "name",
@@ -72,7 +77,7 @@ const CityWrapper = ({ stateId }) => {
       cardWidth: 48,
       renderCell: (params) => (
         <Link href={`/settings/state/${stateId}/${params.row.id}/`}>
-          {params.row.name}
+          <Button variant={"text"}>{params.row.name}</Button>
         </Link>
       ),
     },
@@ -142,8 +147,7 @@ const CityWrapper = ({ stateId }) => {
     snackbarMessage,
     setSnackbarMessage,
     handleEditBeforeSubmit,
-  } = useEditState([{ districts: "cities", message: "الاحياء" }]);
-
+  } = useEditState([{ name: "districts", message: "الاحياء" }]);
   return (
     <>
       <Link href={`/settings/state/`}>

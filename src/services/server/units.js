@@ -42,9 +42,9 @@ export async function createUnit(data) {
           name: true,
         },
       },
+      rentAgreements: true,
     },
   });
-  console.log(newUnit, "new unit");
   return newUnit;
 }
 
@@ -66,6 +66,13 @@ export async function getUnits(page, limit) {
           name: true,
         },
       },
+      property: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      rentAgreements: true,
     },
   });
 
@@ -105,9 +112,9 @@ export async function getUnitById(page, limit, searchParams, params) {
           name: true,
         },
       },
+      rentAgreements: true,
     },
   });
-  console.log(unit, "unit");
   return {
     data: unit,
   };
