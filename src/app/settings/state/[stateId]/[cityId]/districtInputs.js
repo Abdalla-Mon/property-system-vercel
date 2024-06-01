@@ -27,11 +27,4 @@ export const districtInputs = [
       },
     },
   },
-  {
-    data: {
-      id: "cityId",
-      type: "hidden",
-      name: "cityId",
-    },
-  },
 ];

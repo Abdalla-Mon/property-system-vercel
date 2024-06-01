@@ -46,7 +46,7 @@ const OwnerWrapper = () => {
     const filterData = data.filter((item) => item.id !== res.id);
     setData(filterData);
     setTotal((old) => old - 1);
-    if (page === 1) {
+    if (page === 1 && total >= limit) {
       setRender((old) => !old);
     } else {
       setPage((old) => (old > 1 ? old - 1 : 1) || 1);

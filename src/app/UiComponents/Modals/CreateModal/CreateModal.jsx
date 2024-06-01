@@ -32,7 +32,7 @@ export function CreateModal({
   const [openModal, setOpenModal] = useState(false);
 
   function handleClick() {
-    if (select.extraId && !extraId) {
+    if (select?.extraId && !extraId) {
       return;
     }
     setOpenModal(true);
@@ -44,7 +44,7 @@ export function CreateModal({
         variant="contained"
         color="primary"
         onClick={() => handleClick()}
-        disabled={oldData.length < 1 || (select.extraId && !extraId)}
+        disabled={!oldData || (select?.extraId && !extraId)}
       >
         <AddIcon />
       </Button>{" "}

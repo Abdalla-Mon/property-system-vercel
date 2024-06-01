@@ -7,6 +7,7 @@ import CustomTable from "@/app/components/Tables/CustomTable";
 import { EditTableModal } from "@/app/UiComponents/Modals/EditTableModal/EditTableModal";
 import { useTableForm } from "@/app/context/TableFormProvider/TableFormProvider";
 import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
+import { Button } from "@mui/material";
 
 export default function ViewComponent({
   columns,
@@ -32,12 +33,18 @@ export default function ViewComponent({
   createModalsData,
   reFetch,
   url,
+  handleEditBeforeSubmit,
 }) {
   const [view, setView] = useState("table");
   const [showForm, setShowForm] = useState(directEdit);
   const { openModal, submitData } = useTableForm();
 
   async function create(data) {
+    if (handleEditBeforeSubmit) {
+      const continueCreation = handleEditBeforeSubmit();
+      console.log(continueCreation);
+      if (!continueCreation) return;
+    }
     data = { ...data, extraData };
 
     const newData = await submitData(
@@ -75,30 +82,34 @@ export default function ViewComponent({
           extraDataName={extraDataName}
           setExtraData={setExtraData}
           extraData={extraData}
+          handleEditBeforeSubmit={handleEditBeforeSubmit}
         >
           {children}
         </EditTableModal>
       )}
-      <div className="flex justify-end mb-4">
-        <button
-          className="mx-2 px-4 py-2 bg-blue-500 text-white"
+      <div className="flex justify-end mb-4 gap-3">
+        <Button
+          variant="outlined"
+          color="primary"
           onClick={() => setShowForm(!showForm)} // Toggle form visibility
         >
           {showForm ? "إخفاء النموذج" : "اظهار نموذج الانشاء"}
-        </button>
-        <button
-          className="mx-2 px-4 py-2 bg-blue-500 text-white"
+        </Button>
+        <Button
+          variant="outlined"
+          color="primary"
           onClick={() => setView("table")}
         >
           عرض الجدول
-        </button>
+        </Button>
 
-        <button
-          className="mx-2 px-4 py-2 bg-blue-500 text-white"
+        <Button
+          variant="outlined"
+          color="primary"
           onClick={() => setView("dataGrid")}
         >
           عرض كارت
-        </button>
+        </Button>
       </div>
       {showForm && (
         <div className="mb-4">

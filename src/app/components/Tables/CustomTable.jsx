@@ -32,6 +32,7 @@ export default function CustomTable({
   loading,
   total,
   setTotal,
+  disablePagination = false,
 }) {
   const componentRef = useRef();
   const [printMode, setPrintMode] = useState(false);
@@ -151,16 +152,17 @@ export default function CustomTable({
           </Table>
         </TableContainer>
       </div>
-
-      <CustomPagination
-        setLimit={setLimit}
-        limit={limit}
-        setPage={setPage}
-        page={page}
-        totalPages={totalPages}
-        total={total}
-        setTotal={setTotal}
-      />
+      {!disablePagination && (
+        <CustomPagination
+          setLimit={setLimit}
+          limit={limit}
+          setPage={setPage}
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          setTotal={setTotal}
+        />
+      )}
     </Paper>
   );
 }

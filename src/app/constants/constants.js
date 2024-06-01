@@ -1,2 +1,2 @@
-export const paginationOptions = [5, 10, 25, 50];
-export const initialPageLimit = 5;
+export const paginationOptions = [10, 25, 40, 60];
+export const initialPageLimit = 10;

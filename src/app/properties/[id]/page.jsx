@@ -2,42 +2,49 @@
 import TableFormProvider, {
   useTableForm,
 } from "@/app/context/TableFormProvider/TableFormProvider";
-import { Button, Link as MUILINK } from "@mui/material";
 import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
-import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { propertyInputs } from "@/app/properties/propertyInputs";
+import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
 import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
-import Link from "next/Link";
+import { Button, Link as MUILINK } from "@mui/material";
+import Link from "next/link";
+import CustomTable from "@/app/components/Tables/CustomTable";
+import { unitInputs } from "@/app/units/unitInputs";
+import { CreateModal } from "@/app/UiComponents/Modals/CreateModal/CreateModal";
 import useEditState from "@/helpers/hooks/useEditState";
 
-export default function PropertyPage() {
+export default function PropertyPage({ params }) {
+  const id = params.id;
   return (
     <TableFormProvider url={"fast-handler"}>
-      <PropertyWrapper />
+      <PropertyWrapper urlId={id} />
     </TableFormProvider>
   );
 }
 
-const PropertyWrapper = () => {
+const PropertyWrapper = ({ urlId }) => {
   const {
-    data,
-    loading,
+    data: units,
+    loading: unitsLoading,
     page,
     setPage,
     limit,
     setLimit,
     totalPages,
-    setData,
+    setData: setUnits,
     total,
     setTotal,
     setRender,
-  } = useDataFetcher("main/properties");
-  const { id, submitData } = useTableForm();
+  } = useDataFetcher("main/properties/" + urlId + "/units");
+  const { submitData } = useTableForm();
 
   const [stateId, setStateId] = useState(null);
   const [cityId, setCityId] = useState(null);
   const [districtId, setDistrictId] = useState(null);
+  const [renderdDefault, setRenderedDefault] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({});
   const [disabled, setDisabled] = useState({
     cityId: true,
     districtId: true,
@@ -49,6 +56,52 @@ const PropertyWrapper = () => {
     districtId: false,
     neighbourId: false,
   });
+  const [electricityMeters, setMeters] = useState([]);
+  const metersFields = [
+    { id: "name", label: "اسم العداد", type: "text" },
+    { id: "meterId", label: "رقم العداد", type: "number" },
+  ];
+  const {
+    isEditing: isMetersEditing,
+    setIsEditing: setIsMetersEditing,
+    snackbarOpen,
+    setSnackbarOpen,
+    snackbarMessage,
+    setSnackbarMessage,
+    handleEditBeforeSubmit,
+  } = useEditState([{ name: "meters", message: "عدادات الكهرباء" }]);
+
+  useEffect(() => {
+    async function getPropertyData() {
+      const res = await fetch("/api/main/properties/" + urlId);
+      const data = await res.json();
+      setData(data.data);
+      setLoading(false);
+    }
+
+    getPropertyData();
+  }, []);
+  useEffect(() => {
+    if (typeof data === "object" && !loading) {
+      setStateId(data.stateId);
+      setCityId(data.cityId);
+      setDistrictId(data.districtId);
+      setMeters(data.electricityMeters);
+      setIsMetersEditing({
+        meters: data.electricityMeters?.map(() => false),
+      });
+      setDisabled({
+        cityId: data.stateId ? false : true,
+        districtId: data.cityId ? false : true,
+        neighbourId: data.districtId ? false : true,
+      });
+
+      window.setTimeout(() => setRenderedDefault(true), 100);
+    }
+  }, [loading, data]);
+
+  if (loading) return <div>Loading...</div>;
+  if (!renderdDefault) return;
 
   async function getStatesData() {
     const res = await fetch("/api/fast-handler?id=state");
@@ -141,6 +194,10 @@ const PropertyWrapper = () => {
   };
 
   const dataInputs = propertyInputs.map((input) => {
+    input = {
+      ...input,
+      value: data[input.data.id],
+    };
     switch (input.data.id) {
       case "stateId":
         return {
@@ -174,7 +231,6 @@ const PropertyWrapper = () => {
         return {
           ...input,
           extraId: false,
-
           getData: getBanksData,
         };
       case "collectorId":
@@ -187,14 +243,12 @@ const PropertyWrapper = () => {
         return {
           ...input,
           extraId: false,
-
           getData: getOwners,
         };
       case "typeId":
         return {
           ...input,
           extraId: false,
-
           getData: getPropertyTypes,
         };
       default:
@@ -202,24 +256,36 @@ const PropertyWrapper = () => {
     }
   });
 
+  async function create(data) {
+    const contintueCreation = handleEditBeforeSubmit();
+    if (!contintueCreation) {
+      return;
+    }
+    const extraData = { electricityMeters };
+    data = { ...data, extraData };
+    await submitData(
+      data,
+      null,
+      null,
+      "PUT",
+      null,
+      "json",
+      "main/properties/" + urlId,
+    );
+  }
+
   async function handleDelete(id) {
-    const res = await submitData(
+    const deleted = await submitData(
       null,
       null,
-      id,
+      null,
       "DELETE",
       null,
-      null,
-      "main/properties",
+      "json",
+      "main/units/" + id,
     );
-
-    const filterData = data.filter((item) => item.id !== res.id);
-    setData(filterData);
-    setTotal((old) => old - 1);
-    if (page === 1 && total >= limit) {
-      setRender((old) => !old);
-    } else {
-      setPage((old) => (old > 1 ? old - 1 : 1) || 1);
+    if (deleted) {
+      setUnits(units.filter((unit) => unit.id !== id));
     }
   }
 
@@ -231,76 +297,65 @@ const PropertyWrapper = () => {
       printable: true,
       cardWidth: 48,
       renderCell: (params) => (
-        <Link href={"properties/" + params.row.id}>
+        <Link href={"/units/" + params.row.id}>
           <MUILINK>{params.row.id}</MUILINK>
         </Link>
       ),
     },
     {
       field: "name",
-      headerName: "اسم العقار",
+      headerName: "اسم الوحدة",
       width: 200,
       printable: true,
       cardWidth: 48,
       renderCell: (params) => (
-        <Link href={"properties/" + params.row.id}>
+        <Link href={"/units/" + params.row.id}>
           <MUILINK>{params.row.name}</MUILINK>
         </Link>
       ),
     },
     {
-      field: "type",
-      headerName: "نوع العقار",
-      width: 200,
-      printable: true,
-      cardWidth: 48,
-      renderCell: (params) => <>{params.row.type?.name}</>,
-    },
-    {
-      field: "propertyId",
-      headerName: "معرف العقار",
+      field: "unitId",
+      headerName: "معرف الوحده",
       width: 200,
       printable: true,
       cardWidth: 48,
     },
     {
-      field: "ownerName",
-      headerName: "اسم المالك",
-      width: 200,
-      printable: true,
-      cardWidth: 48,
-      renderCell: (params) => (
-        <Link href={"/owners/" + params.row.client?.id}>
-          <MUILINK>{params.row.client?.name}</MUILINK>
-        </Link>
-      ),
-    },
-
-    {
-      field: "price",
-      headerName: "قيمة العقار",
+      field: "number",
+      headerName: "رقم الوحدة",
       width: 200,
       printable: true,
       cardWidth: 48,
     },
-
     {
-      field: "buildingGuardName",
-      headerName: "اسم حارس العمارة",
+      field: "typeId",
+      headerName: "نوع الوحدة",
+      width: 200,
+      printable: true,
+      cardWidth: 48,
+      renderCell: (params) => <>{params.row.name}</>,
+    },
+    {
+      field: "yearlyRentPrice",
+      headerName: "سعر الإيجار السنوي",
       width: 200,
       printable: true,
       cardWidth: 48,
     },
-
     {
-      field: "_count",
-      headerName: "عدد الوحدات",
+      field: "electricityMeter",
+      headerName: "رقم عداد الكهرباء",
       width: 200,
       printable: true,
       cardWidth: 48,
-      renderCell: (params) => (
-        <>{params.row._count?.units ? params.row._count.units : 0}</>
-      ),
+    },
+    {
+      field: "floor",
+      headerName: "الدور",
+      width: 200,
+      printable: true,
+      cardWidth: 48,
     },
     {
       field: "actions",
@@ -320,79 +375,96 @@ const PropertyWrapper = () => {
       ),
     },
   ];
-  const metersFields = [
-    { id: "name", label: "اسم العداد", type: "text" },
-    { id: "meterId", label: "رقم العداد", type: "number" },
-  ];
-  const [electricityMeters, setMeters] = useState([]);
-  const [units, setUnits] = useState([]);
-  const unitsFields = [{ id: "name", label: "اسم الوحدة", type: "text" }];
-  const {
-    isEditing,
-    setIsEditing,
-    snackbarOpen,
-    setSnackbarOpen,
-    snackbarMessage,
-    setSnackbarMessage,
-    handleEditBeforeSubmit,
-  } = useEditState([
-    { name: "meters", message: "عدادات الكهرباء" },
-    { name: "units", message: "وحدات العقار" },
-  ]);
 
   return (
-    <>
-      <ViewComponent
-        inputs={dataInputs}
-        formTitle={"تعديل"}
-        totalPages={totalPages}
-        rows={data}
+    <div>
+      <div className={"flex gap-3 items-center"}>
+        اضافه وحده جديده لهذا العقار؟
+        <CreateUnit propertyId={urlId} setUnits={setUnits} units={units} />
+      </div>
+
+      <div className="mb-4">
+        <Form
+          formTitle={"تعديل العقار"}
+          inputs={dataInputs}
+          onSubmit={(data) => {
+            create(data);
+          }}
+          disabled={disabled}
+          variant={"outlined"}
+          btnText={"تعديل"}
+          reFetch={reFetch}
+        >
+          <ExtraForm
+            setItems={setMeters}
+            items={electricityMeters}
+            fields={metersFields}
+            title={"عداد"}
+            formTitle={"عدادات الكهرباء"}
+            name={"meters"}
+            setSnackbarMessage={setSnackbarMessage}
+            setSnackbarOpen={setSnackbarOpen}
+            snackbarMessage={snackbarMessage}
+            snackbarOpen={snackbarOpen}
+            isEditing={isMetersEditing}
+            setIsEditing={setIsMetersEditing}
+          />
+        </Form>
+      </div>
+      <CustomTable
+        rows={units}
         columns={columns}
+        loading={unitsLoading}
+        setTotal={setTotal}
+        total={total}
         page={page}
         setPage={setPage}
         limit={limit}
         setLimit={setLimit}
-        id={id}
-        loading={loading}
-        setData={setData}
-        setTotal={setTotal}
-        extraData={{ electricityMeters, units }}
-        total={total}
-        noModal={true}
-        disabled={disabled}
-        reFetch={reFetch}
-        url={"main/properties"}
-        handleEditBeforeSubmit={handleEditBeforeSubmit}
-      >
-        <ExtraForm
-          setItems={setMeters}
-          items={electricityMeters}
-          fields={metersFields}
-          title={"عداد"}
-          formTitle={"عدادات الكهرباء"}
-          name={"meters"}
-          setSnackbarMessage={setSnackbarMessage}
-          setSnackbarOpen={setSnackbarOpen}
-          snackbarMessage={snackbarMessage}
-          snackbarOpen={snackbarOpen}
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-        />
-        <ExtraForm
-          setItems={setUnits}
-          items={units}
-          fields={unitsFields}
-          name={"units"}
-          formTitle={"وحدات العقار"}
-          title={"وحدة"}
-          setSnackbarMessage={setSnackbarMessage}
-          setSnackbarOpen={setSnackbarOpen}
-          snackbarMessage={snackbarMessage}
-          snackbarOpen={snackbarOpen}
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-        />
-      </ViewComponent>
-    </>
+      />
+    </div>
   );
 };
+
+function CreateUnit({ propertyId, setUnits, units }) {
+  async function getUnitTypes() {
+    const res = await fetch("/api/fast-handler?id=unitType");
+    const data = await res.json();
+
+    return { data };
+  }
+
+  async function getProperties() {
+    const res = await fetch("/api/fast-handler?id=properties");
+    const data = await res.json();
+
+    return { data };
+  }
+
+  const modalInputs = unitInputs;
+  modalInputs[2] = {
+    ...modalInputs[2],
+    extraId: false,
+    getData: getUnitTypes,
+  };
+  modalInputs[3] = {
+    ...modalInputs[3],
+    extraId: false,
+    getData: getProperties,
+    value: propertyId,
+    data: {
+      ...modalInputs[3].data,
+      disabled: true,
+    },
+  };
+  return (
+    <CreateModal
+      oldData={units}
+      setData={setUnits}
+      modalInputs={modalInputs}
+      id={"unit"}
+
+      // extraId={propertyId}
+    />
+  );
+}

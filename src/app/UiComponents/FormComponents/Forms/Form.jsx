@@ -25,8 +25,15 @@ export function Form({
   disabled,
   reFetch,
 }) {
-  const { formState, register, handleSubmit, watch, trigger, control } =
-    useForm();
+  const {
+    formState,
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    trigger,
+    control,
+  } = useForm();
   const { errors } = formState;
   const formRef = useRef();
   return (
@@ -94,6 +101,7 @@ export function Form({
                       disabled={disabled}
                       reFetch={reFetch}
                       control={control}
+                      triggerValue={setValue}
                     />
                   );
                 case "date":

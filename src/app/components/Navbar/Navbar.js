@@ -30,7 +30,7 @@ const drawerWidth = 240;
 const navItems = [
   { href: "/", Icon: HomeIcon, text: "الرئيسيه" },
   // { href: "/properties", Icon: HouseIcon, text: "العقارات" },
-  { href: "/units", Icon: ApartmentIcon, text: "الوحدات" },
+  // { href: "/units", Icon: ApartmentIcon, text: "الوحدات" },
   { href: "/rent", Icon: PaymentIcon, text: "عقود الايجار" },
   { href: "/invoices", Icon: ReceiptIcon, text: "الفواتير" },
   { href: "/maintenance", Icon: BuildIcon, text: "الصيانه" },

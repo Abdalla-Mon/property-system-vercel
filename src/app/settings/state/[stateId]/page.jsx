@@ -9,6 +9,8 @@ import { useState } from "react";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { DistrictsForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/DistrictsForm";
 import { cityInputs } from "@/app/settings/state/[stateId]/cityInputs";
+import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
+import useEditState from "@/helpers/hooks/useEditState";
 
 const CityPage = ({ params }) => {
   const { stateId } = params;
@@ -47,7 +49,7 @@ const CityWrapper = ({ stateId }) => {
     const filterData = data.filter((item) => item.id !== res.id);
     setData(filterData);
     setTotal((old) => old - 1);
-    if (page === 1) {
+    if (page === 1 && total >= limit) {
       setRender((old) => !old);
     } else {
       setPage((old) => (old > 1 ? old - 1 : 1) || 1);
@@ -120,8 +122,35 @@ const CityWrapper = ({ stateId }) => {
   ];
 
   const [districts, setDistricts] = useState([]);
+  const districtsFields = [
+    {
+      id: "name",
+      type: "text",
+      label: "اسم الحي",
+    },
+    {
+      id: "location",
+      type: "text",
+      label: "الموقع",
+    },
+  ];
+  const {
+    isEditing: isDistrictEditing,
+    setIsEditing: setIsDistrictEditing,
+    snackbarOpen,
+    setSnackbarOpen,
+    snackbarMessage,
+    setSnackbarMessage,
+    handleEditBeforeSubmit,
+  } = useEditState([{ districts: "cities", message: "الاحياء" }]);
+
   return (
     <>
+      <Link href={`/settings/state/`}>
+        <Button variant="contained" color="primary">
+          العوده لاعدادت الامارات
+        </Button>
+      </Link>
       <ViewComponent
         inputs={cityInputs}
         formTitle={"تعديل"}
@@ -140,8 +169,22 @@ const CityWrapper = ({ stateId }) => {
         setExtraData={setDistricts}
         total={total}
         setTotal={setTotal}
+        handleEditBeforeSubmit={handleEditBeforeSubmit}
       >
-        <DistrictsForm districts={districts} setDistricts={setDistricts} />
+        <ExtraForm
+          setItems={setDistricts}
+          items={districts}
+          fields={districtsFields}
+          title={"احياء"}
+          formTitle={"الاحياء"}
+          name={"districts"}
+          setSnackbarMessage={setSnackbarMessage}
+          setSnackbarOpen={setSnackbarOpen}
+          snackbarMessage={snackbarMessage}
+          snackbarOpen={snackbarOpen}
+          isEditing={isDistrictEditing}
+          setIsEditing={setIsDistrictEditing}
+        />{" "}
       </ViewComponent>
     </>
   );

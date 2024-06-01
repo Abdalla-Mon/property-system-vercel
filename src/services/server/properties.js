@@ -3,66 +3,119 @@ import prisma from "@/lib/prisma";
 export async function createProperty(data) {
   const { extraData } = data;
   const { electricityMeters, units } = extraData;
-  delete data.stateId;
   delete data.extraData;
 
-  const buildingGuard = {
-    name: data.buildingGuardName,
-    number: +data.buildingGuardPhone,
-    nationalId: data.buildingGuardId,
+  let createData = {
+    name: data.name,
+    buildingGuardName: data.buildingGuardName,
+    buildingGuardPhone: data.buildingGuardPhone,
+    buildingGuardId: data.buildingGuardId,
+    propertyId: data.propertyId,
+    voucherNumber: data.voucherNumber,
+    street: data.street,
+    plateNumber: data.plateNumber,
+    price: +data.price,
+    dateOfBuilt: data.dateOfBuilt,
+    bankAccountNumber: data.bankAccountNumber,
+    managementCommission: +data.managementCommission,
+    numElevators: +data.numElevators,
+    numParkingSpaces: +data.numParkingSpaces,
+    builtArea: +data.builtArea,
+    location: data.location || "",
+    electricityMeters: {
+      create: electricityMeters
+        ? electricityMeters.map((meter) => ({
+            meterId: meter.meterId,
+            name: meter.name,
+          }))
+        : [],
+    },
+    units: {
+      create: units
+        ? units.map((unit) => ({
+            name: unit.name,
+            floor: 0,
+          }))
+        : [],
+    },
+    type: {
+      connect: {
+        id: +data.typeId,
+      },
+    },
+    state: {
+      connect: {
+        id: +data.stateId,
+      },
+    },
+    city: {
+      connect: {
+        id: +data.cityId,
+      },
+    },
+    bank: {
+      connect: {
+        id: +data.bankId,
+      },
+    },
+    client: {
+      connect: {
+        id: +data.clientId,
+      },
+    },
+    collector: {
+      connect: {
+        id: +data.collectorId,
+      },
+    },
   };
 
+  if (data.districtId) {
+    createData = {
+      ...createData,
+      district: {
+        connect: {
+          id: +data.districtId,
+        },
+      },
+    };
+  }
+
+  if (data.neighbourId) {
+    createData = {
+      ...createData,
+      neighbour: {
+        connect: {
+          id: +data.neighbourId,
+        },
+      },
+    };
+  }
+
   const newProperty = await prisma.property.create({
-    data: {
-      name: data.name,
-      propertyId: data.propertyId,
-      voucherNumber: data.voucherNumber,
-      street: data.street,
-      plateNumber: data.plateNumber,
-      price: +data.price,
-      dateOfBuilt: data.dateOfBuilt,
-      bankAccountNumber: data.bankAccountNumber,
-      managementCommission: +data.managementCommission,
-      numElevators: +data.numElevators,
-      numParkingSpaces: +data.numParkingSpaces,
-      builtArea: +data.builtArea,
-      location: data.location || "",
-      electricityMeters: {
-        create: electricityMeters
-          ? electricityMeters.map((meter) => ({ ...meter }))
-          : [],
-      },
-      units: {
-        create: units
-          ? units.map((unit) => ({
-              ...unit,
-
-              floor: 0,
-            }))
-          : [],
-      },
-      buildingGuard: {
-        create: buildingGuard ? buildingGuard : {},
-      },
+    data: createData,
+    include: {
       type: {
-        connect: {
-          id: +data.typeId,
-        },
-      },
-      city: {
-        connect: {
-          id: +data.cityId,
-        },
-      },
-
-      bank: {
-        connect: {
-          id: +data.bankId,
+        select: {
+          id: true,
+          name: true,
         },
       },
       client: {
-        connect: {
-          id: +data.clientId,
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      collector: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      _count: {
+        select: {
+          units: true,
         },
       },
     },
@@ -77,7 +130,29 @@ export async function getProperties(page, limit) {
     skip: offset,
     take: limit,
     include: {
-      units: true,
+      type: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      client: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      collector: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      _count: {
+        select: {
+          units: true,
+        },
+      },
     },
   });
   const totalProperties = await prisma.property.count();
@@ -85,7 +160,6 @@ export async function getProperties(page, limit) {
 
   const data = properties.map((property) => ({
     ...property,
-    unitsLength: property.units.length,
   }));
 
   return {
@@ -95,97 +169,121 @@ export async function getProperties(page, limit) {
   };
 }
 
-export async function getPropertyById(id) {
+export async function getPropertyById(page, limit, searchParams, params) {
+  const id = +params.id;
   const property = await prisma.property.findUnique({
-    where: { id },
+    where: { id: +id },
     include: {
+      electricityMeters: true,
       units: true,
     },
   });
 
-  if (property) {
-    return {
-      ...property,
-      unitsLength: property.units.length,
-    };
-  }
-
-  return null;
+  return {
+    data: property,
+    total: property.units.length,
+  };
 }
 
 export async function updateProperty(id, data) {
   const { extraData } = data;
-  const { electricityMeters, units } = extraData;
-  delete data.stateId;
+  const { electricityMeters } = extraData;
   delete data.extraData;
 
-  const buildingGuard = {
-    name: data.buildingGuardName,
-    number: +data.buildingGuardPhone,
-    nationalId: data.buildingGuardId,
+  let updateData = {
+    name: data.name,
+    propertyId: data.propertyId,
+    voucherNumber: data.voucherNumber,
+    street: data.street,
+    plateNumber: data.plateNumber,
+    buildingGuardName: data.buildingGuardName,
+    buildingGuardPhone: data.buildingGuardPhone,
+    buildingGuardId: data.buildingGuardId,
+    price: +data.price,
+    dateOfBuilt: data.dateOfBuilt,
+    bankAccountNumber: data.bankAccountNumber,
+    managementCommission: +data.managementCommission,
+    numElevators: +data.numElevators,
+    numParkingSpaces: +data.numParkingSpaces,
+    builtArea: +data.builtArea,
+    location: data.location || "",
+    type: {
+      connect: {
+        id: +data.typeId,
+      },
+    },
+
+    state: {
+      connect: {
+        id: +data.stateId,
+      },
+    },
+    city: {
+      connect: {
+        id: +data.cityId,
+      },
+    },
+    bank: {
+      connect: {
+        id: +data.bankId,
+      },
+    },
+    collector: {
+      connect: {
+        id: +data.collectorId,
+      },
+    },
+    client: {
+      connect: {
+        id: +data.clientId,
+      },
+    },
   };
+
+  if (data.districtId) {
+    updateData = {
+      ...updateData,
+      district: {
+        connect: {
+          id: +data.districtId,
+        },
+      },
+    };
+  }
+
+  if (data.neighbourId) {
+    updateData = {
+      ...updateData,
+      neighbour: {
+        connect: {
+          id: +data.neighbourId,
+        },
+      },
+    };
+  }
+  // Delete all existing electricityMeters and units
+  await prisma.electricityMeter.deleteMany({
+    where: { propertyId: +id },
+  });
+
+  // Create new electricityMeters and units
+  for (const meter of electricityMeters) {
+    await prisma.electricityMeter.create({
+      data: {
+        meterId: meter.meterId,
+        name: meter.name,
+        property: {
+          connect: {
+            id: +id,
+          },
+        },
+      },
+    });
+  }
 
   const updatedProperty = await prisma.property.update({
     where: { id },
-    data: {
-      name: data.name,
-      propertyId: data.propertyId,
-      voucherNumber: data.voucherNumber,
-      street: data.street,
-      plateNumber: data.plateNumber,
-      price: +data.price,
-      dateOfBuilt: data.dateOfBuilt,
-      bankAccountNumber: data.bankAccountNumber,
-      managementCommission: +data.managementCommission,
-      numElevators: +data.numElevators,
-      numParkingSpaces: +data.numParkingSpaces,
-      builtArea: +data.builtArea,
-      location: data.location || "",
-      electricityMeters: {
-        upsert: electricityMeters
-          ? electricityMeters.map((meter) => ({
-              where: { id: meter.id },
-              update: { ...meter },
-              create: { ...meter },
-            }))
-          : [],
-      },
-      units: {
-        upsert: units
-          ? units.map((unit) => ({
-              where: { id: unit.id },
-              update: { ...unit },
-              create: { ...unit },
-            }))
-          : [],
-      },
-      buildingGuard: {
-        update: {
-          where: { id: buildingGuard.id },
-          data: { ...buildingGuard },
-        },
-      },
-      type: {
-        connect: {
-          id: +data.typeId,
-        },
-      },
-      city: {
-        connect: {
-          id: +data.cityId,
-        },
-      },
-      bank: {
-        connect: {
-          id: +data.bankId,
-        },
-      },
-      client: {
-        connect: {
-          id: +data.clientId,
-        },
-      },
-    },
+    data: updateData,
   });
 
   return updatedProperty;
@@ -195,4 +293,40 @@ export async function deleteProperty(id) {
   return await prisma.property.delete({
     where: { id },
   });
+}
+
+export async function getUnitsByPropertyId(page, limit, searchParams, params) {
+  const offset = (page - 1) * limit;
+  const id = +params.id;
+  const units = await prisma.unit.findMany({
+    where: {
+      propertyId: id,
+    },
+    include: {
+      type: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      client: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    skip: offset,
+    take: limit,
+  });
+  const totalUnits = await prisma.unit.count({
+    where: {
+      propertyId: id,
+    },
+  });
+
+  return {
+    data: units,
+    total: totalUnits,
+  };
 }

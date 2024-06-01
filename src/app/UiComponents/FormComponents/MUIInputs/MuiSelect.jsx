@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { Controller } from "react-hook-form";
 import { CreateModal } from "@/app/UiComponents/Modals/CreateModal/CreateModal";
+import { useForm } from "react-hook-form";
 
 export function MuiSelect({
   select,
@@ -18,6 +19,7 @@ export function MuiSelect({
   errors,
   extraData,
   disabled,
+  triggerValue,
   reFetch,
 }) {
   if (select.autocomplete) {
@@ -30,6 +32,7 @@ export function MuiSelect({
         extraData={extraData}
         disabled={disabled}
         reFetch={reFetch}
+        triggerValue={triggerValue}
       />
     );
   } else {
@@ -111,18 +114,26 @@ function MUIAutoComplete({
   extraData,
   disabled,
   reFetch,
+  triggerValue,
 }) {
   const getData = select.getData;
   const selectData = select.data;
-  const [options, setOptions] = useState([]);
+  const [options, setOptions] = useState(null);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const fullWidth = select.fullWidth;
-  const [value, setValue] = useState(select.value);
+  const [value, setValue] = useState(null);
   const onChange = select.onChange;
   const [opened, setOpened] = useState(false);
   const [id, setId] = useState(false);
-
+  useEffect(() => {
+    if (select.value && !value) {
+      handleOpen();
+      setValue(select.value);
+      triggerValue(selectData.id, select.value);
+      handleClose();
+    }
+  }, [select]);
   const handleOpen = async () => {
     setOpen(true);
     if (getData && (!opened || select.rerender)) {
@@ -147,6 +158,7 @@ function MUIAutoComplete({
       onChange(newValue ? newValue.id : null);
     }
   };
+
   return (
     <FormControl
       fullWidth={fullWidth}
@@ -163,7 +175,7 @@ function MUIAutoComplete({
         <Controller
           name={selectData.id}
           control={control}
-          defaultValue={value}
+          // defaultValue={value}
           rules={select.pattern}
           render={({ field }) => (
             <Autocomplete
@@ -174,10 +186,16 @@ function MUIAutoComplete({
                 handleChange(event, newValue);
                 field.onChange(newValue ? newValue.id : null);
               }}
-              value={options.find((option) => option.id === value) || null}
-              options={options}
+              value={
+                value !== null
+                  ? options?.find((option) => option.id == value)
+                  : null
+              }
+              options={options ? options : []}
               loading={loading}
-              disabled={disabled[selectData.id]}
+              disabled={
+                (disabled && disabled[selectData.id]) || selectData.disabled
+              }
               getOptionLabel={(option) => option.name || ""}
               renderInput={(params) => (
                 <TextField

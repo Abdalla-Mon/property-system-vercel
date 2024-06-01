@@ -13,6 +13,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import { CitiesForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/CiticeForm";
 import Link from "next/link";
+import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
+import { cityInputs } from "@/app/settings/state/[stateId]/cityInputs";
+import useEditState from "@/helpers/hooks/useEditState";
 
 export default function StatePage() {
   return (
@@ -49,7 +52,7 @@ const StateWrapper = () => {
     const filterData = data.filter((item) => item.id !== res.id);
     setData(filterData);
     setTotal((old) => old - 1);
-    if (page === 1) {
+    if (page === 1 && total >= limit) {
       setRender((old) => !old);
     } else {
       setPage((old) => (old > 1 ? old - 1 : 1) || 1);
@@ -119,6 +122,28 @@ const StateWrapper = () => {
     },
   ];
   const [cities, setCities] = useState([]);
+  const cityFields = [
+    {
+      id: "name",
+      type: "text",
+      label: "اسم المدينة",
+    },
+    {
+      id: "location",
+      type: "text",
+      label: "الموقع",
+    },
+  ];
+  const {
+    isEditing: isCityEditing,
+    setIsEditing: setIsCityEditing,
+    snackbarOpen,
+    setSnackbarOpen,
+    snackbarMessage,
+    setSnackbarMessage,
+    handleEditBeforeSubmit,
+  } = useEditState([{ name: "cities", message: "المدن" }]);
+
   return (
     <>
       <ViewComponent
@@ -139,8 +164,22 @@ const StateWrapper = () => {
         setExtraData={setCities}
         total={total}
         setTotal={setTotal}
+        handleEditBeforeSubmit={handleEditBeforeSubmit}
       >
-        <CitiesForm cities={cities} setCities={setCities} />
+        <ExtraForm
+          setItems={setCities}
+          items={cities}
+          fields={cityFields}
+          title={"مدن"}
+          formTitle={"المدن"}
+          name={"cities"}
+          setSnackbarMessage={setSnackbarMessage}
+          setSnackbarOpen={setSnackbarOpen}
+          snackbarMessage={snackbarMessage}
+          snackbarOpen={snackbarOpen}
+          isEditing={isCityEditing}
+          setIsEditing={setIsCityEditing}
+        />
       </ViewComponent>
     </>
   );

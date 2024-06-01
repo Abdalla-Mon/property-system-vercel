@@ -38,6 +38,7 @@ export function EditTableModal({
   children,
   extraData,
   fullWidth,
+  handleEditBeforeSubmit,
 }) {
   const { openModal, setOpenModal, submitData } = useTableForm();
   const data = rows.find((row) => row.id === id);
@@ -62,6 +63,10 @@ export function EditTableModal({
           formTitle={formTitle}
           inputs={modalInputs}
           onSubmit={async (data) => {
+            if (handleEditBeforeSubmit) {
+              const continueEditing = handleEditBeforeSubmit();
+              if (!continueEditing) return;
+            }
             data = { ...data, extraData };
             const newData = await submitData(data, setOpenModal, id);
             const editedData = rows.map((row) => {

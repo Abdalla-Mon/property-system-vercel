@@ -8,6 +8,9 @@ import { useState } from "react";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { districtInputs } from "@/app/settings/state/[stateId]/[cityId]/districtInputs";
 import { NeighboursForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/NeighbourForm";
+import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
+import Link from "next/link";
+import useEditState from "@/helpers/hooks/useEditState";
 
 export const DistrictPage = ({ params }) => {
   const { cityId, stateId } = params;
@@ -48,7 +51,7 @@ const DistrictWrapper = ({ cityId, stateId }) => {
     const filterData = data.filter((item) => item.id !== res.id);
     setData(filterData);
     setTotal((old) => old - 1);
-    if (page === 1) {
+    if (page === 1 && total >= limit) {
       setRender((old) => !old);
     } else {
       setPage((old) => (old > 1 ? old - 1 : 1) || 1);
@@ -116,8 +119,42 @@ const DistrictWrapper = ({ cityId, stateId }) => {
   ];
 
   const [neighbours, setNeighbours] = useState([]);
+  const neighboursFields = [
+    {
+      id: "name",
+      type: "text",
+      label: "اسم المنطقه",
+    },
+    {
+      id: "location",
+      type: "text",
+      label: "الموقع",
+    },
+  ];
+  const {
+    isEditing: isNeighbourEditing,
+    setIsEditing: setIsNeighbourEditing,
+    snackbarOpen,
+    setSnackbarOpen,
+    snackbarMessage,
+    setSnackbarMessage,
+    handleEditBeforeSubmit,
+  } = useEditState([{ districts: "neighbours", message: "المناطق" }]);
+
   return (
     <>
+      <div className={"flex gap-3 items-center"}>
+        <Link href={`/settings/state/${stateId}`}>
+          <Button variant="contained" color="primary">
+            العوده للمدينه
+          </Button>
+        </Link>
+        <Link href={`/settings/state/`}>
+          <Button variant="contained" color="primary">
+            العوده لاعدادت الامارات
+          </Button>
+        </Link>
+      </div>
       <ViewComponent
         inputs={districtInputs}
         formTitle={"تعديل"}
@@ -136,8 +173,22 @@ const DistrictWrapper = ({ cityId, stateId }) => {
         setExtraData={setNeighbours}
         total={total}
         setTotal={setTotal}
+        handleEditBeforeSubmit={handleEditBeforeSubmit}
       >
-        <NeighboursForm neighbours={neighbours} setNeighbours={setNeighbours} />
+        <ExtraForm
+          setItems={setNeighbours}
+          items={neighbours}
+          fields={neighboursFields}
+          title={"مناطق"}
+          formTitle={"المناطق"}
+          name={"neighbours"}
+          setSnackbarMessage={setSnackbarMessage}
+          setSnackbarOpen={setSnackbarOpen}
+          snackbarMessage={snackbarMessage}
+          snackbarOpen={snackbarOpen}
+          isEditing={isNeighbourEditing}
+          setIsEditing={setIsNeighbourEditing}
+        />
       </ViewComponent>
     </>
   );

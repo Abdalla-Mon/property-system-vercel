@@ -4,6 +4,7 @@ import { cityInputs } from "@/app/settings/state/[stateId]/cityInputs";
 import { districtInputs } from "@/app/settings/state/[stateId]/[cityId]/districtInputs";
 import { ownerInputs } from "@/app/owners/ownerInputs";
 import { bankInputs } from "@/app/settings/bank/inputs";
+import { collectorInputs } from "@/app/settings/collectors/collectorInputs";
 
 export const propertyInputs = [
   {
@@ -54,7 +55,7 @@ export const propertyInputs = [
   {
     data: {
       id: "propertyId",
-      type: "text",
+      type: "number",
       label: "معرف العقار",
       name: "propertyId",
     },
@@ -75,9 +76,15 @@ export const propertyInputs = [
   {
     data: {
       id: "voucherNumber",
-      type: "text",
+      type: "number",
       label: "رقم القسيمة",
       name: "voucherNumber",
+    },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال رقم القسيمة",
+      },
     },
     sx: {
       width: {
@@ -148,7 +155,6 @@ export const propertyInputs = [
       name: "districtId",
     },
     extraId: true,
-
     createData: districtInputs,
     autocomplete: true,
     rerender: true,
@@ -178,11 +184,13 @@ export const propertyInputs = [
           label: "اسم المنطقه",
           name: "name",
         },
-        pattern: {
-          required: {
-            value: true,
-            message: "يرجى إدخال اسم المنطقه",
-          },
+      },
+      {
+        data: {
+          id: "location",
+          type: "text",
+          label: "الموقع",
+          name: "location",
         },
       },
     ],
@@ -207,6 +215,12 @@ export const propertyInputs = [
       label: "الشارع",
       name: "street",
     },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال الشارع",
+      },
+    },
     sx: {
       width: {
         xs: "100%",
@@ -218,7 +232,7 @@ export const propertyInputs = [
   {
     data: {
       id: "plateNumber",
-      type: "text",
+      type: "number",
       label: "رقم اللوحة",
       name: "plateNumber",
     },
@@ -242,6 +256,12 @@ export const propertyInputs = [
       label: "قيمة العقار",
       name: "price",
     },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال قيمة العقار",
+      },
+    },
     sx: {
       width: {
         xs: "100%",
@@ -251,12 +271,6 @@ export const propertyInputs = [
       },
       mr: "auto",
     },
-    pattern: {
-      required: {
-        value: true,
-        message: "يرجى إدخال قيمة العقار",
-      },
-    },
   },
   {
     data: {
@@ -265,18 +279,18 @@ export const propertyInputs = [
       label: "تاريخ البناء",
       name: "dateOfBuilt",
     },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال تاريخ البناء",
+      },
+    },
     sx: {
       width: {
         xs: "100%",
         sm: "48%",
         md: "47%",
         lg: "48%",
-      },
-    },
-    pattern: {
-      required: {
-        value: true,
-        message: "يرجى إدخال تاريخ البناء",
       },
     },
   },
@@ -329,6 +343,30 @@ export const propertyInputs = [
     },
   },
   {
+    id: "collector",
+    data: {
+      id: "collectorId",
+      type: "select",
+      label: "اسم المحصل",
+      name: "collectorId",
+    },
+    createData: collectorInputs,
+    autocomplete: true,
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال اسم المحصل",
+      },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+      mr: "auto",
+    },
+  },
+  {
     data: {
       id: "bankAccountNumber",
       type: "number",
@@ -346,7 +384,6 @@ export const propertyInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {
@@ -367,6 +404,7 @@ export const propertyInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -387,7 +425,6 @@ export const propertyInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {
@@ -408,21 +445,27 @@ export const propertyInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
     data: {
       id: "builtArea",
       type: "number",
-      label: "مسطح البناء",
+      label: "مساحة البناء",
       name: "builtArea",
+    },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال مسطح البناء",
+      },
     },
     sx: {
       width: {
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {
@@ -432,19 +475,11 @@ export const propertyInputs = [
       label: "اسم حارس العمارة",
       name: "buildingGuardName",
     },
-    sx: {
-      width: {
-        xs: "100%",
-        md: "48%",
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال اسم حارس العمارة",
       },
-    },
-  },
-  {
-    data: {
-      id: "buildingGuardPhone",
-      type: "number",
-      label: "رقم جوال حارس",
-      name: "buildingGuardPhone",
     },
     sx: {
       width: {
@@ -456,15 +491,41 @@ export const propertyInputs = [
   },
   {
     data: {
-      id: "buildingGuardId",
+      id: "buildingGuardPhone",
       type: "number",
-      label: "هوية حارس",
-      name: "buildingGuardId",
+      label: "رقم جوال حارس",
+      name: "buildingGuardPhone",
+    },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال رقم جوال حارس",
+      },
     },
     sx: {
       width: {
         xs: "100%",
         md: "48%",
+      },
+    },
+  },
+  {
+    data: {
+      id: "buildingGuardId",
+      type: "number",
+      label: "هوية حارس",
+      name: "buildingGuardId",
+    },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال هوية حارس",
+      },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "100%",
       },
     },
   },

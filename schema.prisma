@@ -12,6 +12,7 @@ model State {
   name      String
   location  String
   cities    City[]
+  properties Property[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -75,6 +76,8 @@ model Property {
   voucherNumber       String?   // رقم القسيمة
   location            String?
   street              String?   // الشارع
+  stateId             Int
+  state               State    @relation(fields: [stateId], references: [id], onDelete: Restrict)
   cityId              Int
   city                City     @relation(fields: [cityId], references: [id], onDelete: Restrict)
   districtId          Int?
@@ -86,8 +89,9 @@ model Property {
   numElevators        Int      // عدد المصاعد
   numParkingSpaces    Int      // عدد المواقف
   builtArea           Float    // مسطح البناء
-  buildingGuardId     Int
-  buildingGuard       BuildingGuard @relation(fields: [buildingGuardId], references: [id])
+  buildingGuardName   String
+  buildingGuardPhone  String?
+  buildingGuardId     String?
   bankId              Int
   bank                Bank     @relation(fields: [bankId], references: [id], onDelete: Restrict, name: "PropertyBank") // Updated relation to Bank
   bankAccountNumber   String   // رقم الحساب البنكي
@@ -99,8 +103,8 @@ model Property {
   collector           Collector? @relation(fields: [collectorId], references: [id], onDelete: SetNull)
   deletedAt           DateTime? // null means the property is not deleted
   attachments         Attachment[] // Relation to the new Attachment model
-  incomes Income[]
-  expenses Expense[]
+  incomes             Income[]
+  expenses            Expense[]
   invoices            Invoice[]
   units               Unit[]
   maintenances        Maintenance[]
@@ -154,15 +158,7 @@ model Unit {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
-model BuildingGuard {
-  id          Int      @id @default(autoincrement())
-  name        String
-  nationalId  String
-  number      Int
-  properties  Property[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+
 
 model ContractExpense {
   id             Int             @id @default(autoincrement())

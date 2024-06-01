@@ -1,56 +1,27 @@
-import { useEffect, useState } from "react";
-import { IconButton, InputAdornment, TextField } from "@mui/material";
+import { useState } from "react";
+import { TextField } from "@mui/material";
 
 export function MuiTextField({
   input,
   variant = "contained",
   register,
   errors,
-  watch,
-  trigger,
 }) {
   const [inputData, setInputData] = useState(input.data);
-  const showPassword = inputData.type !== "text";
-  const handleClickShowPassword = () => {
-    setInputData({
-      ...inputData,
-      type: inputData.type === "password" ? "text" : "password",
-    });
-  };
-  const [type, setType] = useState(null);
-  const fieldValue = watch(inputData.id);
-
-  useEffect(() => {
-    if (type) {
-      if (input.data.type === "password" || input.data.type === "email") {
-        trigger(inputData.id);
-      }
-    }
-  }, [fieldValue]);
+  const [value, setValue] = useState(input.value);
   return (
     <TextField
       fullWidth
       sx={input.sx && input.sx}
       className={"mb-3"}
-      onInput={() => setType(true)}
-      variant={variant}
-      error={Boolean(errors[inputData.id])}
-      helperText={errors[inputData.id]?.message}
       defaultValue={input.value}
+      variant={variant}
+      // value={value}
+      error={Boolean(errors[inputData.id])}
+      // onChange={(e) => setValue(e.target.value)}
+      helperText={errors[inputData.id]?.message}
       {...inputData}
       {...register(inputData.id, input.pattern)}
-      InputProps={{
-        endAdornment: input.data.type === "password" && (
-          <InputAdornment position="end">
-            <IconButton
-              aria-label="toggle password visibility"
-              onClick={handleClickShowPassword}
-            >
-              icon
-            </IconButton>
-          </InputAdornment>
-        ),
-      }}
     />
   );
 }

@@ -15,6 +15,12 @@ import {
   getPropertyTypes,
   createRenter,
   getRenters,
+  createUnitType,
+  getUnitTypes,
+  getProperties,
+  createUnit,
+  getCollectors,
+  createCollector,
 } from "@/services/server/fastHandlers";
 
 const handlerObject = {
@@ -50,6 +56,21 @@ const handlerObject = {
     POST: createPropertyType,
     GET: getPropertyTypes,
   },
+  unitType: {
+    POST: createUnitType,
+    GET: getUnitTypes,
+  },
+  properties: {
+    GET: getProperties,
+  },
+  unit: {
+    // GET:getUnits
+    POST: createUnit,
+  },
+  collector: {
+    GET: getCollectors,
+    POST: createCollector,
+  },
 };
 
 export async function POST(request, { params }) {
@@ -58,9 +79,7 @@ export async function POST(request, { params }) {
     const body = await request.json();
 
     const id = searchParams.get("id");
-    console.log(id, "getId");
     const data = await handlerObject[id].POST(body, searchParams);
-    console.log(data, "createdData");
     return Response.json({ ...data, status: 200, message: "تم الإضافة بنجاح" });
   } catch (error) {
     console.error(error);

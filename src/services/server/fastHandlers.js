@@ -225,6 +225,115 @@ async function getPropertyTypes() {
   }
 }
 
+async function createUnitType(data) {
+  try {
+    const newUnitType = await prisma.unitType.create({
+      data: {
+        ...data,
+      },
+    });
+    return newUnitType;
+  } catch (error) {
+    console.error("Error creating unit type:", error);
+    throw error;
+  }
+}
+
+async function getUnitTypes() {
+  try {
+    const unitTypes = await prisma.unitType.findMany();
+    return unitTypes;
+  } catch (error) {
+    console.error("Error fetching unit types:", error);
+    throw error;
+  }
+}
+
+async function getProperties() {
+  try {
+    const properties = await prisma.property.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+    return properties;
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    throw error;
+  }
+}
+
+async function createUnit(data) {
+  try {
+    const newUnit = await prisma.unit.create({
+      data: {
+        name: data.name,
+        number: data.number,
+        yearlyRentPrice: +data.yearlyRentPrice,
+        electricityMeter: data.electricityMeter,
+        numBedrooms: +data.numBedrooms,
+        floor: +data.floor,
+        numBathrooms: +data.numBathrooms,
+        numACs: +data.numACs,
+        numLivingRooms: +data.numLivingRooms,
+        numKitchens: +data.numKitchens,
+        numSaloons: +data.numSaloons,
+        unitId: data.unitId,
+        notes: data.notes,
+        type: {
+          connect: {
+            id: +data.typeId,
+          },
+        },
+        property: {
+          connect: { id: +data.propertyId },
+        },
+      },
+      include: {
+        type: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        client: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+    return newUnit;
+  } catch (error) {
+    console.error("Error creating unit:", error);
+    throw error;
+  }
+}
+
+async function getCollectors() {
+  try {
+    const collectors = await prisma.collector.findMany();
+    return collectors;
+  } catch (error) {
+    console.error("Error fetching collectors:", error);
+    throw error;
+  }
+}
+
+async function createCollector(data) {
+  try {
+    const collector = await prisma.collector.create({
+      data: data,
+    });
+    return collector;
+  } catch (error) {
+    console.error("Error creating collector:", error);
+    throw error;
+  }
+}
+
 export {
   createState,
   getStates,
@@ -242,4 +351,10 @@ export {
   getRenters,
   getPropertyTypes,
   createPropertyType,
+  createUnitType,
+  getUnitTypes,
+  getProperties,
+  createUnit,
+  getCollectors,
+  createCollector,
 };
