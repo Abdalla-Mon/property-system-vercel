@@ -6,15 +6,9 @@ import { Button } from "@mui/material";
 import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { stateInputs } from "@/app/settings/state/inputs";
-import { useEffect, useState } from "react";
-import { TextField, IconButton } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
-import { CitiesForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/CiticeForm";
+import { useState } from "react";
 import Link from "next/link";
 import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
-import { cityInputs } from "@/app/settings/state/[stateId]/cityInputs";
 import useEditState from "@/helpers/hooks/useEditState";
 
 export default function StatePage() {

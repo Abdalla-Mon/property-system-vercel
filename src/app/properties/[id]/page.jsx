@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { propertyInputs } from "@/app/properties/propertyInputs";
 import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
 import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
-import { Button, Link as MUILINK } from "@mui/material";
+import { Button } from "@mui/material";
 import Link from "next/link";
 import CustomTable from "@/app/components/Tables/CustomTable";
 import { unitInputs } from "@/app/units/unitInputs";

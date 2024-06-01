@@ -2,7 +2,7 @@
 import TableFormProvider, {
   useTableForm,
 } from "@/app/context/TableFormProvider/TableFormProvider";
-import { Button, CircularProgress } from "@mui/material";
+import { Button } from "@mui/material";
 import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import { bankInputs } from "@/app/settings/bank/inputs";
 

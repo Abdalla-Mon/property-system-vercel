@@ -7,7 +7,7 @@ import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { useState } from "react";
 
-import Link from "next/Link";
+import Link from "next/link";
 import { unitInputs } from "@/app/units/unitInputs";
 
 export default function PropertyPage() {
