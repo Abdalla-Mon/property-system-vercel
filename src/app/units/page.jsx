@@ -2,15 +2,13 @@
 import TableFormProvider, {
   useTableForm,
 } from "@/app/context/TableFormProvider/TableFormProvider";
-import { Button, Link as MUILINK } from "@mui/material";
+import { Button } from "@mui/material";
 import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { useState } from "react";
-import { propertyInputs } from "@/app/properties/propertyInputs";
-import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
+
 import Link from "next/Link";
 import { unitInputs } from "@/app/units/unitInputs";
-import { useSearchParams } from "next/navigation";
 
 export default function PropertyPage() {
   return (
@@ -94,7 +92,7 @@ const PropertyWrapper = () => {
       cardWidth: 48,
       renderCell: (params) => (
         <Link href={"units/" + params.row.id}>
-          <MUILINK>{params.row.id}</MUILINK>
+          <Button variant={"text"}>{params.row.id}</Button>
         </Link>
       ),
     },
@@ -106,7 +104,7 @@ const PropertyWrapper = () => {
       cardWidth: 48,
       renderCell: (params) => (
         <Link href={"units/" + params.row.id}>
-          <MUILINK>{params.row.name}</MUILINK>
+          <Button variant={"text"}>{params.row.name}</Button>
         </Link>
       ),
     },

@@ -5,8 +5,8 @@ import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { useState } from "react";
 import { propertyInputs } from "@/app/properties/propertyInputs";
 import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
-import Link from "next/link";
 import useEditState from "@/helpers/hooks/useEditState";
+import Link from "next/link";
 
 const PropertyComponent = ({ clientId, noTabs }) => {
   const {
