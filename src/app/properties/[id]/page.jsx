@@ -90,7 +90,7 @@ const PropertyWrapper = ({ urlId }) => {
       console.log(data, "data");
       window.setTimeout(() => {
         setIsMetersEditing({
-          meters: data.electricityMeters?.map(() => false),
+          meters: data.electricityMeters.map(() => false),
         });
         console.log(isMetersEditing, "isMetersEditing");
       }, 50);
