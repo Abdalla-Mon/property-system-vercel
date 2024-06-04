@@ -88,7 +88,9 @@ const PropertyWrapper = ({ urlId }) => {
       setCityId(data.cityId);
       setDistrictId(data.districtId);
       setMeters(data.electricityMeters);
-      setIsMetersEditing(data.electricityMeters?.map(() => false));
+      setIsMetersEditing({
+        meters: data.electricityMeters.map(() => false),
+      });
       setDisabled({
         cityId: data.stateId ? false : true,
         districtId: data.cityId ? false : true,
