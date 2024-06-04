@@ -37,7 +37,7 @@ const PropertyWrapper = ({ urlId }) => {
     setTotal,
     setRender,
   } = useDataFetcher("main/properties/" + urlId + "/units", true);
-  const { submitData } = useTableForm();
+  const { submitData, openModal } = useTableForm();
 
   const [stateId, setStateId] = useState(null);
   const [cityId, setCityId] = useState(null);
@@ -411,7 +411,11 @@ const PropertyWrapper = ({ urlId }) => {
             >
               <ExtraForm
                 setItems={setMeters}
-                items={electricityMeters}
+                items={
+                  electricityMeters?.length
+                    ? electricityMeters
+                    : data.electricityMeters
+                }
                 fields={metersFields}
                 title={"عداد"}
                 formTitle={"عدادات الكهرباء"}

@@ -24,6 +24,7 @@ export const ExtraForm = ({
   useEffect(() => {}, []);
   useEffect(() => {
     if (!openModal) {
+      console.log("rerender");
       setItems([]);
     } else {
       setIsEditing({
@@ -48,7 +49,6 @@ export const ExtraForm = ({
       return acc;
     }, {});
     setItems((prev) => [...prev, defaultValues]);
-    // setIsEditing((prev) => [...prev, true]);
 
     setIsEditing({ ...isEditing, [name]: [...isEditing[name], true] });
   };
@@ -142,9 +142,7 @@ function FormField({
     newItems[index] = value;
 
     setItems(newItems);
-    // const newIsEditing = [...isEditing];
-    // newIsEditing[index] = false;
-    // setIsEditing(newIsEditing);
+
     setIsEditing({
       ...isEditing,
       [name]: isEditing[name].map((_, i) => (i === index ? false : _)),
