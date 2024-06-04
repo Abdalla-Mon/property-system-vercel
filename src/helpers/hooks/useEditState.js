@@ -15,8 +15,8 @@ const useEditState = (initialItems) => {
     acc[item.name] = [];
     return acc;
   }, {});
-
   const [isEditing, setIsEditing] = useState(initialEditingState);
+  console.log(isEditing, "isEditing");
   const [snackbarOpen, setSnackbarOpen] = useState(initialSnackbarState);
   const [snackbarMessage, setSnackbarMessage] = useState(initialMessageState);
 

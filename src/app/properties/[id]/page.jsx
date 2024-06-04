@@ -45,6 +45,7 @@ const PropertyWrapper = ({ urlId }) => {
   const [renderdDefault, setRenderedDefault] = useState(false);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({});
+  const [waitForData, setWaitForData] = useState(true);
   const [disabled, setDisabled] = useState({
     cityId: true,
     districtId: true,
@@ -89,13 +90,6 @@ const PropertyWrapper = ({ urlId }) => {
       setCityId(data.cityId);
       setDistrictId(data.districtId);
       setMeters(data.electricityMeters);
-      window.setTimeout(() => {
-        setIsMetersEditing({
-          meters: data.electricityMeters?.map(() => false),
-        });
-        console.log(isMetersEditing, "isMetersEditing");
-      }, 100);
-
       setDisabled({
         cityId: data.stateId ? false : true,
         districtId: data.cityId ? false : true,
@@ -428,6 +422,8 @@ const PropertyWrapper = ({ urlId }) => {
                 snackbarOpen={snackbarOpen}
                 isEditing={isMetersEditing}
                 setIsEditing={setIsMetersEditing}
+                setWaitForData={setWaitForData}
+                waitForData={waitForData}
               />
             </Form>
           </div>

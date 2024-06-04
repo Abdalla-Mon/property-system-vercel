@@ -16,13 +16,31 @@ export const ExtraForm = ({
   setSnackbarMessage,
   name,
   formTitle,
+  waitForData,
+  setWaitForData,
 }) => {
+  console.log(items, "items");
   const { openModal } = useTableForm();
+  useEffect(() => {}, []);
   useEffect(() => {
     if (!openModal) {
       setItems([]);
+    } else {
+      setIsEditing({
+        ...isEditing,
+        [name]: items.map((item) => false),
+      });
     }
   }, [openModal]);
+  useEffect(() => {
+    if (waitForData) {
+      setIsEditing({
+        ...isEditing,
+        [name]: items.map((item) => false),
+      });
+      setWaitForData(false);
+    }
+  }, [waitForData, items]);
   const handleAddItem = () => {
     const defaultValues = fields.reduce((acc, field) => {
       acc[field.id] = "";
