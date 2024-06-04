@@ -51,8 +51,6 @@ const PropertyWrapper = ({ urlId }) => {
     neighbourId: true,
   });
 
-  console.log(data, "data");
-
   const [reFetch, setRefetch] = useState({
     cityId: false,
     districtId: false,
@@ -89,9 +87,12 @@ const PropertyWrapper = ({ urlId }) => {
       setCityId(data.cityId);
       setDistrictId(data.districtId);
       setMeters(data.electricityMeters);
+      console.log(data, "data");
       setIsMetersEditing({
         meters: data.electricityMeters?.map(() => false),
       });
+      console.log(isMetersEditing, "isMetersEditing");
+
       setDisabled({
         cityId: data.stateId ? false : true,
         districtId: data.cityId ? false : true,
