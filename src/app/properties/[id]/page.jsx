@@ -56,7 +56,9 @@ const PropertyWrapper = ({ urlId }) => {
     districtId: false,
     neighbourId: false,
   });
-  const [electricityMeters, setMeters] = useState([]);
+  const [electricityMeters, setMeters] = useState(
+    data?.electricityMeters || [],
+  );
   const metersFields = [
     { id: "name", label: "اسم العداد", type: "text" },
     { id: "meterId", label: "رقم العداد", type: "number" },
@@ -87,13 +89,6 @@ const PropertyWrapper = ({ urlId }) => {
       setCityId(data.cityId);
       setDistrictId(data.districtId);
       setMeters(data.electricityMeters);
-      console.log(data, "data");
-      window.setTimeout(() => {
-        setIsMetersEditing({
-          meters: data.electricityMeters.map(() => false),
-        });
-        console.log(isMetersEditing, "isMetersEditing");
-      }, 50);
 
       setDisabled({
         cityId: data.stateId ? false : true,
@@ -104,6 +99,13 @@ const PropertyWrapper = ({ urlId }) => {
       window.setTimeout(() => setRenderedDefault(true), 100);
     }
   }, [loading, data]);
+  useEffect(() => {
+    if (typeof data === "object" && !loading) {
+      setIsMetersEditing({
+        meters: data.electricityMeters?.map(() => false),
+      });
+    }
+  }, [loading, data, renderdDefault]);
 
   async function getStatesData() {
     const res = await fetch("/api/fast-handler?id=state");
