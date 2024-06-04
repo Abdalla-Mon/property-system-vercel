@@ -89,6 +89,12 @@ const PropertyWrapper = ({ urlId }) => {
       setCityId(data.cityId);
       setDistrictId(data.districtId);
       setMeters(data.electricityMeters);
+      window.setTimeout(() => {
+        setIsMetersEditing({
+          meters: data.electricityMeters?.map(() => false),
+        });
+        console.log(isMetersEditing, "isMetersEditing");
+      }, 100);
 
       setDisabled({
         cityId: data.stateId ? false : true,
@@ -99,13 +105,6 @@ const PropertyWrapper = ({ urlId }) => {
       window.setTimeout(() => setRenderedDefault(true), 100);
     }
   }, [loading, data]);
-  useEffect(() => {
-    if (typeof data === "object" && !loading) {
-      setIsMetersEditing({
-        meters: data.electricityMeters?.map(() => false),
-      });
-    }
-  }, [loading, data, renderdDefault]);
 
   async function getStatesData() {
     const res = await fetch("/api/fast-handler?id=state");
