@@ -63,7 +63,6 @@ export const unitInputs = [
     },
     sx: {
       mr: "auto",
-
       width: {
         xs: "100%",
         md: "48%",

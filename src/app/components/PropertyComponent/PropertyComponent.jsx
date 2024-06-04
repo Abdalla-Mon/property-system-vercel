@@ -313,7 +313,7 @@ const PropertyComponent = ({ clientId, noTabs }) => {
   ];
   const [electricityMeters, setMeters] = useState([]);
   const [units, setUnits] = useState([]);
-  const unitsFields = [{ id: "name", label: "اسم الوحدة", type: "text" }];
+  const unitsFields = [{ id: "unitId", label: "معرف الوحده", type: "text" }];
   const {
     isEditing,
     setIsEditing,

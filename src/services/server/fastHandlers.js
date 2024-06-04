@@ -268,7 +268,6 @@ async function createUnit(data) {
   try {
     const newUnit = await prisma.unit.create({
       data: {
-        name: data.name,
         number: data.number,
         yearlyRentPrice: +data.yearlyRentPrice,
         electricityMeter: data.electricityMeter,

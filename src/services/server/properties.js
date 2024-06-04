@@ -33,7 +33,7 @@ export async function createProperty(data) {
     units: {
       create: units
         ? units.map((unit) => ({
-            name: unit.name,
+            unitId: unit.unitId,
             floor: 0,
           }))
         : [],

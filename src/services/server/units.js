@@ -2,7 +2,6 @@ import prisma from "@/lib/prisma";
 
 export async function createUnit(data) {
   const createData = {
-    name: data.name,
     number: data.number,
     yearlyRentPrice: +data.yearlyRentPrice,
     electricityMeter: data.electricityMeter,

@@ -134,7 +134,6 @@ model Attachment {
 
 model Unit {
   id               Int       @id @default(autoincrement())
-  name             String
   number           String?    // رقم الوحدة
   yearlyRentPrice  Float?     // سعر الإيجار السنوي
   electricityMeter String?    // رقم عداد الكهرباء

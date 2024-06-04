@@ -56,8 +56,8 @@ const PropertyWrapper = () => {
     extraId: false,
     getData: getUnitTypes,
   };
-  unitInputs[3] = {
-    ...unitInputs[3],
+  unitInputs[0] = {
+    ...unitInputs[0],
     extraId: false,
     getData: getProperties,
   };
@@ -97,23 +97,23 @@ const PropertyWrapper = () => {
       ),
     },
     {
-      field: "name",
-      headerName: "اسم الوحدة",
-      width: 200,
-      printable: true,
-      cardWidth: 48,
-      renderCell: (params) => (
-        <Link href={"units/" + params.row.id}>
-          <Button variant={"text"}>{params.row.name}</Button>
-        </Link>
-      ),
-    },
-    {
       field: "unitId",
       headerName: "معرف الوحده",
       width: 200,
       printable: true,
       cardWidth: 48,
+    },
+    {
+      field: "property",
+      headerName: "العقار",
+      width: 200,
+      printable: true,
+      cardWidth: 48,
+      renderCell: (params) => (
+        <Link href={"/properties/" + params.row.property?.id}>
+          <Button variant={"text"}>{params.row.property?.name}</Button>
+        </Link>
+      ),
     },
     {
       field: "number",
@@ -151,18 +151,6 @@ const PropertyWrapper = () => {
       width: 200,
       printable: true,
       cardWidth: 48,
-    },
-    {
-      field: "property",
-      headerName: "العقار",
-      width: 200,
-      printable: true,
-      cardWidth: 48,
-      renderCell: (params) => (
-        <Link href={"/properties/" + params.row.property?.id}>
-          <Button variant={"text"}>{params.row.property?.name}</Button>
-        </Link>
-      ),
     },
     {
       field: "actions",

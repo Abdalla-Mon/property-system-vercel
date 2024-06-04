@@ -469,13 +469,13 @@ function CreateUnit({ propertyId, setUnits, units }) {
     extraId: false,
     getData: getUnitTypes,
   };
-  modalInputs[3] = {
-    ...modalInputs[3],
+  modalInputs[0] = {
+    ...modalInputs[0],
     extraId: false,
     getData: getProperties,
     value: propertyId,
     data: {
-      ...modalInputs[3].data,
+      ...modalInputs[0].data,
       disabled: true,
     },
   };

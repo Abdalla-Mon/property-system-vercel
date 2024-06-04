@@ -52,7 +52,6 @@ const PropertyWrapper = ({ unitId }) => {
     return { data };
   }
 
-  console.log(data);
   useEffect(() => {
     if (typeof data === "object" && Object.keys(data).length > 0) {
       setRenderedDefault(true);
@@ -65,8 +64,8 @@ const PropertyWrapper = ({ unitId }) => {
     extraId: false,
     getData: getUnitTypes,
   };
-  unitInputs[3] = {
-    ...unitInputs[3],
+  unitInputs[0] = {
+    ...unitInputs[0],
     extraId: false,
     getData: getProperties,
   };
