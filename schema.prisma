@@ -177,23 +177,29 @@ model RentAgreement {
   type                   RentAgreementType @relation(fields: [typeId], references: [id], onDelete: Restrict)
   renterId               Int
   renter                 Client @relation("Renter", fields: [renterId], references: [id], onDelete: Cascade)
-  ownerId                Int
-  owner                  Client @relation("Owner", fields: [ownerId], references: [id], onDelete: Cascade)
-  tax                    Float
-  registrationFees       Float
-  insuranceFees          Float
+  tax                    Int?
+  registrationFees       Int?
+  insuranceFees          Int?
   unitId                 Int
   unit                   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
   totalPrice             Float
-  totalContractPrice     Float
+  totalContractPrice     Float?
   rentCollectionType     RentCollectionType
   installments           Installment[]
+  status                 RentAgreementStatus @default(ACTIVE)
   invoices               Invoice[] // Only invoices related to this RentAgreement
-  customDescription      Json? // New field for the edited description
+  customDescription      Json?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
   contractExpenses       ContractExpenseToRentAgreement[] @relation("ContractExpenseToRentAgreementToRentAgreement")
 }
+enum RentAgreementStatus {
+  CANCELED
+  EXPIRED
+  ACTIVE
+}
+
+
 
 model ContractExpenseToRentAgreement {
   id                Int             @id @default(autoincrement())
@@ -227,12 +233,12 @@ model Installment {
   startDate     DateTime
   endDate       DateTime
   status        Boolean
-  type          PaymentType
+  type          PaymentType?
   bankId        Int?
   bank          Bank?  @relation(fields: [bankId], references: [id], onDelete: SetNull)
   rentAgreementId Int
   rentAgreement RentAgreement @relation(fields: [rentAgreementId], references: [id], onDelete: Cascade)
-  invoices      Invoice[] // Only invoices related to this Installment
+  invoices      Invoice[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -357,7 +363,6 @@ model Client {
   role                ClientRole
   properties       Property[]
   rentAgreementsRenter RentAgreement[] @relation("Renter")
-  rentAgreementsOwner RentAgreement[] @relation("Owner")
   units            Unit[]  // This now references units correctly
   incomes Income[]
   expenses Expense[]

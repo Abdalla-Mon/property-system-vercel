@@ -472,7 +472,6 @@ export async function deleteCollector(id) {
 
 export async function createRentAgreementType(data) {
   const { extraData: description, ...typesData } = data;
-  console.log(description, "description");
   data = {
     ...typesData,
     description,

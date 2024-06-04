@@ -331,7 +331,7 @@ const PropertyComponent = ({ clientId, noTabs }) => {
     <>
       <ViewComponent
         inputs={dataInputs}
-        formTitle={"تعديل"}
+        formTitle={""}
         totalPages={totalPages}
         rows={data}
         columns={columns}

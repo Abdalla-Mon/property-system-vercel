@@ -56,7 +56,7 @@ export default function ViewComponent({
       "json",
       url,
     );
-
+    console.log(newData, "newData");
     if (rows.length < limit) {
       setData((old) => [...old, newData]);
     } else {

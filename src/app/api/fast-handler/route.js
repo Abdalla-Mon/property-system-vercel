@@ -21,6 +21,11 @@ import {
   createUnit,
   getCollectors,
   createCollector,
+  getRentTypes,
+  createRentType,
+  getUnits,
+  getContractExpenses,
+  createContractExpense,
 } from "@/services/server/fastHandlers";
 
 const handlerObject = {
@@ -64,12 +69,20 @@ const handlerObject = {
     GET: getProperties,
   },
   unit: {
-    // GET:getUnits
+    GET: getUnits,
     POST: createUnit,
   },
   collector: {
     GET: getCollectors,
     POST: createCollector,
+  },
+  rentType: {
+    GET: getRentTypes,
+    Post: createRentType,
+  },
+  contractExpenses: {
+    GET: getContractExpenses,
+    POST: createContractExpense,
   },
 };
 

@@ -7,7 +7,6 @@ import { Button } from "@mui/material";
 import { useState } from "react";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { districtInputs } from "@/app/settings/state/[stateId]/[cityId]/districtInputs";
-import { NeighboursForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/NeighbourForm";
 import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
 import Link from "next/link";
 import useEditState from "@/helpers/hooks/useEditState";

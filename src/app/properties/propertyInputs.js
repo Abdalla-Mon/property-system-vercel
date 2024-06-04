@@ -36,7 +36,6 @@ export const propertyInputs = [
       label: "نوع العقار",
       name: "typeId",
     },
-
     createData: propertyTypeInputs,
     autocomplete: true,
     pattern: {

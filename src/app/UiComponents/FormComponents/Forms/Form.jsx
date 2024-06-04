@@ -11,6 +11,8 @@ import MuiSwitchField from "@/app/UiComponents/FormComponents/MUIInputs/MuiSwitc
 import { MuiNumberField } from "@/app/UiComponents/FormComponents/MUIInputs/MuiNumberField";
 import { useRef } from "react";
 
+const locales = ["en-gb"];
+
 export function Form({
   formStyle,
   onSubmit,
@@ -43,7 +45,7 @@ export function Form({
         p: { xs: 2, md: 4 },
       }}
     >
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={locales}>
         <form
           noValidate
           onSubmit={handleSubmit(onSubmit)}

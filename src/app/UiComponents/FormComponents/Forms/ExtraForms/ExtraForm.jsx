@@ -16,8 +16,8 @@ export const ExtraForm = ({
   setSnackbarMessage,
   name,
   formTitle,
-
   editPage = false,
+  route,
 }) => {
   const { openModal } = useTableForm();
   useEffect(() => {
@@ -30,7 +30,6 @@ export const ExtraForm = ({
       });
     }
   }, [openModal]);
-  console.log(items, "items");
   const handleAddItem = () => {
     const defaultValues = fields.reduce((acc, field) => {
       acc[field.id] = "";

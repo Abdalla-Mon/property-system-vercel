@@ -264,6 +264,23 @@ async function getProperties() {
   }
 }
 
+async function getUnits() {
+  try {
+    const units = await prisma.unit.findMany({
+      select: {
+        id: true,
+        unitId: true,
+        rentAgreements: true,
+      },
+    });
+    console.log(units, "units");
+    return units;
+  } catch (error) {
+    console.error("Error fetching units:", error);
+    throw error;
+  }
+}
+
 async function createUnit(data) {
   try {
     const newUnit = await prisma.unit.create({
@@ -333,6 +350,48 @@ async function createCollector(data) {
   }
 }
 
+async function getRentTypes() {
+  try {
+    const rentTypes = await prisma.RentAgreementType.findMany({
+      select: {
+        id: true,
+        title: true,
+      },
+    });
+    console.log(rentTypes, "rentTypes");
+    return rentTypes;
+  } catch (error) {
+    console.error("Error fetching rent types:", error);
+    throw error;
+  }
+}
+
+async function createRentType(data) {
+  try {
+    const rentType = await prisma.RentAgreementType.create({
+      data: data,
+    });
+    return rentType;
+  } catch (error) {
+    console.error("Error creating rent type:", error);
+    throw error;
+  }
+}
+
+async function createContractExpense(data) {
+  data = {
+    name: data.name,
+    value: +data.value,
+  };
+  return await prisma.contractExpense.create({ data });
+}
+
+async function getContractExpenses() {
+  const contractExpenses = await prisma.contractExpense.findMany();
+
+  return contractExpenses;
+}
+
 export {
   createState,
   getStates,
@@ -353,7 +412,12 @@ export {
   createUnitType,
   getUnitTypes,
   getProperties,
+  getUnits,
   createUnit,
   getCollectors,
   createCollector,
+  getRentTypes,
+  createRentType,
+  getContractExpenses,
+  createContractExpense,
 };

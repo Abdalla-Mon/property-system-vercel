@@ -21,29 +21,18 @@ export function MuiSelect({
   triggerValue,
   reFetch,
 }) {
-  if (select.autocomplete) {
-    return (
-      <MUIAutoComplete
-        select={select}
-        errors={errors}
-        variant={variant}
-        control={control}
-        extraData={extraData}
-        disabled={disabled}
-        reFetch={reFetch}
-        triggerValue={triggerValue}
-      />
-    );
-  } else {
-    return (
-      <Select
-        select={select}
-        errors={errors}
-        variant={variant}
-        control={control}
-      />
-    );
-  }
+  return (
+    <MUIAutoComplete
+      select={select}
+      errors={errors}
+      variant={variant}
+      control={control}
+      extraData={extraData}
+      disabled={disabled}
+      reFetch={reFetch}
+      triggerValue={triggerValue}
+    />
+  );
 }
 
 function Select({ select, variant, control, errors }) {
@@ -182,6 +171,7 @@ function MUIAutoComplete({
               open={open}
               onOpen={handleOpen}
               onClose={handleClose}
+              getOptionDisabled={(option) => option.disabled} // Disable options based on the 'disabled' property
               onChange={(event, newValue) => {
                 handleChange(event, newValue);
                 field.onChange(newValue ? newValue.id : null);
@@ -194,7 +184,9 @@ function MUIAutoComplete({
               options={options ? options : []}
               loading={loading}
               disabled={
-                (disabled && disabled[selectData.id]) || selectData.disabled
+                (disabled && disabled[selectData.id]) ||
+                selectData.disabled ||
+                select.disabled
               }
               getOptionLabel={(option) => option.name || ""}
               renderInput={(params) => (
@@ -206,6 +198,7 @@ function MUIAutoComplete({
                   helperText={errors[selectData.id]?.message}
                   InputProps={{
                     ...params.InputProps,
+                    readOnly: selectData.disabled,
                     endAdornment: (
                       <>
                         {loading ? (

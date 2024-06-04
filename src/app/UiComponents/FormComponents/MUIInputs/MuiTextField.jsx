@@ -15,6 +15,7 @@ export function MuiTextField({
       sx={input.sx && input.sx}
       className={"mb-3"}
       defaultValue={input.value}
+      disabled={input.disabled}
       variant={variant}
       // value={value}
       error={Boolean(errors[inputData.id])}

@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { convertToISO } from "@/helpers/functions/convertDateToIso";
 
 export async function createProperty(data) {
   const { extraData } = data;
@@ -15,7 +16,7 @@ export async function createProperty(data) {
     street: data.street,
     plateNumber: data.plateNumber,
     price: +data.price,
-    dateOfBuilt: data.dateOfBuilt,
+    dateOfBuilt: convertToISO(data.dateOfBuilt),
     bankAccountNumber: data.bankAccountNumber,
     managementCommission: +data.managementCommission,
     numElevators: +data.numElevators,
@@ -203,7 +204,7 @@ export async function updateProperty(id, data) {
     buildingGuardPhone: data.buildingGuardPhone,
     buildingGuardId: data.buildingGuardId,
     price: +data.price,
-    dateOfBuilt: data.dateOfBuilt,
+    dateOfBuilt: convertToISO(data.dateOfBuilt),
     bankAccountNumber: data.bankAccountNumber,
     managementCommission: +data.managementCommission,
     numElevators: +data.numElevators,

@@ -368,6 +368,7 @@ const PropertyWrapper = ({ urlId }) => {
     },
   ];
 
+  console.log(data, "prop");
   return (
     <div>
       {loading || !renderdDefault ? (
