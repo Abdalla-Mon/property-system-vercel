@@ -38,14 +38,12 @@ const PropertyWrapper = ({ urlId }) => {
     setRender,
   } = useDataFetcher("main/properties/" + urlId + "/units", true);
   const { submitData, openModal } = useTableForm();
-
   const [stateId, setStateId] = useState(null);
   const [cityId, setCityId] = useState(null);
   const [districtId, setDistrictId] = useState(null);
   const [renderdDefault, setRenderedDefault] = useState(false);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({});
-  const [waitForData, setWaitForData] = useState(true);
   const [disabled, setDisabled] = useState({
     cityId: true,
     districtId: true,
@@ -90,6 +88,7 @@ const PropertyWrapper = ({ urlId }) => {
       setCityId(data.cityId);
       setDistrictId(data.districtId);
       setMeters(data.electricityMeters);
+      setIsMetersEditing(data.electricityMeters?.map(() => false));
       setDisabled({
         cityId: data.stateId ? false : true,
         districtId: data.cityId ? false : true,
@@ -411,11 +410,7 @@ const PropertyWrapper = ({ urlId }) => {
             >
               <ExtraForm
                 setItems={setMeters}
-                items={
-                  electricityMeters?.length
-                    ? electricityMeters
-                    : data.electricityMeters
-                }
+                items={electricityMeters}
                 fields={metersFields}
                 title={"عداد"}
                 formTitle={"عدادات الكهرباء"}
@@ -426,8 +421,7 @@ const PropertyWrapper = ({ urlId }) => {
                 snackbarOpen={snackbarOpen}
                 isEditing={isMetersEditing}
                 setIsEditing={setIsMetersEditing}
-                setWaitForData={setWaitForData}
-                waitForData={waitForData}
+                editPage={true}
               />
             </Form>
           </div>

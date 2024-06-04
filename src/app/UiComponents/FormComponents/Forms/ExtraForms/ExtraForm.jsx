@@ -18,13 +18,11 @@ export const ExtraForm = ({
   formTitle,
   waitForData,
   setWaitForData,
+  editPage = false,
 }) => {
-  console.log(items, "items");
   const { openModal } = useTableForm();
-  useEffect(() => {}, []);
   useEffect(() => {
-    if (!openModal) {
-      console.log("rerender");
+    if (!openModal && editPage) {
       setItems([]);
     } else {
       setIsEditing({
@@ -33,15 +31,7 @@ export const ExtraForm = ({
       });
     }
   }, [openModal]);
-  useEffect(() => {
-    if (waitForData) {
-      setIsEditing({
-        ...isEditing,
-        [name]: items.map((item) => false),
-      });
-      setWaitForData(false);
-    }
-  }, [waitForData, items]);
+
   const handleAddItem = () => {
     const defaultValues = fields.reduce((acc, field) => {
       acc[field.id] = "";
