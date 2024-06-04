@@ -300,18 +300,7 @@ const PropertyWrapper = ({ urlId }) => {
         </Link>
       ),
     },
-    {
-      field: "name",
-      headerName: "اسم الوحدة",
-      width: 200,
-      printable: true,
-      cardWidth: 48,
-      renderCell: (params) => (
-        <Link href={"/units/" + params.row.id}>
-          <Button variant={"text"}>{params.row.name}</Button>
-        </Link>
-      ),
-    },
+
     {
       field: "unitId",
       headerName: "معرف الوحده",

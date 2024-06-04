@@ -18,19 +18,7 @@ export default function PropertyPage({ params }) {
 }
 
 const PropertyWrapper = ({ unitId }) => {
-  const {
-    data,
-    loading,
-    page,
-    setPage,
-    limit,
-    setLimit,
-    totalPages,
-    setData,
-    total,
-    setTotal,
-    setRender,
-  } = useDataFetcher("main/units/" + unitId);
+  const { data, loading } = useDataFetcher("main/units/" + unitId);
   const { id, submitData } = useTableForm();
 
   const [disabled, setDisabled] = useState({});
@@ -76,14 +64,27 @@ const PropertyWrapper = ({ unitId }) => {
     };
     return input;
   });
+
+  async function edit(data) {
+    await submitData(
+      data,
+      null,
+      null,
+      "PUT",
+      null,
+      "json",
+      "/main/units/" + unitId,
+    );
+  }
+
   return (
     <>
       <div className="mb-4">
         <Form
-          formTitle={"إضافة"}
+          formTitle={"تعديل"}
           inputs={dataInputs}
           onSubmit={(data) => {
-            create(data);
+            edit(data);
           }}
           disabled={disabled}
           variant={"outlined"}
