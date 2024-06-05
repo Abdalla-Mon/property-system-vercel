@@ -163,6 +163,7 @@ function FormField({
           type={field.type}
           onChange={(e) => handleItemChange(index, field.id, e.target.value)}
           className="mr-2"
+          disabled={!saved}
         />
       ))}
       <Button
