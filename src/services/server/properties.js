@@ -255,6 +255,9 @@ export async function updateProperty(id, data) {
   const updatedProperty = await prisma.property.update({
     where: { id: +id },
     data: updateData,
+    include: {
+      electricityMeters: true,
+    },
   });
 
   return updatedProperty;

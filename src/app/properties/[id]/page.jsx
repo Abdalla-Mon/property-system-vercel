@@ -266,10 +266,9 @@ const PropertyWrapper = ({ urlId }) => {
       data.electricityMeters,
       electricityMeters,
     );
-    const deletedMeters = data.electricityMeters?.filter((meter) =>
-      electricityMeters.every((newMeter) => newMeter.meterId !== meter.meterId),
+    const deletedMeters = data.electricityMeters.filter(
+      (meter) => !electricityMeters.find((m) => m.id === meter.id),
     );
-    console.log(electricityMetersChanged);
 
     returnedData = {
       ...changedData,
@@ -281,7 +280,7 @@ const PropertyWrapper = ({ urlId }) => {
         deletedMeters,
       },
     };
-    await submitData(
+    const updated = await submitData(
       returnedData,
       null,
       null,
@@ -290,6 +289,8 @@ const PropertyWrapper = ({ urlId }) => {
       "json",
       "main/properties/" + urlId,
     );
+    setMeters(updated.electricityMeters);
+    console.log(updated);
   }
 
   async function handleDelete(id) {
