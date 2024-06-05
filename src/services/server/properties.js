@@ -191,7 +191,7 @@ export async function getPropertyById(page, limit, searchParams, params) {
 
 export async function updateProperty(id, data) {
   const { extraData } = data;
-  const { electricityMeters } = extraData;
+  const { electricityMeters, deletedMeters } = extraData;
   delete data.extraData;
 
   const updateData = {};
@@ -212,25 +212,43 @@ export async function updateProperty(id, data) {
       }
     }
   });
-
-  // Handle electricity meters
-  if (electricityMeters && electricityMeters.length > 0) {
-    await prisma.electricityMeter.deleteMany({
-      where: { propertyId: +id },
-    });
-
-    for (const meter of electricityMeters) {
-      await prisma.electricityMeter.create({
-        data: {
-          meterId: meter.meterId,
-          name: meter.name,
-          property: {
-            connect: {
-              id: +id,
-            },
-          },
+  if (deletedMeters && deletedMeters.length > 0) {
+    for (const meter of deletedMeters) {
+      await prisma.electricityMeter.delete({
+        where: {
+          id: +meter.id,
         },
       });
+    }
+  }
+  // Handle electricity meters
+  if (Object.keys(electricityMeters).length > 0) {
+    const electricityMeters = Object.values(extraData.electricityMeters);
+
+    for (const meter of electricityMeters) {
+      if (meter.id) {
+        await prisma.electricityMeter.update({
+          where: {
+            id: meter.id,
+          },
+          data: {
+            name: meter.name,
+            meterId: meter.meterId,
+          },
+        });
+      } else {
+        await prisma.electricityMeter.create({
+          data: {
+            name: meter.name,
+            meterId: meter.meterId,
+            property: {
+              connect: {
+                id: +id,
+              },
+            },
+          },
+        });
+      }
     }
   }
 

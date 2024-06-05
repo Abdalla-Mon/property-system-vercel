@@ -266,15 +266,19 @@ const PropertyWrapper = ({ urlId }) => {
       data.electricityMeters,
       electricityMeters,
     );
+    const deletedMeters = data.electricityMeters?.filter((meter) =>
+      electricityMeters.every((newMeter) => newMeter.meterId !== meter.meterId),
+    );
+    console.log(electricityMetersChanged);
 
     returnedData = {
       ...changedData,
       extraData: {
         electricityMeters:
-          Object.keys(electricityMetersChanged).length > 0 ||
-          electricityMeters.length !== data.electricityMeters?.length
+          Object.keys(electricityMetersChanged).length > 0
             ? electricityMeters
             : null,
+        deletedMeters,
       },
     };
     await submitData(
