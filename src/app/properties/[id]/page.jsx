@@ -290,6 +290,7 @@ const PropertyWrapper = ({ urlId }) => {
       "main/properties/" + urlId,
     );
     setMeters(updated.electricityMeters);
+    setData(updated);
     console.log(updated);
   }
 
