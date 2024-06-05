@@ -189,9 +189,10 @@ model RentAgreement {
   status                 RentAgreementStatus @default(ACTIVE)
   invoices               Invoice[] // Only invoices related to this RentAgreement
   customDescription      Json?
+  contractExpenses       ContractExpenseToRentAgreement[] @relation("ContractExpenseToRentAgreementToRentAgreement")
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
-  contractExpenses       ContractExpenseToRentAgreement[] @relation("ContractExpenseToRentAgreementToRentAgreement")
+
 }
 enum RentAgreementStatus {
   CANCELED
@@ -428,9 +429,11 @@ model Collector {
 model Invoice {
   id                Int      @id @default(autoincrement())
   amount            Float
+  paidAmount        Float @default(0)
   description       String
   dueDate           DateTime
   status            InvoiceStatus
+  title             String?
   propertyId        Int?
   property          Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
   clientId          Int
@@ -445,13 +448,21 @@ model Invoice {
   maintenanceInstallment MaintenanceInstallment? @relation(fields: [maintenanceInstallmentId], references: [id], onDelete: SetNull)
   incomes           Income[]
   expenses          Expense[]
+  invoiceType       InvoiceType?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
-
 
 enum InvoiceStatus {
   PENDING
   PAID
   OVERDUE
+}
+enum InvoiceType {
+  RENT
+  TAX
+  INSURANCE
+  REGISTRATION
+  MAINTENANCE
+  OTHER
 }

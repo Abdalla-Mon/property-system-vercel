@@ -30,8 +30,8 @@ export function createHandler({
       try {
         const req = await postService(data, params);
         return Response.json({
-          data: req,
-          message: "تم الإضافة بنجاح",
+          data: req.data ? req.data : req,
+          message: req.message ? req.message : "تم الإضافة بنجاح",
           status: 200,
         });
       } catch (e) {

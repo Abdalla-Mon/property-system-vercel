@@ -8,7 +8,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TablePagination,
   Toolbar,
   IconButton,
   FormControlLabel,
@@ -18,7 +17,6 @@ import { useReactToPrint } from "react-to-print";
 import PrintIcon from "@mui/icons-material/Print";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import FullScreenLoader from "@/app/components/Loaders/SpinnerLoader";
-import { paginationOptions } from "@/app/constants/constants";
 import CustomPagination from "@/app/components/CutsomPagination";
 
 export default function CustomTable({

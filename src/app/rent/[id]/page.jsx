@@ -3,7 +3,7 @@ import TableFormProvider, {
   useTableForm,
 } from "@/app/context/TableFormProvider/TableFormProvider";
 import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { propertyInputs } from "@/app/properties/propertyInputs";
 import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
 import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
@@ -26,6 +26,7 @@ import useEditState from "@/helpers/hooks/useEditState";
 import { MultiSelectInput } from "@/app/UiComponents/FormComponents/MUIInputs/MultiSelectAutoComplete";
 import { rentAgreementInputs } from "@/app/rent/rentInputs";
 import dayjs from "dayjs";
+import { useReactToPrint } from "react-to-print";
 
 const RentCollectionType = {
   TWO_MONTHS: "شهرين",
@@ -40,6 +41,7 @@ const StatusType = {
   CANCELED: "ملغى",
   EXPIRED: "منتهي",
 };
+
 export default function PropertyPage({ params }) {
   const id = params.id;
   return (
@@ -48,181 +50,6 @@ export default function PropertyPage({ params }) {
     </TableFormProvider>
   );
 }
-
-const PropertyWrapper = ({ urlId }) => {
-  const {
-    data,
-    loading,
-    page,
-    setPage,
-    limit,
-    setLimit,
-    totalPages,
-    setData,
-    total,
-    setTotal,
-    setRender,
-  } = useDataFetcher("main/rentAgreements/" + urlId);
-  const { submitData, openModal } = useTableForm();
-  const [disabled, setDisabled] = useState({});
-  const [reFetch, setRefetch] = useState({});
-  const [contractExpenses, setContractExpenses] = useState(null);
-  const [wait, setWait] = useState(true);
-  useEffect(() => {
-    if (!loading && typeof data === "object") {
-      setContractExpenses(
-        data.contractExpenses?.map((item) => item.contractExpense),
-      );
-      window.setTimeout(() => {
-        setWait(false);
-      }, 100);
-    }
-  }, [data, loading]);
-
-  async function getRenters() {
-    const res = await fetch("/api/fast-handler?id=renter");
-    const data = await res.json();
-
-    return { data };
-  }
-
-  async function getRentTypes() {
-    const res = await fetch("/api/fast-handler?id=rentType");
-    const data = await res.json();
-    const dataWithLabel = data.map((item) => {
-      return {
-        ...item,
-        name: item.title,
-      };
-    });
-    return { data: dataWithLabel };
-  }
-
-  async function getUnits() {
-    const res = await fetch("/api/fast-handler?id=unit");
-    const data = await res.json();
-    const dataWithLabel = data.map((item) => {
-      return {
-        ...item,
-        name: item.unitId,
-        disabled: item.rentAgreements?.some((rent) => rent.status === "ACTIVE"),
-      };
-    });
-
-    return { data: dataWithLabel };
-  }
-
-  async function getRentCollectionType() {
-    const data = [
-      { id: "TWO_MONTHS", name: "شهرين" },
-      { id: "THREE_MONTHS", name: "ثلاثة أشهر" },
-      { id: "FOUR_MONTHS", name: "أربعة أشهر" },
-      { id: "SIX_MONTHS", name: "ستة أشهر" },
-      { id: "ONE_YEAR", name: "سنة واحدة" },
-    ];
-    return { data };
-  }
-
-  console.log(data, "data");
-  if (loading || typeof data !== "object" || wait) return <div>loading...</div>;
-  const dataInputs = rentAgreementInputs.map((input) => {
-    input = {
-      ...input,
-      value: data[input.data.id],
-      disabled: true,
-    };
-    switch (input.data.id) {
-      case "rentCollectionType":
-        return {
-          ...input,
-          extraId: false,
-          getData: getRentCollectionType,
-        };
-      case "renterId":
-        return {
-          ...input,
-          extraId: false,
-          getData: getRenters,
-        };
-      case "typeId":
-        return {
-          ...input,
-          extraId: false,
-          getData: getRentTypes,
-        };
-      case "unitId":
-        return {
-          ...input,
-          extraId: false,
-          getData: getUnits,
-        };
-      default:
-        return input;
-    }
-  });
-  console.log(dataInputs);
-
-  async function create(data) {
-    const extraData = { electricityMeters };
-    data = { ...data, extraData };
-    await submitData(
-      data,
-      null,
-      null,
-      "PUT",
-      null,
-      "json",
-      "main/rentAgreements" + urlId,
-    );
-  }
-
-  async function handleDelete(id) {
-    const deleted = await submitData(
-      null,
-      null,
-      null,
-      "DELETE",
-      null,
-      "json",
-      "main/rentAgreements/" + id,
-    );
-  }
-
-  return (
-    <div>
-      {loading ? (
-        <div>جاري تحميل بيانات العقد</div>
-      ) : (
-        <>
-          <div className="mb-4">
-            <Form
-              formTitle={"تعديل عقد الايجار"}
-              inputs={dataInputs}
-              onSubmit={(data) => {
-                create(data);
-              }}
-              disabled={disabled}
-              variant={"outlined"}
-              btnText={"تعديل"}
-              reFetch={reFetch}
-            >
-              {contractExpenses !== null &&
-                !loading &&
-                contractExpenses !== undefined && (
-                  <MultiSelectInput
-                    route={"fast-handler?id=contractExpenses"}
-                    items={contractExpenses}
-                    setItems={setContractExpenses}
-                    label={"مصروفات العقود"}
-                  />
-                )}
-            </Form>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
 
 const ViewWrapper = ({ urlId }) => {
   const { data, loading } = useDataFetcher("main/rentAgreements/" + urlId);
@@ -253,33 +80,63 @@ const ViewWrapper = ({ urlId }) => {
     </>
   );
 };
-
+const contractExpensesTotalPrice = (contractExpenses) => {
+  return contractExpenses?.reduce((acc, item) => acc + item.value, 0);
+};
 const DataCard = ({ data }) => {
+  const componentRef = useRef();
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
   return (
-    <Card sx={{ margin: 2, padding: 2 }}>
+    <Card sx={{ padding: 2 }} ref={componentRef}>
       <CardContent>
         <Typography
           variant="h5"
           gutterBottom
           sx={{
-            mb: 2,
+            mb: 5,
+            textAlign: "center",
+            width: "fit-content",
+            mx: "auto",
+            padding: 1,
+            px: 1.5,
+            backgroundColor: "primary.main",
+            color: "white",
+            borderRadius: 1,
           }}
         >
           رقم العقد: {data.rentAgreementNumber}
         </Typography>
+        <Divider sx={{ width: "100%", marginY: 1 }} />
 
-        <Grid container spacing={2}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "repeat(1, 1fr)",
+              sm: "repeat(2, 1fr)",
+            },
+            gap: 2,
+          }}
+          container
+          spacing={2}
+        >
           <GridRow
             label="الوحدة"
             value={
-              <Link href={`/units/${data.unit.id}`}>{data.unit.unitId}</Link>
+              <Button variant="text" color="primary">
+                <Link href={`/units/${data.unit.id}`}>{data.unit.unitId}</Link>
+              </Button>
             }
           />
           <GridRow
             label="اسم العقار"
             value={
               <Link href={`/properties/${data.unit.property.id}`}>
-                {data.unit.property.name}
+                <Button variant="text" color="primary">
+                  {data.unit.property.name}
+                </Button>
               </Link>
             }
           />
@@ -287,7 +144,9 @@ const DataCard = ({ data }) => {
             label="اسم المالك"
             value={
               <Link href={`/owners/${data.unit.property.client.id}`}>
-                {data.unit.property.client.name}
+                <Button variant="text" color="primary">
+                  {data.unit.property.client.name}
+                </Button>
               </Link>
             }
           />
@@ -295,20 +154,27 @@ const DataCard = ({ data }) => {
             label="اسم المستأجر"
             value={
               <Link href={`/renters/${data.renter.id}`}>
-                {data.renter.name}
+                <Button variant="text" color="primary">
+                  {data.renter.name}
+                </Button>
               </Link>
             }
           />
-          <GridRow label="نوع العقد" value={data.type.title} />
           <GridRow
-            label="نوع الدفع"
+            label=" يتم تحصيل الايجار كل"
             value={RentCollectionType[data.rentCollectionType]}
           />
-          <GridRow label="السعر الكلي" value={data.totalPrice} />
+          <GridRow label="سعر عقد الايجار سنويا " value={data.totalPrice} />
           <GridRow label="الضريبة" value={data.tax} />
-          <GridRow label="التأمين" value={data.insuranceFees} />
-          <GridRow label="الحالة" value={StatusType[data.status]} />
+          <GridRow
+            label="قمية الضريبه"
+            value={(data.tax * data.totalPrice) / 100}
+          />
 
+          <GridRow label="التأمين" value={data.insuranceFees} />
+          <GridRow label="رسوم التسجيل" value={data.registrationFees} />
+          <GridRow label="الحالة" value={StatusType[data.status]} />
+          <GridRow />
           <GridRow
             label="تاريخ البداية"
             value={dayjs(data.startDate).format("DD/MM/YYYY")}
@@ -317,10 +183,11 @@ const DataCard = ({ data }) => {
             label="تاريخ النهاية"
             value={dayjs(data.endDate).format("DD/MM/YYYY")}
           />
+
           {data.contractExpenses && (
-            <Grid item xs={12}>
+            <Box>
               <Typography variant="subtitle1" gutterBottom>
-                <strong>مصروفات العقود:</strong>
+                <strong>مصروفات العقد:</strong>
               </Typography>
               <Box component="ul" sx={{ paddingLeft: 2 }}>
                 {data.contractExpenses.map((expense, index) => (
@@ -329,31 +196,61 @@ const DataCard = ({ data }) => {
                   </Typography>
                 ))}
               </Box>
-            </Grid>
+            </Box>
           )}
-        </Grid>
+          <GridRow
+            label="المبلغ الكلي"
+            value={
+              data.totalPrice +
+              (data.tax * data.totalPrice) / 100 +
+              data.insuranceFees +
+              data.registrationFees +
+              contractExpensesTotalPrice(data.contractExpenses)
+            }
+          />
+        </Box>
+
+        <Box mt={2}>
+          <Button variant="contained" color="primary" onClick={handlePrint}>
+            Print
+          </Button>
+        </Box>
       </CardContent>
     </Card>
   );
 };
 
 const GridRow = ({ label, value }) => (
-  <>
-    <Grid item xs={12} md={6}>
-      <Box display="flex" flexDirection="column">
-        <Typography
-          variant="subtitle1"
-          gutterBottom
-          sx={{
-            display: "flex",
-            gap: 2,
-          }}
-        >
-          <strong>{label}:</strong> {value}
-        </Typography>
-        <Divider sx={{ width: "100%", marginY: 1 }} orientation="vertical" />
-        <Divider sx={{ width: "100%", marginY: 1 }} />
-      </Box>
-    </Grid>
-  </>
+  <Box>
+    <Box display="flex" flexDirection="column">
+      <Typography
+        variant="subtitle1"
+        gutterBottom
+        sx={{
+          display: "flex",
+          gap: 2,
+          alignItems: "center",
+        }}
+      >
+        <strong>{label}:</strong> {value}
+      </Typography>
+      <Divider sx={{ width: "100%", marginY: 1 }} orientation="vertical" />
+      <Divider sx={{ width: "100%", marginY: 1 }} />
+    </Box>
+  </Box>
 );
+
+const printStyles = `
+  @media print {
+    .MuiButton-root {
+      display: none;
+    }
+    .MuiCard-root {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+  }
+`;
+
+const GlobalStyles = () => <style>{printStyles}</style>;

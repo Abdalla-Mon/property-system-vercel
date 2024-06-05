@@ -10,6 +10,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { rentAgreementInputs } from "./rentInputs";
 import { MultiSelectInput } from "@/app/UiComponents/FormComponents/MUIInputs/MultiSelectAutoComplete";
+import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
+import { submitRentAgreement } from "@/services/client/createRentAgreement";
 
 export default function PropertyPage() {
   return (
@@ -113,7 +115,7 @@ const RentWrapper = () => {
   });
 
   async function handleDelete(id) {
-    const res = await submitData(
+    await submitData(
       null,
       null,
       id,
@@ -123,7 +125,7 @@ const RentWrapper = () => {
       "main/rentAgreements",
     );
 
-    const filterData = data.filter((item) => item.id !== res.id);
+    const filterData = data.filter((item) => +item.id !== +id);
     setData(filterData);
     setTotal((old) => old - 1);
     if (page === 1 && total >= limit) {
@@ -241,6 +243,12 @@ const RentWrapper = () => {
   ];
 
   const [contractExpenses, setContractExpenses] = useState([]);
+  const { setLoading: setSubmitLoading } = useToastContext();
+
+  async function submit(data) {
+    return await submitRentAgreement(data, setSubmitLoading);
+  }
+
   return (
     <>
       <ViewComponent
@@ -263,7 +271,9 @@ const RentWrapper = () => {
         noModal={true}
         disabled={disabled}
         reFetch={reFetch}
+        submitFunction={submit}
         url={"main/rentAgreements"}
+        setSubmitLoading={setSubmitLoading}
       >
         <MultiSelectInput
           route={"fast-handler?id=contractExpenses"}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import MainTable from "@/app/components/Tables/MainTable";
 import DataGrid from "@/app/components/DataGrid/DataGrid";
 import CustomTable from "@/app/components/Tables/CustomTable";
 import { EditTableModal } from "@/app/UiComponents/Modals/EditTableModal/EditTableModal";
@@ -35,6 +34,7 @@ export default function ViewComponent({
   url,
   handleEditBeforeSubmit,
   noTabs,
+  submitFunction,
 }) {
   const [view, setView] = useState("table");
   const [showForm, setShowForm] = useState(directEdit);
@@ -47,16 +47,9 @@ export default function ViewComponent({
     }
     data = { ...data, extraData };
 
-    const newData = await submitData(
-      data,
-      null,
-      null,
-      "POST",
-      null,
-      "json",
-      url,
-    );
-    console.log(newData, "newData");
+    const newData = submitFunction
+      ? await submitFunction(data)
+      : await submitData(data, null, null, "POST", null, "json", url);
     if (rows.length < limit) {
       setData((old) => [...old, newData]);
     } else {
