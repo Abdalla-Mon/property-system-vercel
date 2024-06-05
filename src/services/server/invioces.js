@@ -1,3 +1,5 @@
+import prisma from "@/lib/prisma"; // Adjust the path to your Prisma instance
+
 export async function payInvoice(invoiceId, paidAmount, paymentDate) {
   try {
     // Fetch the invoice details

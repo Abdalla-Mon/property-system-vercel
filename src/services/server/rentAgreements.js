@@ -1,3 +1,5 @@
+import prisma from "@/lib/prisma"; // Adjust the path to your Prisma instance
+
 import { convertToISO } from "@/helpers/functions/convertDateToIso";
 
 const RentCollectionType = {
