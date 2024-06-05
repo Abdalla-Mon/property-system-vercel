@@ -212,6 +212,7 @@ export async function updateProperty(id, data) {
       }
     }
   });
+  console.log(deletedMeters, "deletedMeters");
   if (deletedMeters && deletedMeters.length > 0) {
     for (const meter of deletedMeters) {
       await prisma.electricityMeter.delete({
@@ -222,7 +223,7 @@ export async function updateProperty(id, data) {
     }
   }
   // Handle electricity meters
-  if (Object.keys(electricityMeters).length > 0) {
+  if (electricityMeters && Object.keys(electricityMeters).length > 0) {
     const electricityMeters = Object.values(extraData.electricityMeters);
 
     for (const meter of electricityMeters) {

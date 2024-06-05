@@ -269,7 +269,7 @@ const PropertyWrapper = ({ urlId }) => {
     const deletedMeters = data.electricityMeters.filter(
       (meter) => !electricityMeters.find((m) => m.id === meter.id),
     );
-
+    console.log(deletedMeters);
     returnedData = {
       ...changedData,
       extraData: {
@@ -469,7 +469,6 @@ function CreateUnit({ propertyId, setUnits, units }) {
   async function getProperties() {
     const res = await fetch("/api/fast-handler?id=properties");
     const data = await res.json();
-
     return { data };
   }
 
