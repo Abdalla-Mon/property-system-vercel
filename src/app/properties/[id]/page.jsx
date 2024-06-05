@@ -13,6 +13,7 @@ import CustomTable from "@/app/components/Tables/CustomTable";
 import { unitInputs } from "@/app/units/unitInputs";
 import { CreateModal } from "@/app/UiComponents/Modals/CreateModal/CreateModal";
 import useEditState from "@/helpers/hooks/useEditState";
+import { getChangedFields } from "@/helpers/functions/getChangedFields";
 
 export default function PropertyPage({ params }) {
   const id = params.id;
@@ -37,6 +38,7 @@ const PropertyWrapper = ({ urlId }) => {
     setTotal,
     setRender,
   } = useDataFetcher("main/properties/" + urlId + "/units", true);
+
   const { submitData, openModal } = useTableForm();
   const [stateId, setStateId] = useState(null);
   const [cityId, setCityId] = useState(null);
@@ -254,15 +256,29 @@ const PropertyWrapper = ({ urlId }) => {
     }
   });
 
-  async function create(data) {
+  async function create(returnedData) {
     const contintueCreation = handleEditBeforeSubmit();
     if (!contintueCreation) {
       return;
     }
-    const extraData = { electricityMeters };
-    data = { ...data, extraData };
+    const changedData = getChangedFields(data, returnedData);
+    const electricityMetersChanged = getChangedFields(
+      data.electricityMeters,
+      electricityMeters,
+    );
+
+    returnedData = {
+      ...changedData,
+      extraData: {
+        electricityMeters:
+          Object.keys(electricityMetersChanged).length > 0 ||
+          electricityMeters.length !== data.electricityMeters?.length
+            ? electricityMeters
+            : null,
+      },
+    };
     await submitData(
-      data,
+      returnedData,
       null,
       null,
       "PUT",
@@ -368,7 +384,6 @@ const PropertyWrapper = ({ urlId }) => {
     },
   ];
 
-  console.log(data, "prop");
   return (
     <div>
       {loading || !renderdDefault ? (
@@ -475,8 +490,6 @@ function CreateUnit({ propertyId, setUnits, units }) {
       setData={setUnits}
       modalInputs={modalInputs}
       id={"unit"}
-
-      // extraId={propertyId}
     />
   );
 }

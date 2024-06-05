@@ -194,99 +194,48 @@ export async function updateProperty(id, data) {
   const { electricityMeters } = extraData;
   delete data.extraData;
 
-  let updateData = {
-    name: data.name,
-    propertyId: data.propertyId,
-    voucherNumber: data.voucherNumber,
-    street: data.street,
-    plateNumber: data.plateNumber,
-    buildingGuardName: data.buildingGuardName,
-    buildingGuardPhone: data.buildingGuardPhone,
-    buildingGuardId: data.buildingGuardId,
-    price: +data.price,
-    dateOfBuilt: convertToISO(data.dateOfBuilt),
-    bankAccountNumber: data.bankAccountNumber,
-    managementCommission: +data.managementCommission,
-    numElevators: +data.numElevators,
-    numParkingSpaces: +data.numParkingSpaces,
-    builtArea: +data.builtArea,
-    location: data.location || "",
-    type: {
-      connect: {
-        id: +data.typeId,
-      },
-    },
-
-    state: {
-      connect: {
-        id: +data.stateId,
-      },
-    },
-    city: {
-      connect: {
-        id: +data.cityId,
-      },
-    },
-    bank: {
-      connect: {
-        id: +data.bankId,
-      },
-    },
-    collector: {
-      connect: {
-        id: +data.collectorId,
-      },
-    },
-    client: {
-      connect: {
-        id: +data.clientId,
-      },
-    },
-  };
-
-  if (data.districtId) {
-    updateData = {
-      ...updateData,
-      district: {
-        connect: {
-          id: +data.districtId,
-        },
-      },
-    };
-  }
-
-  if (data.neighbourId) {
-    updateData = {
-      ...updateData,
-      neighbour: {
-        connect: {
-          id: +data.neighbourId,
-        },
-      },
-    };
-  }
-  // Delete all existing electricityMeters and units
-  await prisma.electricityMeter.deleteMany({
-    where: { propertyId: +id },
+  const updateData = {};
+  Object.keys(data).forEach((key) => {
+    if (data[key] !== undefined) {
+      if (
+        key === "price" ||
+        key === "managementCommission" ||
+        key === "numElevators" ||
+        key === "numParkingSpaces" ||
+        key === "builtArea"
+      ) {
+        updateData[key] = +data[key];
+      } else if (key === "dateOfBuilt") {
+        updateData[key] = convertToISO(data[key]);
+      } else {
+        updateData[key] = data[key];
+      }
+    }
   });
 
-  // Create new electricityMeters and units
-  for (const meter of electricityMeters) {
-    await prisma.electricityMeter.create({
-      data: {
-        meterId: meter.meterId,
-        name: meter.name,
-        property: {
-          connect: {
-            id: +id,
+  // Handle electricity meters
+  if (electricityMeters && electricityMeters.length > 0) {
+    await prisma.electricityMeter.deleteMany({
+      where: { propertyId: +id },
+    });
+
+    for (const meter of electricityMeters) {
+      await prisma.electricityMeter.create({
+        data: {
+          meterId: meter.meterId,
+          name: meter.name,
+          property: {
+            connect: {
+              id: +id,
+            },
           },
         },
-      },
-    });
+      });
+    }
   }
 
   const updatedProperty = await prisma.property.update({
-    where: { id },
+    where: { id: +id },
     data: updateData,
   });
 

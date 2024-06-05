@@ -121,35 +121,45 @@ export async function getUnitById(page, limit, searchParams, params) {
 
 // Update a unit by ID
 export async function updateUnit(id, data) {
-  const updateData = {
-    name: data.name,
-    number: data.number,
-    yearlyRentPrice: +data.yearlyRentPrice,
-    electricityMeter: data.electricityMeter,
-    numBedrooms: +data.numBedrooms,
-    floor: +data.floor,
-    numBathrooms: +data.numBathrooms,
-    numACs: +data.numACs,
-    numLivingRooms: +data.numLivingRooms,
-    numKitchens: +data.numKitchens,
-    numSaloons: +data.numSaloons,
-    unitId: data.unitId,
-    notes: data.notes,
-    type: {
+  const updateData = {};
+  Object.keys(data).forEach((key) => {
+    if (data[key] !== undefined) {
+      if (
+        key === "yearlyRentPrice" ||
+        key === "numBedrooms" ||
+        key === "floor" ||
+        key === "numBathrooms" ||
+        key === "numACs" ||
+        key === "numLivingRooms" ||
+        key === "numKitchens" ||
+        key === "numSaloons"
+      ) {
+        updateData[key] = +data[key];
+      } else {
+        updateData[key] = data[key];
+      }
+    }
+  });
+
+  if (data.clientId) {
+    updateData.client = {
+      connect: {
+        id: +data.clientId,
+      },
+    };
+  } else {
+    updateData.client = {
+      disconnect: true,
+    };
+  }
+
+  if (data.typeId) {
+    updateData.type = {
       connect: {
         id: +data.typeId,
       },
-    },
-    client: data.clientId
-      ? {
-          connect: {
-            id: +data.clientId,
-          },
-        }
-      : {
-          disconnect: true,
-        },
-  };
+    };
+  }
 
   const updatedUnit = await prisma.unit.update({
     where: { id: +id },

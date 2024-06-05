@@ -7,8 +7,7 @@ export function MuiTextField({
   register,
   errors,
 }) {
-  const [inputData, setInputData] = useState(input.data);
-  const [value, setValue] = useState(input.value);
+  const inputData = input.data;
   return (
     <TextField
       fullWidth

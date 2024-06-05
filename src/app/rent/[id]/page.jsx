@@ -212,7 +212,7 @@ const DataCard = ({ data }) => {
 
         <Box mt={2}>
           <Button variant="contained" color="primary" onClick={handlePrint}>
-            Print
+            طباعة
           </Button>
         </Box>
       </CardContent>

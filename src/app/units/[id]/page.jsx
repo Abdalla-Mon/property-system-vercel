@@ -7,6 +7,7 @@ import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import { useEffect, useState } from "react";
 import { unitInputs } from "@/app/units/unitInputs";
 import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
+import { getChangedFields } from "@/helpers/functions/getChangedFields";
 
 export default function PropertyPage({ params }) {
   const id = params.id;
@@ -65,9 +66,12 @@ const PropertyWrapper = ({ unitId }) => {
     return input;
   });
 
-  async function edit(data) {
+  async function edit(returnedData) {
+    const changedData = getChangedFields(data, returnedData);
+    console.log(changedData);
+    return;
     await submitData(
-      data,
+      changedData,
       null,
       null,
       "PUT",
