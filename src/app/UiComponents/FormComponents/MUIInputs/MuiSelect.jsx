@@ -114,9 +114,9 @@ function MUIAutoComplete({
   const onChange = select.onChange;
   const [opened, setOpened] = useState(false);
   const [id, setId] = useState(false);
-
+  const [changed, setChanged] = useState(false);
   useEffect(() => {
-    if (select.value && !value) {
+    if (select.value && !value && !changed) {
       handleOpen();
       setValue(select.value);
       triggerValue(selectData.id, select.value);
@@ -146,6 +146,7 @@ function MUIAutoComplete({
     if (onChange) {
       onChange(newValue ? newValue.id : null);
     }
+    setChanged(true);
   };
 
   return (
@@ -164,7 +165,6 @@ function MUIAutoComplete({
         <Controller
           name={selectData.id}
           control={control}
-          // defaultValue={value}
           rules={select.pattern}
           render={({ field }) => (
             <Autocomplete

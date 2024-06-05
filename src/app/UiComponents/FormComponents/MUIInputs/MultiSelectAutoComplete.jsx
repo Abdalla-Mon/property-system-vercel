@@ -19,8 +19,6 @@ export function MultiSelectInput({
       const req = await fetch("/api/" + route);
       const res = await req.json();
       setData(res);
-      console.log(res, "res");
-      console.log(items, "items");
       setLoading(false);
     }
 

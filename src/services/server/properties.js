@@ -82,7 +82,7 @@ export async function createProperty(data) {
     };
   }
 
-  if (data.neighbourId) {
+  if (data.neighbourId && data.districtId) {
     createData = {
       ...createData,
       neighbour: {
@@ -212,7 +212,7 @@ export async function updateProperty(id, data) {
       }
     }
   });
-  console.log(deletedMeters, "deletedMeters");
+
   if (deletedMeters && deletedMeters.length > 0) {
     for (const meter of deletedMeters) {
       await prisma.electricityMeter.delete({
@@ -222,7 +222,6 @@ export async function updateProperty(id, data) {
       });
     }
   }
-  // Handle electricity meters
   if (electricityMeters && Object.keys(electricityMeters).length > 0) {
     const electricityMeters = Object.values(extraData.electricityMeters);
 
