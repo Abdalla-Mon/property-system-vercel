@@ -68,7 +68,7 @@ const RenterWrapper = () => {
     },
     {
       field: "name",
-      headerName: "اسم المالك",
+      headerName: "اسم المستاجر",
       width: 200,
       printable: true,
       cardWidth: 48,
@@ -77,7 +77,7 @@ const RenterWrapper = () => {
           className={"text-blue-500 hover:text-blue-800"}
           href={`/renters/${params.row.id}`}
         >
-          {params.name}
+          {params.row.name}
         </Link>
       ),
     },
