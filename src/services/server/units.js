@@ -122,6 +122,12 @@ export async function getUnitById(page, limit, searchParams, params) {
 // Update a unit by ID
 export async function updateUnit(id, data) {
   const updateData = {};
+
+  const clientId = data.clientId;
+  const typeId = data.typeId;
+  delete data.clientId;
+  delete data.typeId;
+
   Object.keys(data).forEach((key) => {
     if (data[key] !== undefined) {
       if (
@@ -141,22 +147,18 @@ export async function updateUnit(id, data) {
     }
   });
 
-  if (data.clientId) {
+  if (clientId) {
     updateData.client = {
       connect: {
-        id: +data.clientId,
+        id: +clientId,
       },
-    };
-  } else {
-    updateData.client = {
-      disconnect: true,
     };
   }
 
-  if (data.typeId) {
+  if (typeId) {
     updateData.type = {
       connect: {
-        id: +data.typeId,
+        id: +typeId,
       },
     };
   }

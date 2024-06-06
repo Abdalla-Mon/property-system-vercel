@@ -68,8 +68,6 @@ const PropertyWrapper = ({ unitId }) => {
 
   async function edit(returnedData) {
     const changedData = getChangedFields(data, returnedData);
-    console.log(changedData);
-    return;
     await submitData(
       changedData,
       null,
