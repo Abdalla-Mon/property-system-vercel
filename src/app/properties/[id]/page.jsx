@@ -269,7 +269,6 @@ const PropertyWrapper = ({ urlId }) => {
     const deletedMeters = data.electricityMeters.filter(
       (meter) => !electricityMeters.find((m) => m.id === meter.id),
     );
-    console.log(deletedMeters);
     returnedData = {
       ...changedData,
       extraData: {

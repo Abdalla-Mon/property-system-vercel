@@ -7,6 +7,9 @@ import { propertyInputs } from "@/app/properties/propertyInputs";
 import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
 import useEditState from "@/helpers/hooks/useEditState";
 import Link from "next/link";
+import { submitRentAgreement } from "@/services/client/createRentAgreement";
+import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
+import { submitProperty } from "@/services/client/properties";
 
 const PropertyComponent = ({ clientId, noTabs }) => {
   const {
@@ -326,6 +329,11 @@ const PropertyComponent = ({ clientId, noTabs }) => {
     { name: "meters", message: "عدادات الكهرباء" },
     { name: "units", message: "وحدات العقار" },
   ]);
+  const { setLoading: setSubmitLoading } = useToastContext();
+
+  async function submit(data) {
+    return await submitProperty(data, setSubmitLoading);
+  }
 
   return (
     <>
@@ -351,6 +359,7 @@ const PropertyComponent = ({ clientId, noTabs }) => {
         url={"main/properties"}
         handleEditBeforeSubmit={handleEditBeforeSubmit}
         noTabs={noTabs}
+        submitFunction={submit}
       >
         {!noTabs && (
           <>

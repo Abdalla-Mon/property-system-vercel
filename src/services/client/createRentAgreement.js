@@ -1,8 +1,6 @@
 import { handleRequestSubmit } from "@/helpers/functions/handleRequestSubmit";
 
 export async function submitRentAgreement(data, setLoading) {
-  console.log(data);
-
   const rentAgreementResponse = await handleRequestSubmit(
     data,
     setLoading,

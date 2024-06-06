@@ -1,46 +1,54 @@
-const API_URL = '/api/properties';
+import { handleRequestSubmit } from "@/helpers/functions/handleRequestSubmit";
 
-export async function createProperty(data) {
-    const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    });
-    return await response.json();
-}
+export async function submitProperty(data, setLoading) {
+  try {
+    // Create Property
+    const propertyResponse = await handleRequestSubmit(
+      data,
+      setLoading,
+      "main/properties",
+      false,
+      "جاري إنشاء العقار...",
+    );
 
-export async function getPropertyById(id) {
-    const response = await fetch(`${API_URL}/${id}`);
-    return await response.json();
-}
+    if (propertyResponse.status !== 200) {
+      return;
+    }
 
-export async function getProperties({ page = 1, limit = 10, filters = {}, sort = '' }) {
-    const query = new URLSearchParams({
-        page,
-        limit,
-        ...filters,
-        sort,
-    }).toString();
-    const response = await fetch(`${API_URL}?${query}`);
-    return await response.json();
-}
+    const propertyId = propertyResponse.data.id;
 
-export async function updateProperty(id, data) {
-    const response = await fetch(`${API_URL}/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    });
-    return await response.json();
-}
+    // Create Electricity Meters
+    const electricityMetersData = {
+      propertyId,
+      electricityMeters: data.extraData.electricityMeters,
+    };
+    await handleRequestSubmit(
+      electricityMetersData,
+      setLoading,
+      `main/properties/${propertyId}/electricityMeters`,
+      false,
+      "جاري إنشاء عدادات الكهرباء...",
+    );
 
-export async function deleteProperty(id) {
-    const response = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE',
-    });
-    return await response.json();
+    // Create Units
+    const unitsData = {
+      propertyId,
+      units: data.extraData.units,
+    };
+    const units = await handleRequestSubmit(
+      unitsData,
+      setLoading,
+      `main/properties/${propertyId}/units`,
+      false,
+      "جاري إنشاء الوحدات...",
+    );
+    propertyResponse.data._count = {
+      units: units.data.length,
+    };
+
+    return propertyResponse.data;
+  } catch (error) {
+    console.error("Error submitting property:", error);
+    throw error;
+  }
 }

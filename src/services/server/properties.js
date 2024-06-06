@@ -2,127 +2,175 @@ import prisma from "@/lib/prisma";
 import { convertToISO } from "@/helpers/functions/convertDateToIso";
 
 export async function createProperty(data) {
-  const { extraData } = data;
-  const { electricityMeters, units } = extraData;
-  delete data.extraData;
-
-  let createData = {
-    name: data.name,
-    buildingGuardName: data.buildingGuardName,
-    buildingGuardPhone: data.buildingGuardPhone,
-    buildingGuardId: data.buildingGuardId,
-    propertyId: data.propertyId,
-    voucherNumber: data.voucherNumber,
-    street: data.street,
-    plateNumber: data.plateNumber,
-    price: +data.price,
-    dateOfBuilt: convertToISO(data.dateOfBuilt),
-    bankAccountNumber: data.bankAccountNumber,
-    managementCommission: +data.managementCommission,
-    numElevators: +data.numElevators,
-    numParkingSpaces: +data.numParkingSpaces,
-    builtArea: +data.builtArea,
-    location: data.location || "",
-    electricityMeters: {
-      create: electricityMeters
-        ? electricityMeters.map((meter) => ({
-            meterId: meter.meterId,
-            name: meter.name,
-          }))
-        : [],
-    },
-    units: {
-      create: units
-        ? units.map((unit) => ({
-            unitId: unit.unitId,
-            floor: 0,
-          }))
-        : [],
-    },
-    type: {
-      connect: {
-        id: +data.typeId,
-      },
-    },
-    state: {
-      connect: {
-        id: +data.stateId,
-      },
-    },
-    city: {
-      connect: {
-        id: +data.cityId,
-      },
-    },
-    bank: {
-      connect: {
-        id: +data.bankId,
-      },
-    },
-    client: {
-      connect: {
-        id: +data.clientId,
-      },
-    },
-    collector: {
-      connect: {
-        id: +data.collectorId,
-      },
-    },
-  };
-
-  if (data.districtId) {
-    createData = {
-      ...createData,
-      district: {
-        connect: {
-          id: +data.districtId,
-        },
-      },
-    };
-  }
-
-  if (data.neighbourId && data.districtId) {
-    createData = {
-      ...createData,
-      neighbour: {
-        connect: {
-          id: +data.neighbourId,
-        },
-      },
-    };
-  }
-
-  const newProperty = await prisma.property.create({
-    data: createData,
-    include: {
+  try {
+    // Create property
+    let createData = {
+      name: data.name,
+      buildingGuardName: data.buildingGuardName,
+      buildingGuardPhone: data.buildingGuardPhone,
+      buildingGuardId: data.buildingGuardId,
+      propertyId: data.propertyId,
+      voucherNumber: data.voucherNumber,
+      street: data.street,
+      plateNumber: data.plateNumber,
+      price: +data.price,
+      dateOfBuilt: convertToISO(data.dateOfBuilt),
+      bankAccountNumber: data.bankAccountNumber,
+      managementCommission: +data.managementCommission,
+      numElevators: +data.numElevators,
+      numParkingSpaces: +data.numParkingSpaces,
+      builtArea: +data.builtArea,
+      location: data.location || "",
       type: {
-        select: {
-          id: true,
-          name: true,
+        connect: {
+          id: +data.typeId,
+        },
+      },
+      state: {
+        connect: {
+          id: +data.stateId,
+        },
+      },
+      city: {
+        connect: {
+          id: +data.cityId,
+        },
+      },
+      bank: {
+        connect: {
+          id: +data.bankId,
         },
       },
       client: {
-        select: {
-          id: true,
-          name: true,
+        connect: {
+          id: +data.clientId,
         },
       },
       collector: {
-        select: {
-          id: true,
-          name: true,
+        connect: {
+          id: +data.collectorId,
         },
       },
-      _count: {
-        select: {
-          units: true,
-        },
-      },
-    },
-  });
+    };
 
-  return newProperty;
+    if (data.districtId) {
+      createData = {
+        ...createData,
+        district: {
+          connect: {
+            id: +data.districtId,
+          },
+        },
+      };
+    }
+
+    if (data.neighbourId && data.districtId) {
+      createData = {
+        ...createData,
+        neighbour: {
+          connect: {
+            id: +data.neighbourId,
+          },
+        },
+      };
+    }
+
+    const newProperty = await prisma.property.create({
+      data: createData,
+      include: {
+        type: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        client: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        collector: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        _count: {
+          select: {
+            units: true,
+          },
+        },
+      },
+    });
+
+    return newProperty;
+  } catch (error) {
+    console.error("Error creating property:", error);
+    throw error;
+  }
+}
+
+export async function createElectricityMeters(data) {
+  const { propertyId, electricityMeters } = data;
+  try {
+    if (electricityMeters && electricityMeters.length > 0) {
+      await Promise.all(
+        electricityMeters.map((meter) =>
+          prisma.electricityMeter.create({
+            data: {
+              meterId: meter.meterId,
+              name: meter.name,
+              property: {
+                connect: {
+                  id: propertyId,
+                },
+              },
+            },
+          }),
+        ),
+      );
+    }
+
+    return {
+      data: {},
+      message: "تمت اضافه عدادات الكهرباء بنجاح",
+    };
+  } catch (error) {
+    console.error("Error creating electricity meters:", error);
+    throw error;
+  }
+}
+
+export async function createUnits(data) {
+  const { propertyId, units } = data;
+  try {
+    if (units && units.length > 0) {
+      await Promise.all(
+        units.map((unit) =>
+          prisma.unit.create({
+            data: {
+              unitId: unit.unitId,
+              floor: 0,
+              property: {
+                connect: {
+                  id: propertyId,
+                },
+              },
+            },
+          }),
+        ),
+      );
+    }
+
+    return {
+      data: units,
+      message: "تمت اضافه الوحدات بنجاح",
+    };
+  } catch (error) {
+    console.error("Error creating units:", error);
+    throw error;
+  }
 }
 
 export async function getProperties(page, limit, searchParams) {

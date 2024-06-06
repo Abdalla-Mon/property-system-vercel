@@ -273,7 +273,6 @@ const RentWrapper = () => {
         reFetch={reFetch}
         submitFunction={submit}
         url={"main/rentAgreements"}
-        setSubmitLoading={setSubmitLoading}
       >
         <MultiSelectInput
           route={"fast-handler?id=contractExpenses"}
