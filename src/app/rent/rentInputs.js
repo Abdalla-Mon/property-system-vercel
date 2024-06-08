@@ -49,27 +49,7 @@ export const rentAgreementInputs = [
       },
     },
   },
-  {
-    data: {
-      id: "rentAgreementNumber",
-      type: "text",
-      label: "رقم العقد",
-      name: "rentAgreementNumber",
-    },
-    pattern: {
-      required: {
-        value: true,
-        message: "يرجى إدخال رقم العقد",
-      },
-    },
-    sx: {
-      width: {
-        xs: "100%",
-        md: "48%",
-      },
-      mr: "auto",
-    },
-  },
+
   {
     id: "renter",
     data: {
@@ -92,6 +72,7 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -115,7 +96,6 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {
@@ -138,6 +118,7 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -158,7 +139,6 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {
@@ -183,6 +163,7 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -205,7 +186,6 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
 
@@ -227,6 +207,7 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -247,7 +228,6 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {

@@ -457,6 +457,7 @@ model Payment {
   installment   Installment? @relation(fields: [installmentId], references: [id], onDelete: Cascade)
   maintenanceInstallmentId Int?
   maintenanceInstallment MaintenanceInstallment? @relation(fields: [maintenanceInstallmentId], references: [id], onDelete: SetNull)
+  title         String?
   bankId        Int?
   bank          Bank?  @relation(fields: [bankId], references: [id], onDelete: SetNull)
   status            PaymentStatus
@@ -521,5 +522,6 @@ enum PaymentType {
   REGISTRATION
   MAINTENANCE
   CONTRACT_EXPENSE
+  OTHER_EXPENSE
   OTHER
 }

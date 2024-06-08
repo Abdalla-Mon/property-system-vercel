@@ -13,6 +13,8 @@ import { MultiSelectInput } from "@/app/UiComponents/FormComponents/MUIInputs/Mu
 import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
 import { submitRentAgreement } from "@/services/client/createRentAgreement";
 import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
+import useEditState from "@/helpers/hooks/useEditState";
+import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
 
 export default function PropertyPage() {
   return (
@@ -290,8 +292,32 @@ const RentWrapper = () => {
     },
   ];
 
-  const [contractExpenses, setContractExpenses] = useState([]);
+  const [otherExpenses, setOtherExpenses] = useState([]);
   const { setLoading: setSubmitLoading } = useToastContext();
+
+  const otherExpencesFields = [
+    {
+      id: "name",
+      type: "text",
+      label: "اسم مصروف",
+    },
+    {
+      id: "value",
+      type: "number",
+      label: "السعر",
+    },
+  ];
+  const {
+    isEditing,
+    setIsEditing,
+    snackbarOpen,
+    setSnackbarOpen,
+    snackbarMessage,
+    setSnackbarMessage,
+    handleEditBeforeSubmit,
+  } = useEditState([
+    { name: "otherExpenses", message: "جميع المصاريف الاخري" },
+  ]);
 
   async function submit(data) {
     return await submitRentAgreement(data, setSubmitLoading);
@@ -309,8 +335,8 @@ const RentWrapper = () => {
         setPage={setPage}
         limit={limit}
         setLimit={setLimit}
-        extraData={{ contractExpenses }}
-        extraDataName={"contractExpenses"}
+        extraData={{ otherExpenses }}
+        extraDataName={"otherExpenses"}
         id={id}
         loading={loading}
         setData={setData}
@@ -321,13 +347,30 @@ const RentWrapper = () => {
         reFetch={reFetch}
         submitFunction={submit}
         url={"main/rentAgreements"}
+        handleEditBeforeSubmit={handleEditBeforeSubmit}
       >
-        <MultiSelectInput
-          route={"fast-handler?id=contractExpenses"}
-          items={contractExpenses}
-          setItems={setContractExpenses}
-          label={"مصروفات العقود"}
-        />
+        <div className={"w-full"}>
+          <ExtraForm
+            setItems={setOtherExpenses}
+            items={otherExpenses}
+            fields={otherExpencesFields}
+            title={"مصاريف اخري"}
+            formTitle={"مصاريف اخري"}
+            name={"otherExpenses"}
+            setSnackbarMessage={setSnackbarMessage}
+            setSnackbarOpen={setSnackbarOpen}
+            snackbarMessage={snackbarMessage}
+            snackbarOpen={snackbarOpen}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+          />
+        </div>
+        {/*<MultiSelectInput*/}
+        {/*  route={"fast-handler?id=contractExpenses"}*/}
+        {/*  items={contractExpenses}*/}
+        {/*  setItems={setContractExpenses}*/}
+        {/*  label={"مصروفات العقود"}*/}
+        {/*/>*/}
       </ViewComponent>
     </>
   );

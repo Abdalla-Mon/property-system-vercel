@@ -5,9 +5,18 @@ import { List, ListItem, ListItemText } from "@mui/material";
 const initialTasks = [
   {
     title: "اضافة خصم للعقار وجعل رقم العقار يتم توليده تلقائيا",
+    done: false,
   },
   {
     title: "قسم الصيانة والذي يضمن تقديم طلبات الصيانة ومتابعتها",
+    done: false,
+  },
+  {
+    title: "اضافه المتبقي من الدفعه كصف اخر في الدفعات",
+    done: false,
+  },
+  {
+    title: "تحويل الحساب الي مالك بدلا من مستاجر",
     done: false,
   },
   {

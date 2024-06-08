@@ -33,18 +33,19 @@ export async function submitRentAgreement(data, setLoading) {
     false,
     "جاري إنشاء رسوم العقود...",
   );
-  if (!data.extraData.contractExpenses) return rentAgreementResponse.data;
-  // Create Contract Expense Invoices
-  const contractExpensesData = {
+  if (!data.extraData.otherExpenses || data.extraData.otherExpenses?.length < 1)
+    return rentAgreementResponse.data;
+  // Create other Expense Invoices
+  const otherExpensesData = {
     rentAgreement: rentAgreementResponse.data,
-    contractExpenses: data.extraData.contractExpenses,
+    otherExpenses: data.extraData.otherExpenses,
   };
   await handleRequestSubmit(
-    contractExpensesData,
+    otherExpensesData,
     setLoading,
-    `main/rentAgreements/${rentAgreementId}/contractExpenses`,
+    `main/rentAgreements/${rentAgreementId}/otherExpenses`,
     false,
-    "جاري إنشاء  مصاريف العقد...",
+    "جاري إنشاء  المصاريف الاخري...",
   );
   return rentAgreementResponse.data;
 }

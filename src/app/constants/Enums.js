@@ -23,17 +23,9 @@ const PaymentType = {
   REGISTRATION: "تسجيل",
   MAINTENANCE: "صيانة",
   CONTRACT_EXPENSE: "مصاريف عقد",
+  OTHER_EXPENSE: "مصاريف أخرى",
   OTHER: "أخرى",
 };
-// enum PaymentType {
-//   RENT
-// TAX
-// INSURANCE
-// REGISTRATION
-// MAINTENANCE
-// CONTRACT_EXPENSE
-// OTHER
-// }
 
 module.exports = {
   RentCollectionType,

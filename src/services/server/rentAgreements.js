@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma"; // Adjust the path to your Prisma instance
 
 import { convertToISO } from "@/helpers/functions/convertDateToIso";
+import { generateUniqueId } from "@/helpers/functions/generateUniqueId";
 
 const RentCollectionType = {
   TWO_MONTHS: 6,
@@ -251,7 +252,7 @@ export async function createRentAgreement(data) {
 
     const newRentAgreement = await prisma.rentAgreement.create({
       data: {
-        rentAgreementNumber: data.rentAgreementNumber,
+        rentAgreementNumber: generateUniqueId(),
         startDate: convertToISO(data.startDate),
         endDate: convertToISO(data.endDate),
         tax: +data.tax,
@@ -398,14 +399,12 @@ export async function createFeeInvoices(rentAgreement) {
         amount: rentAgreement.insuranceFees,
         dueDate: rentAgreement.startDate,
         status: "PENDING",
-
         paymentType: "INSURANCE",
       },
       {
         amount: rentAgreement.registrationFees,
         dueDate: rentAgreement.startDate,
         status: "PENDING",
-
         paymentType: "REGISTRATION",
       },
     ];
@@ -440,6 +439,35 @@ export async function createFeeInvoices(rentAgreement) {
     };
   } catch (error) {
     console.error("Error creating fee invoices:", error);
+    throw error;
+  }
+}
+
+export async function createOtherExpenseInvoices({
+  rentAgreement,
+  otherExpenses,
+}) {
+  try {
+    for (const otherExpense of otherExpenses) {
+      await prisma.payment.create({
+        data: {
+          title: otherExpense.name,
+          amount: +otherExpense.value,
+          dueDate: rentAgreement.startDate,
+          clientId: rentAgreement.unit.property.client.id,
+          propertyId: rentAgreement.unit.property.id,
+          status: "PENDING",
+          rentAgreementId: rentAgreement.id,
+          paymentType: "OTHER_EXPENSE",
+        },
+      });
+    }
+    return {
+      data: {},
+      message: "تمت اضافه  مصروفات اخري بنجاح",
+    };
+  } catch (error) {
+    console.error("Error creating other expenses invoices:", error);
     throw error;
   }
 }
@@ -547,6 +575,29 @@ export async function getRentAgreementPaymentForContractExpences(
       where: {
         rentAgreementId: +rentAgreementId,
         paymentType: "CONTRACT_EXPENSE",
+      },
+    });
+    return {
+      data: payments,
+    };
+  } catch (error) {
+    console.error("Error fetching contract expenses payments:", error);
+    throw error;
+  }
+}
+
+export async function getRentAgreementPaymentForOthersExpences(
+  page,
+  limit,
+  searchParams,
+  params,
+) {
+  const { id: rentAgreementId } = params;
+  try {
+    const payments = await prisma.payment.findMany({
+      where: {
+        rentAgreementId: +rentAgreementId,
+        paymentType: "OTHER_EXPENSE",
       },
     });
     return {

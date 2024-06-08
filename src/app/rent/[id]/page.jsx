@@ -7,17 +7,19 @@ import { useEffect, useState, useRef } from "react";
 import {
   Box,
   Button,
-  Card,
-  CardActionArea,
-  CardActions,
-  CardContent,
   Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from "@mui/material";
 
 import dayjs from "dayjs";
 import { getData } from "@/helpers/functions/getData";
 import { PaymentModal } from "@/app/UiComponents/Modals/PaymentModal";
-
 import { DataCard } from "@/app/components/RentDataCard";
 import { PaymentStatus, PaymentType } from "@/app/constants/Enums";
 import { updatePayment } from "@/services/client/updatePayment";
@@ -33,7 +35,6 @@ const ViewWrapper = ({ urlId }) => {
   const { data, loading } = useDataFetcher("main/rentAgreements/" + urlId);
   const [contractExpenses, setContractExpenses] = useState(null);
   const [wait, setWait] = useState(true);
-
   useEffect(() => {
     if (!loading && typeof data === "object") {
       setContractExpenses(
@@ -55,12 +56,19 @@ const ViewWrapper = ({ urlId }) => {
     ...data,
     contractExpenses,
   };
+  console.log(data);
   return (
     <Box ref={componentRef}>
       <GlobalStyles />
       <DataCard data={fullData} />
       <TableFormProvider
-        url={"main/payments/" + urlId + "?renterId=" + data.renter.id + "&"}
+        url={
+          "main/payments/" +
+          urlId +
+          "?clientId=" +
+          data.unit.property.client.id +
+          "&"
+        }
       >
         <Payments
           renter={data.renter}
@@ -81,39 +89,43 @@ const ViewWrapper = ({ urlId }) => {
         <Payments
           renter={data.renter}
           rentData={data}
-          url={`main/rentAgreements/${urlId}/contractExpenses`}
-          description={"فاتورة مصروفات العقد"}
-          title={"فاتورة مصروفات العقد"}
-          heading={"مصروفات العقد"}
+          url={`main/rentAgreements/${urlId}/otherExpenses`}
+          description={"فاتورة مصروفات العقد الاخري"}
+          title={"فاتورة مصروفات العقد الاخري"}
+          heading={"مصروفات العقد الاخري"}
+          showName={true}
         />
       </TableFormProvider>
       <Button
         variant="contained"
         color="primary"
         onClick={handlePrint}
-        sx={{
-          mt: 5,
-        }}
+        sx={{ mt: 5 }}
       >
-        طباعة الصفحة بالكامل{" "}
+        طباعة الصفحة بالكامل
       </Button>
     </Box>
   );
 };
 
-const Payments = ({ renter, rentData, url, title, description, heading }) => {
+const Payments = ({
+  renter,
+  rentData,
+  url,
+  title,
+  description,
+  heading,
+  showName,
+}) => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [id, setId] = useState(null);
   const [modalInputs, setModalInputs] = useState([]);
   const { setOpenModal } = useTableForm();
+
   useEffect(() => {
     async function fetchData() {
-      const data = await getData({
-        url: url,
-        setLoading,
-        others: "",
-      });
+      const data = await getData({ url: url, setLoading, others: "" });
       setData(data?.data);
     }
 
@@ -151,51 +163,53 @@ const Payments = ({ renter, rentData, url, title, description, heading }) => {
   }
 
   return (
-    <Box
-      sx={{
-        mt: 5,
-      }}
-    >
+    <Box sx={{ mt: 5 }}>
       <Typography variant="h5" gutterBottom>
         {heading}
       </Typography>
       {loading ? (
         <div>loading...</div>
       ) : (
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "repeat(1, 1fr)",
-              sm: "repeat(2, 1fr)",
-              md: "repeat(3, 1fr)",
-              xl: "repeat(4, 1fr)",
-            },
-            gap: 2,
-          }}
-        >
-          {data?.map((item, index) => (
-            <Payment
-              item={item}
-              key={item.id}
-              setId={setId}
-              setModalInputs={setModalInputs}
-              renter={renter}
-            />
-          ))}
-        </Box>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>ميعاد الدفع</TableCell>
+                {showName && <TableCell>اسم المصروف</TableCell>}
+                <TableCell>قيمة الدفعه</TableCell>
+                <TableCell>ما تم دفعه</TableCell>
+                <TableCell>الباقي</TableCell>
+                <TableCell>النوع</TableCell>
+                <TableCell>الحالة</TableCell>
+                <TableCell>دفع</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data?.map((item) => (
+                <PaymentRow
+                  key={item.id}
+                  item={item}
+                  setId={setId}
+                  setModalInputs={setModalInputs}
+                  renter={renter}
+                  showName={showName}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
       <PaymentModal id={id} modalInputs={modalInputs} submit={submit} />
     </Box>
   );
 };
 
-function Payment({ item, setModalInputs, setId, renter }) {
+const PaymentRow = ({ item, setModalInputs, setId, renter, showName }) => {
   const { setOpenModal } = useTableForm();
   const [paymentType, setPaymentType] = useState("CASH");
 
-  async function getRenterAccountData() {
-    const res = await fetch("/api/clients/renter/" + renter.id);
+  async function getOwnerAccountData() {
+    const res = await fetch("/api/clients/owner/" + item.clientId);
     const data = await res.json();
     const bankAccounts = data.bankAccounts.map((account) => ({
       id: account.id,
@@ -236,7 +250,6 @@ function Payment({ item, setModalInputs, setId, renter }) {
         { label: "كاش", value: "CASH" },
         { label: "تحويل بنكي", value: "BANK" },
       ],
-
       onChange: (e) => {
         setPaymentType(e.target.value);
       },
@@ -254,6 +267,7 @@ function Payment({ item, setModalInputs, setId, renter }) {
       },
     },
   ];
+
   useEffect(() => {
     if (paymentType === "BANK") {
       setModalInputs([
@@ -262,13 +276,13 @@ function Payment({ item, setModalInputs, setId, renter }) {
           data: {
             id: "bankAccountId",
             type: "select",
-            label: "رقم حساب المستاجر",
+            label: "رقم حساب المالك",
             name: "bankAccountId",
           },
           createData: createInputs,
           autocomplete: true,
           extraId: false,
-          getData: getRenterAccountData,
+          getData: getOwnerAccountData,
           pattern: {
             required: {
               value: true,
@@ -287,57 +301,36 @@ function Payment({ item, setModalInputs, setId, renter }) {
       setModalInputs(modalInputs);
     }
   }, [paymentType]);
+
   return (
-    <Box
-      sx={{
-        gridColumn: "span 1",
-      }}
-    >
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            {item.installmentNumber}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            ميعاد الدفع: {dayjs(item.dueDate).format("DD/MM/YYYY")}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            قيمة الدفعه: {item.amount.toFixed(2)}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            ما تم دفعه: {item.paidAmount.toFixed(2)}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            الباقي: {(item.amount - item.paidAmount).toFixed(2)}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            النوع : {PaymentType[item.paymentType]}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            الحالة: {PaymentStatus[item.status]}
-          </Typography>
-        </CardContent>
-        <CardActions>
-          {item.status !== "PAID" && (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                setId(item.id);
-                setModalInputs(modalInputs);
-                setTimeout(() => {
-                  setOpenModal(true);
-                }, 50);
-              }}
-            >
-              دفع
-            </Button>
-          )}
-        </CardActions>
-      </Card>
-    </Box>
+    <TableRow>
+      <TableCell>{dayjs(item.dueDate).format("DD/MM/YYYY")}</TableCell>
+      {showName && <TableCell>{item.title}</TableCell>}
+      <TableCell>{item.amount.toFixed(2)}</TableCell>
+      <TableCell>{item.paidAmount.toFixed(2)}</TableCell>
+      <TableCell>{(item.amount - item.paidAmount).toFixed(2)}</TableCell>
+      <TableCell>{PaymentType[item.paymentType]}</TableCell>
+      <TableCell>{PaymentStatus[item.status]}</TableCell>
+      <TableCell>
+        {item.status !== "PAID" && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setId(item.id);
+              setModalInputs(modalInputs);
+              setTimeout(() => {
+                setOpenModal(true);
+              }, 50);
+            }}
+          >
+            دفع
+          </Button>
+        )}
+      </TableCell>
+    </TableRow>
   );
-}
+};
 
 async function getBanksData() {
   const res = await fetch("/api/fast-handler?id=bank");

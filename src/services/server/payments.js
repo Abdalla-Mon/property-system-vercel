@@ -1,12 +1,12 @@
 import prisma from "@/lib/prisma"; // Adjust the path to your Prisma instance
 export async function createNewBankAccount(data, params, searchParams) {
-  const renterId = searchParams.get("renterId");
+  const clientId = searchParams.get("clientId");
   const bankAccount = await prisma.bankAccount.create({
     data: {
       accountNumber: data.accountNumber,
       accountName: data.accountName,
       bankId: data.bankId,
-      clientId: +renterId,
+      clientId: +clientId,
     },
   });
   return {
