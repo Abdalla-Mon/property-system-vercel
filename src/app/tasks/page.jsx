@@ -8,6 +8,10 @@ const initialTasks = [
     done: false,
   },
   {
+    title: "تحويل الحساب الي مالك بدلا من مستاجر",
+    done: true,
+  },
+  {
     title: "قسم الصيانة والذي يضمن تقديم طلبات الصيانة ومتابعتها",
     done: false,
   },
@@ -16,8 +20,8 @@ const initialTasks = [
     done: false,
   },
   {
-    title: "تحويل الحساب الي مالك بدلا من مستاجر",
-    done: false,
+    title: "تعديل شكل الدفعات ",
+    done: true,
   },
   {
     title: "تعديل شكل الدفعات و تعديل الدفعه بحيث تكون اقرب ل50 او 100",
@@ -29,7 +33,7 @@ const initialTasks = [
   },
   {
     title: "ازاله مصروف العقار واتاحة اضافة مصاريف اخري",
-    done: false,
+    done: true,
   },
   {
     title: "اماره ثم مدينه ثم منطقه ثم حي",
