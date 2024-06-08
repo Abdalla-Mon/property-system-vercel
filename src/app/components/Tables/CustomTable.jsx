@@ -12,6 +12,7 @@ import {
   IconButton,
   FormControlLabel,
   Checkbox,
+  Tooltip,
 } from "@mui/material";
 import { useReactToPrint } from "react-to-print";
 import PrintIcon from "@mui/icons-material/Print";
@@ -64,15 +65,25 @@ export default function CustomTable({
 
   return (
     <Paper
-      className="p-4"
+      elevation={3}
       sx={{
         maxWidth: 1600,
         mx: "auto",
+        my: 4,
+        p: 3,
+        boxShadow: "0px 3px 6px rgba(0,0,0,0.1)",
+        borderRadius: "8px",
       }}
     >
       {loading && <FullScreenLoader />}
 
-      <Toolbar className="flex justify-between">
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          mb: 2,
+        }}
+      >
         <div>
           {columns
             .filter((column) => column.field !== "actions")
@@ -87,69 +98,83 @@ export default function CustomTable({
                   />
                 }
                 label={column.headerName}
+                sx={{ mr: 1 }}
               />
             ))}
         </div>
         <div>
-          <IconButton onClick={handlePrint}>
-            <PrintIcon />
-          </IconButton>
-          <IconButton>
-            <SaveAltIcon />
-          </IconButton>
+          <Tooltip title="Print">
+            <IconButton onClick={handlePrint} sx={{ mr: 1 }}>
+              <PrintIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Save">
+            <IconButton>
+              <SaveAltIcon />
+            </IconButton>
+          </Tooltip>
         </div>
       </Toolbar>
-      <div>
-        <TableContainer
-          ref={componentRef}
+      <TableContainer
+        ref={componentRef}
+        sx={{
+          maxHeight: 600,
+          overflowY: "auto",
+        }}
+      >
+        <Table
+          stickyHeader
+          aria-label="custom table"
           sx={{
-            width: "100%",
-            overflow: "auto",
+            minWidth: 650,
           }}
         >
-          <Table
-            aria-label="custom table"
-            sx={{
-              minWidth: 650,
-            }}
-          >
-            <TableHead>
-              <TableRow>
+          <TableHead>
+            <TableRow>
+              {(printMode ? printableColumns : columns).map((column) => (
+                <TableCell
+                  key={column.field}
+                  sx={{
+                    backgroundColor: "primary.main",
+                    color: "primary.contrastText",
+                    fontWeight: "bold",
+                    borderBottom: "2px solid #e0e0e0",
+                  }}
+                >
+                  {column.headerName}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {rows.map((row) => (
+              <TableRow
+                key={row.id}
+                sx={{
+                  "&:nth-of-type(odd)": {
+                    backgroundColor: "action.hover",
+                  },
+                }}
+              >
                 {(printMode ? printableColumns : columns).map((column) => (
                   <TableCell
                     key={column.field}
-                    className="bg-blue-600"
                     sx={{
-                      color: "white",
-                      fontWeight: "bold",
+                      borderBottom: "1px solid #e0e0e0",
                     }}
                   >
-                    {column.headerName}
+                    {column.renderCell
+                      ? column.renderCell({ row })
+                      : column.type === "size"
+                        ? row[column.field].length
+                        : row[column.field]}
                   </TableCell>
                 ))}
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((row) => (
-                <TableRow key={row.id}>
-                  {(printMode ? printableColumns : columns).map((column) => (
-                    <TableCell
-                      key={column.field}
-                      className="border border-gray-200"
-                    >
-                      {column.renderCell
-                        ? column.renderCell({ row })
-                        : column.type === "size"
-                          ? row[column.field].length
-                          : row[column.field]}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
       {!disablePagination && (
         <CustomPagination
           setLimit={setLimit}

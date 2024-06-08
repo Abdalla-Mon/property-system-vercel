@@ -37,6 +37,7 @@ const navItems = [
   { href: "/owners", Icon: PeopleIcon, text: "الملاك" },
   { href: "/renters", Icon: GroupIcon, text: "المستأجرين" },
   { href: "/settings", Icon: SettingsIcon, text: "الاعدادات" },
+  { href: "/tasks", Icon: PeopleIcon, text: "مهام المطور" },
 ];
 
 export default function DashboardNav({ children }) {

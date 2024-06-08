@@ -193,7 +193,6 @@ const Payments = ({ renter, rentData, url, title, description, heading }) => {
 function Payment({ item, setModalInputs, setId, renter }) {
   const { setOpenModal } = useTableForm();
   const [paymentType, setPaymentType] = useState("CASH");
-  console.log(item, "item");
 
   async function getRenterAccountData() {
     const res = await fetch("/api/clients/renter/" + renter.id);
@@ -212,6 +211,7 @@ function Payment({ item, setModalInputs, setId, renter }) {
         label: "القيمة المراد دفعها",
         type: "number",
         id: "paidAmount",
+        defaultValue: item.amount - item.paidAmount,
       },
       pattern: {
         required: {
@@ -287,7 +287,6 @@ function Payment({ item, setModalInputs, setId, renter }) {
       setModalInputs(modalInputs);
     }
   }, [paymentType]);
-  console.log(item, "item");
   return (
     <Box
       sx={{
