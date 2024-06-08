@@ -1,11 +1,13 @@
 import { createHandler } from "@/app/api/handler";
 import {
-  createInstallmentsAndInvoices,
-  createRentAgreement,
+  createInstallmentsAndPayments,
+  getRentAgreementPayments,
 } from "@/services/server/rentAgreements";
 
 const handler = createHandler({
-  postService: createInstallmentsAndInvoices,
+  postService: createInstallmentsAndPayments,
+  getService: getRentAgreementPayments,
 });
 
 export const POST = handler.POST;
+export const GET = handler.GET;

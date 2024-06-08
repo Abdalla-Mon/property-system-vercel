@@ -1,7 +1,7 @@
 "use client";
 import InputField from "../../Inputs/InputField";
 import { useForm } from "react-hook-form";
-import SelectField from "../../Inputs/SelectField";
+import SimpleSelect from "../../MUIInputs/SimpleSelect";
 import { Button, Typography } from "@mui/material";
 import SwitchInput from "@/UiComponents/FormComponents/Inputs/SwitchField";
 import TextAreaField from "@/UiComponents/FormComponents/Inputs/TextAreaFiels";
@@ -52,7 +52,7 @@ export default function MainForm({
         {inputs.map((input) => {
           if (input.data.type === "select") {
             return (
-              <SelectField
+              <SimpleSelect
                 key={input.data.id}
                 select={input}
                 register={register}

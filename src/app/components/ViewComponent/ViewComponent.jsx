@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import DataGrid from "@/app/components/DataGrid/DataGrid";
 import CustomTable from "@/app/components/Tables/CustomTable";
-import { EditTableModal } from "@/app/UiComponents/Modals/EditTableModal/EditTableModal";
+import { EditTableModal } from "@/app/UiComponents/Modals/EditTableModal";
 import { useTableForm } from "@/app/context/TableFormProvider/TableFormProvider";
 import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
 import { Button } from "@mui/material";

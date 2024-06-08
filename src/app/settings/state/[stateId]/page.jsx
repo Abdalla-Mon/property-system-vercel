@@ -10,6 +10,7 @@ import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { cityInputs } from "@/app/settings/state/[stateId]/cityInputs";
 import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
 import useEditState from "@/helpers/hooks/useEditState";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 const CityPage = ({ params }) => {
   const { stateId } = params;
@@ -112,14 +113,7 @@ const CityWrapper = ({ stateId }) => {
           >
             تعديل
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },

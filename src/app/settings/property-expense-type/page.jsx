@@ -6,6 +6,7 @@ import { Button } from "@mui/material";
 import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { propertyExpenseTypeInputs } from "@/app/settings/property-expense-type/propertyExpenseTypeInputs";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 export default function PropertyExpenseTypePage() {
   return (
@@ -78,14 +79,7 @@ const PropertyExpenseTypeWrapper = () => {
           >
             تعديل
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },

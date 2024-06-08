@@ -93,12 +93,13 @@ model Property {
   buildingGuardPhone  String?
   buildingGuardId     String?
   bankId              Int
+  payments            Payment[]
   bank                Bank     @relation(fields: [bankId], references: [id], onDelete: Restrict, name: "PropertyBank") // Updated relation to Bank
   bankAccountNumber   String   // رقم الحساب البنكي
   managementCommission Float   // عمولة اداره العقار
   plateNumber         String   // رقم اللوحة
   clientId            Int
-  client              Client   @relation(fields: [clientId], references: [id], onDelete: Cascade) // This represents the owner
+  client              Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   collectorId         Int?
   collector           Collector? @relation(fields: [collectorId], references: [id], onDelete: SetNull)
   deletedAt           DateTime? // null means the property is not deleted
@@ -189,7 +190,8 @@ model RentAgreement {
   status                 RentAgreementStatus @default(ACTIVE)
   invoices               Invoice[] // Only invoices related to this RentAgreement
   customDescription      Json?
-  contractExpenses       ContractExpenseToRentAgreement[] @relation("ContractExpenseToRentAgreementToRentAgreement")
+  contractExpenses ContractExpenseToRentAgreement[] @relation("ContractExpenseToRentAgreementToRentAgreement")
+  payments            Payment[] // New relation to Payment
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
@@ -208,6 +210,9 @@ model ContractExpenseToRentAgreement {
   rentAgreementId   Int
   contractExpense   ContractExpense @relation("ContractExpenseToRentAgreementToContractExpense", fields: [contractExpenseId], references: [id])
   rentAgreement     RentAgreement   @relation("ContractExpenseToRentAgreementToRentAgreement", fields: [rentAgreementId], references: [id])
+  payments            Payment[]
+  invoices            Invoice[]
+  paidAmount    Float @default(0) // New field to track paid amount
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -230,36 +235,37 @@ enum RentCollectionType {
 }
 
 model Installment {
-  id            Int    @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   startDate     DateTime
   endDate       DateTime
   status        Boolean
-  type          PaymentType?
+  type          PaymentTypeMethod?
   bankId        Int?
   bank          Bank?  @relation(fields: [bankId], references: [id], onDelete: SetNull)
   rentAgreementId Int
   rentAgreement RentAgreement @relation(fields: [rentAgreementId], references: [id], onDelete: Cascade)
   invoices      Invoice[]
+  payments      Payment[] // New relation to Payment
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
-
 model MaintenanceInstallment {
   id            Int    @id @default(autoincrement())
   amount        Float
   date          DateTime
-  type          PaymentType
+  type          PaymentTypeMethod?
   bankId        Int?
   bank          Bank?  @relation(fields: [bankId], references: [id], onDelete: SetNull)
   maintenanceId Int
   maintenance   Maintenance @relation(fields: [maintenanceId], references: [id], onDelete: Cascade)
   isPaid        Boolean
   invoices      Invoice[]
+  payments      Payment[] // New relation to Payment
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
 
-enum PaymentType {
+enum PaymentTypeMethod {
   CASH
   BANK
 }
@@ -274,6 +280,7 @@ model Maintenance {
   typeId         Int
   type           PropertyExpenseType @relation(fields: [typeId], references: [id], onDelete: Restrict)
   totalPrice     Float
+    payments      Payment[] // New relation to Payment
   currentStatus  Float @default(0)
   installments   MaintenanceInstallment[]
   isPaid         Boolean
@@ -298,6 +305,8 @@ model Bank {
   city                    String
   installments            Installment[]
   maintenanceInstallments MaintenanceInstallment[]
+  BankAccounts            BankAccount[]
+  payments                Payment[]
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   properties              Property[] @relation("PropertyBank") // Add this line to maintain a back relation
@@ -363,13 +372,28 @@ model Client {
   email            String?  // الايميل (Optional)
   role                ClientRole
   properties       Property[]
+  payments      Payment[]
   rentAgreementsRenter RentAgreement[] @relation("Renter")
   units            Unit[]  // This now references units correctly
+  bankAccounts     BankAccount[] // Optional relation to BankAccount
   incomes Income[]
   expenses Expense[]
-  invoices         Invoice[]
+  invoicesAsRenter Invoice[] @relation("RenterToInvoice")
+  invoicesAsOwner  Invoice[] @relation("OwnerToInvoice")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+model BankAccount {
+  id          Int      @id @default(autoincrement())
+  bankId      Int
+  bank        Bank     @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  accountName String
+  accountNumber String
+  clientId    Int
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  invoices    Invoice[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 
@@ -413,7 +437,6 @@ model Expense {
   client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   invoiceId   Int
   invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  isPaid      Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -425,19 +448,49 @@ model Collector {
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 }
+model Payment {
+  id            Int       @id @default(autoincrement())
+  amount        Float
+  paidAmount    Float @default(0) // New field to track paid amount
+  dueDate       DateTime
+  installmentId Int?
+  installment   Installment? @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+  maintenanceInstallmentId Int?
+  maintenanceInstallment MaintenanceInstallment? @relation(fields: [maintenanceInstallmentId], references: [id], onDelete: SetNull)
+  bankId        Int?
+  bank          Bank?  @relation(fields: [bankId], references: [id], onDelete: SetNull)
+  status            PaymentStatus
+  propertyId    Int?
+  property      Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  clientId      Int?
+  client        Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  invoices      Invoice[]
+  maintenanceId Int?
+  maintenance   Maintenance? @relation(fields: [maintenanceId], references: [id], onDelete: SetNull)
+  rentAgreementId Int?
+  rentAgreement RentAgreement? @relation(fields: [rentAgreementId], references: [id], onDelete: SetNull)
+  contractExpenseId Int?
+  contractExpense ContractExpenseToRentAgreement? @relation(fields: [contractExpenseId], references: [id], onDelete: SetNull)
+  paymentType       PaymentType?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
 
 model Invoice {
   id                Int      @id @default(autoincrement())
   amount            Float
-  paidAmount        Float @default(0)
   description       String
-  dueDate           DateTime
-  status            InvoiceStatus
   title             String?
+  paymentTypeMethod   PaymentTypeMethod?
+  invoiceType PaymentType
+  bankAccountId         Int?
+  bankAccount       BankAccount? @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
   propertyId        Int?
   property          Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
-  clientId          Int
-  client            Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+renterId          Int?
+renter            Client? @relation("RenterToInvoice", fields: [renterId], references: [id], onDelete: Cascade)
+ownerId           Int?
+owner             Client? @relation("OwnerToInvoice", fields: [ownerId], references: [id], onDelete: Cascade)
   rentAgreementId   Int?
   rentAgreement     RentAgreement? @relation(fields: [rentAgreementId], references: [id], onDelete: SetNull)
   installmentId     Int?
@@ -446,19 +499,22 @@ model Invoice {
   maintenance       Maintenance? @relation(fields: [maintenanceId], references: [id], onDelete: SetNull)
   maintenanceInstallmentId Int?
   maintenanceInstallment MaintenanceInstallment? @relation(fields: [maintenanceInstallmentId], references: [id], onDelete: SetNull)
+  contractExpenseId Int?
+  contractExpense   ContractExpenseToRentAgreement? @relation(fields: [contractExpenseId], references: [id], onDelete: SetNull)
+  paymentId         Int?
+  payment           Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
   incomes           Income[]
   expenses          Expense[]
-  invoiceType       InvoiceType?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
 
-enum InvoiceStatus {
+enum PaymentStatus {
   PENDING
   PAID
   OVERDUE
 }
-enum InvoiceType {
+enum PaymentType {
   RENT
   TAX
   INSURANCE

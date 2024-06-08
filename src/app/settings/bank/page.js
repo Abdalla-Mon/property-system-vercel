@@ -7,6 +7,7 @@ import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import { bankInputs } from "@/app/settings/bank/inputs";
 
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 export default function BankPage() {
   return (
@@ -91,14 +92,7 @@ const BankWrapper = () => {
           >
             تعديل
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },

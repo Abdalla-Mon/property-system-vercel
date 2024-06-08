@@ -6,11 +6,12 @@ export async function getData({
   filters,
   search,
   sort,
+  others,
 }) {
   try {
     setLoading(true);
     const response = await fetch(
-      `/api/${url}?page=${page}&limit=${limit}&filters=${JSON.stringify(filters)}&search=${search}&sort=${JSON.stringify(sort)}`,
+      `/api/${url}?page=${page}&limit=${limit}&filters=${JSON.stringify(filters)}&search=${search}&sort=${JSON.stringify(sort)}&${others}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -18,8 +19,7 @@ export async function getData({
         method: "GET",
       },
     );
-
-    return response.json();
+    return await response.json();
   } catch (e) {
     console.log(e);
   } finally {

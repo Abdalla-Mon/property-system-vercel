@@ -6,6 +6,7 @@ import { Button } from "@mui/material";
 import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { collectorInputs } from "@/app/settings/collectors/collectorInputs";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 export default function CollectorPage() {
   return (
@@ -78,14 +79,7 @@ const CollectorWrapper = () => {
           >
             تعديل
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },

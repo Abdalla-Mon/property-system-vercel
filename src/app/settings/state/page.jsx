@@ -10,6 +10,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
 import useEditState from "@/helpers/hooks/useEditState";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 export default function StatePage() {
   return (
@@ -110,14 +111,7 @@ const StateWrapper = () => {
           >
             تعديل
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },

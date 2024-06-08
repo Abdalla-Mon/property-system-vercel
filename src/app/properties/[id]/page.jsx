@@ -11,9 +11,10 @@ import { Button } from "@mui/material";
 import Link from "next/link";
 import CustomTable from "@/app/components/Tables/CustomTable";
 import { unitInputs } from "@/app/units/unitInputs";
-import { CreateModal } from "@/app/UiComponents/Modals/CreateModal/CreateModal";
+import { CreateModal } from "@/app/UiComponents/Modals/CreateModal";
 import useEditState from "@/helpers/hooks/useEditState";
 import { getChangedFields } from "@/helpers/functions/getChangedFields";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 export default function PropertyPage({ params }) {
   const id = params.id;
@@ -376,14 +377,7 @@ const PropertyWrapper = ({ urlId }) => {
       printable: false,
       renderCell: (params) => (
         <>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },

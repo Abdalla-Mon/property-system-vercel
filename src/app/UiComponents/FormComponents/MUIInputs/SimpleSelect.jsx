@@ -2,18 +2,21 @@ import { FormControl, FormHelperText, InputLabel, Select } from "@mui/material";
 import { useState } from "react";
 import MenuItem from "@mui/material/MenuItem";
 
-export default function SelectField({
+export default function SimpleSelect({
   select,
   variant = "filled",
   register,
   errors,
 }) {
   const selectData = select.data;
-  const options = selectData.options;
-  const [value, setValue] = useState("");
+  const options = select.options;
+  const [value, setValue] = useState(
+    selectData.value ? selectData.value : null,
+  );
 
   const handleChange = (event) => {
     setValue(event.target.value);
+    select.onChange && select.onChange(event);
   };
 
   return (
@@ -30,7 +33,7 @@ export default function SelectField({
         value={value}
         onChange={handleChange}
       >
-        {options.map((item) => {
+        {options?.map((item) => {
           return (
             <MenuItem value={item.value} key={item.label}>
               {item.label}

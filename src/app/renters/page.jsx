@@ -7,6 +7,10 @@ import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { renterInputs } from "@/app/renters/renterInputs";
 import Link from "next/link";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
+import { useEffect, useState } from "react";
+import useEditState from "@/helpers/hooks/useEditState";
+import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
 
 export default function RenterPage() {
   return (
@@ -31,7 +35,7 @@ const RenterWrapper = () => {
     setRender,
   } = useDataFetcher("clients/renter");
   const { setOpenModal, setId, id, submitData } = useTableForm();
-
+  console.log(data, "data");
   const handleEdit = (id) => {
     setId(id);
     setOpenModal(true);
@@ -116,18 +120,56 @@ const RenterWrapper = () => {
           >
             تعديل
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },
   ];
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [loadingOptions, setLoadingOptions] = useState(false);
+
+  const [bankAccountsFields, setBankAccountFields] = useState([
+    {
+      id: "accountName",
+      type: "text",
+      label: "اسم الحساب",
+    },
+    {
+      id: "accountNumber",
+      type: "text",
+      label: "رقم الحساب",
+    },
+    {
+      id: "bankId",
+      type: "select",
+      label: "البنك",
+    },
+  ]);
+  useEffect(() => {
+    async function getBanksData() {
+      setLoadingOptions(true);
+      const res = await fetch("/api/fast-handler?id=bank");
+      const data = await res.json();
+      const newFields = [...bankAccountsFields];
+      newFields[2].options = data.map((item) => ({
+        value: item.id,
+        label: item.name,
+      }));
+      setBankAccountFields(newFields);
+      setLoadingOptions(false);
+    }
+
+    getBanksData();
+  }, []);
+  const {
+    isEditing,
+    setIsEditing,
+    snackbarOpen,
+    setSnackbarOpen,
+    snackbarMessage,
+    setSnackbarMessage,
+    handleEditBeforeSubmit,
+  } = useEditState([{ name: "bankAccounts", message: "الحسابات" }]);
 
   return (
     <>
@@ -146,7 +188,30 @@ const RenterWrapper = () => {
         setData={setData}
         setTotal={setTotal}
         total={total}
-      />
+        handleEditBeforeSubmit={handleEditBeforeSubmit}
+        extraData={{ bankAccounts }}
+        setExtraData={setBankAccounts}
+        extraDataName={"bankAccounts"}
+      >
+        {loadingOptions ? (
+          "جاري تحميل بيانات البنوك"
+        ) : (
+          <ExtraForm
+            setItems={setBankAccounts}
+            items={bankAccounts}
+            fields={bankAccountsFields}
+            title={"حساب جديد"}
+            formTitle={"الحسابات"}
+            name={"bankAccounts"}
+            setSnackbarMessage={setSnackbarMessage}
+            setSnackbarOpen={setSnackbarOpen}
+            snackbarMessage={snackbarMessage}
+            snackbarOpen={snackbarOpen}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+          />
+        )}
+      </ViewComponent>
     </>
   );
 };

@@ -4,51 +4,28 @@ import TableFormProvider, {
 } from "@/app/context/TableFormProvider/TableFormProvider";
 import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import { useEffect, useState, useRef } from "react";
-import { propertyInputs } from "@/app/properties/propertyInputs";
-import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
-import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
 import {
   Box,
   Button,
   Card,
+  CardActionArea,
   CardContent,
-  CircularProgress,
-  Divider,
   Grid,
-  Paper,
   Typography,
 } from "@mui/material";
-import Link from "next/link";
-import CustomTable from "@/app/components/Tables/CustomTable";
-import { unitInputs } from "@/app/units/unitInputs";
-import { CreateModal } from "@/app/UiComponents/Modals/CreateModal/CreateModal";
-import useEditState from "@/helpers/hooks/useEditState";
-import { MultiSelectInput } from "@/app/UiComponents/FormComponents/MUIInputs/MultiSelectAutoComplete";
-import { rentAgreementInputs } from "@/app/rent/rentInputs";
+
 import dayjs from "dayjs";
-import { useReactToPrint } from "react-to-print";
+import { getData } from "@/helpers/functions/getData";
+import { PaymentModal } from "@/app/UiComponents/Modals/PaymentModal";
 
-const RentCollectionType = {
-  TWO_MONTHS: "شهرين",
-  THREE_MONTHS: "ثلاثة أشهر",
-  FOUR_MONTHS: "أربعة أشهر",
-  SIX_MONTHS: "ستة أشهر",
-  ONE_YEAR: "سنة واحدة",
-};
-
-const StatusType = {
-  ACTIVE: "نشط",
-  CANCELED: "ملغى",
-  EXPIRED: "منتهي",
-};
+import { DataCard } from "@/app/components/RentDataCard";
+import { PaymentStatus } from "@/app/constants/Enums";
+import { updatePayment } from "@/services/client/updatePayment";
+import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
 
 export default function PropertyPage({ params }) {
   const id = params.id;
-  return (
-    <TableFormProvider url={"fast-handler"}>
-      <ViewWrapper urlId={id} />
-    </TableFormProvider>
-  );
+  return <ViewWrapper urlId={id} />;
 }
 
 const ViewWrapper = ({ urlId }) => {
@@ -73,173 +50,303 @@ const ViewWrapper = ({ urlId }) => {
     ...data,
     contractExpenses,
   };
-
   return (
     <>
       <DataCard data={fullData} />
+      <TableFormProvider
+        url={"main/payments/" + urlId + "?renterId=" + data.renter.id + "&"}
+      >
+        <Installments urlId={urlId} renter={data.renter} rentData={data} />
+      </TableFormProvider>
     </>
   );
 };
-const contractExpensesTotalPrice = (contractExpenses) => {
-  return contractExpenses?.reduce((acc, item) => acc + item.value, 0);
-};
-const DataCard = ({ data }) => {
-  const componentRef = useRef();
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-  });
+
+const Installments = ({ urlId, renter, rentData }) => {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([]);
+  const [id, setId] = useState(null);
+  const [modalInputs, setModalInputs] = useState([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      const data = await getData({
+        url: `main/rentAgreements/${urlId}/installments`,
+        setLoading,
+        others: "",
+      });
+      setData(data?.data);
+    }
+
+    fetchData();
+  }, []);
+
+  const { setLoading: setSubmitLoading } = useToastContext();
+
+  async function submit(d) {
+    const currentPayment = data.find((item) => item.id === id);
+    const submitData = {
+      ...d,
+      currentPaidAmount: +currentPayment.paidAmount,
+      id,
+      amount: currentPayment.amount,
+      propertyId: currentPayment.propertyId,
+      rentAgreementId: currentPayment.rentAgreementId,
+      installmentId: currentPayment.installmentId,
+      renterId: rentData.renterId,
+      ownerId: rentData.unit.property.client.id,
+      title: "فاتورة دفعة ايجار",
+      description: "فاتورة دفعة ايجار",
+      invoiceType: "RENT",
+    };
+
+    const newData = await updatePayment(submitData, setSubmitLoading);
+    const updateData = data.map((item) => {
+      if (item.id === id) {
+        return newData.payment;
+      }
+      return item;
+    });
+    setData(updateData);
+  }
+
   return (
-    <Card sx={{ padding: 2 }} ref={componentRef}>
-      <CardContent>
-        <Typography
-          variant="h5"
-          gutterBottom
-          sx={{
-            mb: 5,
-            textAlign: "center",
-            width: "fit-content",
-            mx: "auto",
-            padding: 1,
-            px: 1.5,
-            backgroundColor: "primary.main",
-            color: "white",
-            borderRadius: 1,
-          }}
-        >
-          رقم العقد: {data.rentAgreementNumber}
-        </Typography>
-        <Divider sx={{ width: "100%", marginY: 1 }} />
-
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "repeat(1, 1fr)",
-              sm: "repeat(2, 1fr)",
-            },
-            gap: 2,
-          }}
-          container
-          spacing={2}
-        >
-          <GridRow
-            label="الوحدة"
-            value={
-              <Button variant="text" color="primary">
-                <Link href={`/units/${data.unit.id}`}>{data.unit.unitId}</Link>
-              </Button>
-            }
-          />
-          <GridRow
-            label="اسم العقار"
-            value={
-              <Link href={`/properties/${data.unit.property.id}`}>
-                <Button variant="text" color="primary">
-                  {data.unit.property.name}
-                </Button>
-              </Link>
-            }
-          />
-          <GridRow
-            label="اسم المالك"
-            value={
-              <Link href={`/owners/${data.unit.property.client.id}`}>
-                <Button variant="text" color="primary">
-                  {data.unit.property.client.name}
-                </Button>
-              </Link>
-            }
-          />
-          <GridRow
-            label="اسم المستأجر"
-            value={
-              <Link href={`/renters/${data.renter.id}`}>
-                <Button variant="text" color="primary">
-                  {data.renter.name}
-                </Button>
-              </Link>
-            }
-          />
-          <GridRow
-            label=" يتم تحصيل الايجار كل"
-            value={RentCollectionType[data.rentCollectionType]}
-          />
-          <GridRow label="سعر عقد الايجار سنويا " value={data.totalPrice} />
-          <GridRow label="الضريبة" value={data.tax} />
-          <GridRow
-            label="قمية الضريبه"
-            value={(data.tax * data.totalPrice) / 100}
-          />
-
-          <GridRow label="التأمين" value={data.insuranceFees} />
-          <GridRow label="رسوم التسجيل" value={data.registrationFees} />
-          <GridRow label="الحالة" value={StatusType[data.status]} />
-          <GridRow />
-          <GridRow
-            label="تاريخ البداية"
-            value={dayjs(data.startDate).format("DD/MM/YYYY")}
-          />
-          <GridRow
-            label="تاريخ النهاية"
-            value={dayjs(data.endDate).format("DD/MM/YYYY")}
-          />
-
-          {data.contractExpenses && (
-            <Box>
-              <Typography variant="subtitle1" gutterBottom>
-                <strong>مصروفات العقد:</strong>
-              </Typography>
-              <Box component="ul" sx={{ paddingLeft: 2 }}>
-                {data.contractExpenses.map((expense, index) => (
-                  <Typography component="li" key={index} variant="body2">
-                    {expense.name}: {expense.value}
-                  </Typography>
-                ))}
-              </Box>
-            </Box>
-          )}
-          <GridRow
-            label="المبلغ الكلي"
-            value={
-              data.totalPrice +
-              (data.tax * data.totalPrice) / 100 +
-              data.insuranceFees +
-              data.registrationFees +
-              contractExpensesTotalPrice(data.contractExpenses)
-            }
-          />
-        </Box>
-
-        <Box mt={2}>
-          <Button variant="contained" color="primary" onClick={handlePrint}>
-            طباعة
-          </Button>
-        </Box>
-      </CardContent>
-    </Card>
+    <Box
+      sx={{
+        mt: 5,
+      }}
+    >
+      <Typography variant="h5" gutterBottom>
+        الدفعات
+      </Typography>
+      {loading ? (
+        <div>loading...</div>
+      ) : (
+        <Grid container spacing={2}>
+          {data?.map((item, index) => (
+            <Payment
+              item={item}
+              key={item.id}
+              setId={setId}
+              setModalInputs={setModalInputs}
+              renter={renter}
+            />
+          ))}
+        </Grid>
+      )}
+      <PaymentModal id={id} modalInputs={modalInputs} submit={submit} />
+    </Box>
   );
 };
 
-const GridRow = ({ label, value }) => (
-  <Box>
-    <Box display="flex" flexDirection="column">
-      <Typography
-        variant="subtitle1"
-        gutterBottom
-        sx={{
-          display: "flex",
-          gap: 2,
-          alignItems: "center",
-        }}
-      >
-        <strong>{label}:</strong> {value}
-      </Typography>
-      <Divider sx={{ width: "100%", marginY: 1 }} orientation="vertical" />
-      <Divider sx={{ width: "100%", marginY: 1 }} />
-    </Box>
-  </Box>
-);
+function Payment({ item, setModalInputs, setId, renter }) {
+  const { setOpenModal } = useTableForm();
 
+  const [paymentType, setPaymentType] = useState("CASH");
+
+  async function getRenterAccountData() {
+    const res = await fetch("/api/clients/renter/" + renter.id);
+    const data = await res.json();
+    const bankAccounts = data.bankAccounts.map((account) => ({
+      id: account.id,
+      name: account.accountNumber,
+    }));
+    return { data: bankAccounts };
+  }
+
+  const modalInputs = [
+    {
+      data: {
+        name: "paidAmount",
+        label: "القيمة المراد دفعها",
+        type: "number",
+        id: "paidAmount",
+      },
+      pattern: {
+        required: {
+          value: true,
+          message: "يرجى إدخال القيمة المراد دفعها",
+        },
+        max: {
+          value: item.amount - item.paidAmount, // replace with your actual values
+          message: `القيمة المراد دفعها يجب ان تكون اقل من ${item.amount - item.paidAmount} والتي هي القيمة المتبقية لهذه الدفعة `,
+        },
+      },
+    },
+    {
+      data: {
+        id: "paymentTypeMethod",
+        type: "simpleSelect",
+        label: "طريقة الدفع",
+        name: "paymentTypeMethod",
+        value: paymentType,
+      },
+      options: [
+        { label: "كاش", value: "CASH" },
+        { label: "تحويل بنكي", value: "BANK" },
+      ],
+
+      onChange: (e) => {
+        setPaymentType(e.target.value);
+      },
+      pattern: {
+        required: {
+          value: true,
+          message: "يرجى إدخال طريقة الدفع",
+        },
+      },
+      sx: {
+        width: {
+          xs: "100%",
+          md: "48%",
+        },
+      },
+    },
+  ];
+  useEffect(() => {
+    if (paymentType === "BANK") {
+      setModalInputs([
+        ...modalInputs,
+        {
+          data: {
+            id: "bankAccountId",
+            type: "select",
+            label: "رقم حساب المستاجر",
+            name: "bankAccountId",
+          },
+          createData: createInputs,
+          autocomplete: true,
+          extraId: false,
+          getData: getRenterAccountData,
+          pattern: {
+            required: {
+              value: true,
+              message: "يرجى إدخال اسم البنك",
+            },
+          },
+          sx: {
+            width: {
+              xs: "100%",
+              md: "48%",
+            },
+          },
+        },
+      ]);
+    } else {
+      setModalInputs(modalInputs);
+    }
+  }, [paymentType]);
+  return (
+    <Grid item xs={12} sm={6} md={3}>
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            {item.installmentNumber}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            تاريخ الدفع: {dayjs(item.dueDate).format("DD/MM/YYYY")}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            قيمة الدفعه: {item.amount}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            ما تم دفعه: {item.paidAmount}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            الحالة: {PaymentStatus[item.status]}
+          </Typography>
+        </CardContent>
+        <CardActionArea>
+          {item.amount - item.paidAmount > 0 && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                setId(item.id);
+                setModalInputs(modalInputs);
+                setTimeout(() => {
+                  setOpenModal(true);
+                }, 50);
+              }}
+            >
+              دفع
+            </Button>
+          )}
+        </CardActionArea>
+      </Card>
+    </Grid>
+  );
+}
+
+async function getBanksData() {
+  const res = await fetch("/api/fast-handler?id=bank");
+  const data = await res.json();
+  return { data };
+}
+
+const createInputs = [
+  {
+    data: {
+      id: "accountName",
+      type: "text",
+      label: "اسم الحساب",
+    },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال اسم الحساب",
+      },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+      mr: "auto",
+    },
+  },
+  {
+    data: {
+      id: "accountNumber",
+      type: "text",
+      label: "رقم الحساب",
+    },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال رقم الحساب",
+      },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+    },
+  },
+  {
+    data: {
+      id: "bankId",
+      type: "select",
+      label: "اسم البنك",
+      name: "bankId",
+    },
+    autocomplete: true,
+    getData: getBanksData,
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال اسم البنك",
+      },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+    },
+  },
+];
 const printStyles = `
   @media print {
     .MuiButton-root {

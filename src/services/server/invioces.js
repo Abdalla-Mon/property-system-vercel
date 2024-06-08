@@ -1,35 +1,27 @@
 import prisma from "@/lib/prisma"; // Adjust the path to your Prisma instance
+export async function createInvoice(data) {
+  console.log(data, "data from invioce");
+  const invoice = await prisma.invoice.create({
+    data: {
+      amount: +data.paidAmount || 0,
+      description: data.description || "",
+      title: data.title || "",
+      renterId: data.renterId || null,
+      ownerId: data.ownerId || null,
+      propertyId: data.propertyId || null,
+      rentAgreementId: data.rentAgreementId || null,
+      installmentId: data.installmentId || null,
+      maintenanceId: data.maintenanceId || null,
+      bankAccountId: data.bankAccountId || null,
+      invoiceType: data.invoiceType || "",
+    },
+  });
+  await createIncomeOrExpenseFromInvoice({ ...invoice, invoiceId: invoice.id });
+  return invoice;
+}
 
-export async function payInvoice(invoiceId, paidAmount, paymentDate) {
+export async function createIncomeOrExpenseFromInvoice(invoice) {
   try {
-    // Fetch the invoice details
-    const invoice = await prisma.invoice.findUnique({
-      where: { id: invoiceId },
-      include: {
-        client: true,
-        property: true,
-        rentAgreement: true,
-        maintenanceInstallment: true,
-      },
-    });
-
-    if (!invoice) {
-      throw new Error("Invoice not found");
-    }
-
-    // Update the invoice with the paid amount and set status to PAID if fully paid
-    const newPaidAmount = invoice.paidAmount + paidAmount;
-    const isPaid = newPaidAmount >= invoice.amount;
-
-    await prisma.invoice.update({
-      where: { id: invoiceId },
-      data: {
-        paidAmount: newPaidAmount,
-        status: isPaid ? "PAID" : "PENDING",
-      },
-    });
-
-    // Create income or expense record based on the invoice type
     if (
       invoice.invoiceType === "RENT" ||
       invoice.invoiceType === "TAX" ||
@@ -38,28 +30,27 @@ export async function payInvoice(invoiceId, paidAmount, paymentDate) {
     ) {
       await prisma.income.create({
         data: {
-          amount: paidAmount,
-          date: paymentDate,
-          description: `Payment received for invoice #${invoiceId}`,
-          clientId: invoice.clientId,
-          propertyId: invoice.propertyId,
-          invoiceId: invoice.id,
+          amount: +invoice.amount,
+          date: new Date(),
+          description: `دخل من دفعة فاتورة #${invoice.id}`,
+          clientId: +invoice.ownerId,
+          propertyId: +invoice.propertyId,
+          invoiceId: +invoice.invoiceId,
         },
       });
     } else {
       await prisma.expense.create({
         data: {
-          amount: paidAmount,
-          date: paymentDate,
-          description: `Payment made for invoice #${invoiceId}`,
-          clientId: invoice.clientId,
+          amount: +invoice.amount,
+          date: new Date(),
+          description: `مصروف من دفعة فاتورة #${invoice.id}`,
+          clientId: invoice.ownerId,
           propertyId: invoice.propertyId,
-          invoiceId: invoice.id,
+          invoiceId: +invoice.invoiceId,
         },
       });
     }
-
-    return { message: "Invoice paid successfully" };
+    return { message: "", status: 200 };
   } catch (error) {
     console.error("Error paying invoice:", error);
     throw error;

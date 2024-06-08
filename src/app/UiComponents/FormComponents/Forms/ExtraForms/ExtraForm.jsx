@@ -1,5 +1,15 @@
-import { useDeferredValue, useEffect, useState } from "react";
-import { Button, IconButton, TextField, Snackbar, Alert } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import {
+  Button,
+  IconButton,
+  TextField,
+  Snackbar,
+  Alert,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useTableForm } from "@/app/context/TableFormProvider/TableFormProvider";
 
@@ -141,11 +151,6 @@ function FormField({
   const saved = isEditing[name][index];
 
   function handleEdit() {
-    // setIsEditing((prev) => {
-    //   const newIsEditing = [...prev];
-    //   newIsEditing[index] = true;
-    //   return newIsEditing;
-    // });
     setIsEditing({
       ...isEditing,
       [name]: isEditing[name].map((_, i) => (i === index ? true : _)),
@@ -154,18 +159,52 @@ function FormField({
 
   return (
     <div className={"flex items-center gap-2  mb-3"}>
-      {fields.map((field, index) => (
-        <TextField
-          key={field.id}
-          label={field.label}
-          variant="outlined"
-          value={value[field.id]}
-          type={field.type}
-          onChange={(e) => handleItemChange(index, field.id, e.target.value)}
-          className="mr-2"
-          disabled={!saved}
-        />
-      ))}
+      {fields.map((field, index) => {
+        if (field.type === "select") {
+          return (
+            <FormControl key={field.id}>
+              <InputLabel id="demo-simple-select-label">
+                {field.label}
+              </InputLabel>
+
+              <Select
+                label={field.label}
+                value={value[field.id]}
+                sx={{
+                  minWidth: 120,
+                }}
+                loading
+                onChange={(e) =>
+                  handleItemChange(index, field.id, e.target.value)
+                }
+                className="mr-2"
+                disabled={!saved}
+              >
+                {field.options.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          );
+        } else {
+          return (
+            <TextField
+              key={field.id}
+              label={field.label}
+              variant="outlined"
+              value={value[field.id]}
+              type={field.type}
+              onChange={(e) =>
+                handleItemChange(index, field.id, e.target.value)
+              }
+              className="mr-2"
+              disabled={!saved}
+            />
+          );
+        }
+      })}
       <Button
         onClick={!saved ? handleEdit : handleSaveItems}
         variant="contained"

@@ -12,6 +12,7 @@ import { rentAgreementInputs } from "./rentInputs";
 import { MultiSelectInput } from "@/app/UiComponents/FormComponents/MUIInputs/MultiSelectAutoComplete";
 import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
 import { submitRentAgreement } from "@/services/client/createRentAgreement";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 export default function PropertyPage() {
   return (
@@ -229,14 +230,7 @@ const RentWrapper = () => {
       printable: false,
       renderCell: (params) => (
         <>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },

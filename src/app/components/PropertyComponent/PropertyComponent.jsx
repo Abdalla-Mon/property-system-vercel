@@ -10,6 +10,7 @@ import Link from "next/link";
 import { submitRentAgreement } from "@/services/client/createRentAgreement";
 import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
 import { submitProperty } from "@/services/client/properties";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 const PropertyComponent = ({ clientId, noTabs }) => {
   const {
@@ -298,14 +299,7 @@ const PropertyComponent = ({ clientId, noTabs }) => {
       printable: false,
       renderCell: (params) => (
         <>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },

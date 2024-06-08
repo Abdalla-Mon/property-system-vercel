@@ -9,7 +9,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { Controller } from "react-hook-form";
-import { CreateModal } from "@/app/UiComponents/Modals/CreateModal/CreateModal";
+import { CreateModal } from "@/app/UiComponents/Modals/CreateModal";
 
 export function MuiSelect({
   select,

@@ -8,8 +8,8 @@ import { MuiSelect } from "@/app/UiComponents/FormComponents/MUIInputs/MuiSelect
 import { MuiDatePicker } from "@/app/UiComponents/FormComponents/MUIInputs/MuiDatePicker";
 import MuiFileField from "@/app/UiComponents/FormComponents/MUIInputs/MuiFileField";
 import MuiSwitchField from "@/app/UiComponents/FormComponents/MUIInputs/MuiSwitchField";
-import { MuiNumberField } from "@/app/UiComponents/FormComponents/MUIInputs/MuiNumberField";
 import { useRef } from "react";
+import SimpleSelect from "@/app/UiComponents/FormComponents/MUIInputs/SimpleSelect";
 
 const locales = ["en-gb"];
 
@@ -78,6 +78,21 @@ export function Form({
                       trigger={trigger}
                       watch={watch}
                       key={input.data.id}
+                    />
+                  );
+                case "simpleSelect":
+                  return (
+                    <SimpleSelect
+                      errors={errors}
+                      register={register}
+                      variant={variant}
+                      select={input}
+                      key={input.data.id}
+                      extraData={extraData}
+                      disabled={disabled}
+                      reFetch={reFetch}
+                      control={control}
+                      triggerValue={setValue}
                     />
                   );
                 case "textarea":

@@ -31,7 +31,7 @@ export async function submitRentAgreement(data, setLoading) {
     setLoading,
     `main/rentAgreements/${rentAgreementId}/feeInvoices`,
     false,
-    "جاري إنشاء فواتير الرسوم...",
+    "جاري إنشاء رسوم العقود...",
   );
   if (!data.extraData.contractExpenses) return rentAgreementResponse.data;
   // Create Contract Expense Invoices
@@ -44,7 +44,7 @@ export async function submitRentAgreement(data, setLoading) {
     setLoading,
     `main/rentAgreements/${rentAgreementId}/contractExpenses`,
     false,
-    "جاري إنشاء فواتير مصاريف العقد...",
+    "جاري إنشاء  مصاريف العقد...",
   );
   return rentAgreementResponse.data;
 }

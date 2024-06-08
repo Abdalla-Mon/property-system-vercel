@@ -9,6 +9,7 @@ import { useState } from "react";
 
 import Link from "next/link";
 import { unitInputs } from "@/app/units/unitInputs";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 export default function PropertyPage() {
   return (
@@ -158,14 +159,7 @@ const PropertyWrapper = () => {
       printable: false,
       renderCell: (params) => (
         <>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },

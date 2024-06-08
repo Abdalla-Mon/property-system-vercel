@@ -27,8 +27,10 @@ export function createHandler({
 
     async POST(request, { params }) {
       const data = await request.json();
+      const { searchParams } = request.nextUrl;
+
       try {
-        const req = await postService(data, params);
+        const req = await postService(data, params, searchParams);
         return Response.json({
           data: req.data ? req.data : req,
           message: req.message ? req.message : "تم الإضافة بنجاح",

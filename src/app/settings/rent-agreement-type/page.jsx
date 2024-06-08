@@ -8,6 +8,7 @@ import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { useEffect, useState } from "react";
 import { rentAgreementTypeInputs } from "@/app/settings/rent-agreement-type/inputs";
 import TinyMCEEditor from "@/app/components/WordComponent/Tiny";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 export default function RentAgreementTypePage() {
   return (
@@ -79,14 +80,7 @@ const RentAgreementTypeWrapper = () => {
           >
             تعديل
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },

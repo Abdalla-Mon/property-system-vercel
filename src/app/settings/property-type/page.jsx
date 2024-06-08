@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { TextField, IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { propertyTypeInputs } from "@/app/settings/property-type/propertyTypeInputs";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 export default function PropertyTypePage() {
   return (
@@ -81,14 +82,7 @@ const PropertyTypeWrapper = () => {
           >
             تعديل
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => handleDelete(params.row.id)}
-            sx={{ mt: 1 }}
-          >
-            حذف
-          </Button>
+          <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },

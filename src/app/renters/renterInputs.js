@@ -10,10 +10,7 @@ export const renterInputs = [
     sx: {
       width: {
         xs: "100%",
-
-        sm: "48%",
-        md: "47%",
-        lg: "48%",
+        md: "48%",
       },
       mr: "auto",
     },
@@ -34,9 +31,7 @@ export const renterInputs = [
     sx: {
       width: {
         xs: "100%",
-        sm: "48%",
-        md: "47%",
-        lg: "48%",
+        md: "48%",
       },
     },
   },
@@ -47,6 +42,13 @@ export const renterInputs = [
       label: "الإيميل",
       name: "email",
     },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+      mr: "auto",
+    },
   },
   {
     data: {
@@ -54,6 +56,12 @@ export const renterInputs = [
       type: "text",
       label: "هوية المستأجر",
       name: "nationalId",
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
     },
   },
 ];
