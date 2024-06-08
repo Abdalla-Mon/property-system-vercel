@@ -128,6 +128,8 @@ export function Form({
                       control={control}
                       key={input.data.id}
                       errors={errors}
+                      watch={watch}
+                      setValue={setValue}
                     />
                   );
                 case "file":

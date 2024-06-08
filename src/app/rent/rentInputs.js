@@ -1,6 +1,6 @@
-import { ownerInputs } from "@/app/owners/ownerInputs";
 import { renterInputs } from "@/app/renters/renterInputs";
 import { rentAgreementTypeInputs } from "@/app/settings/rent-agreement-type/inputs";
+import dayjs from "dayjs";
 
 export const rentAgreementInputs = [
   {
@@ -150,6 +150,10 @@ export const rentAgreementInputs = [
         message: "يرجى إدخال تاريخ البداية",
       },
     },
+    onChange: (date, setValue) => {
+      const newEndDate = dayjs(date).add(1, "year");
+      setValue("endDate", newEndDate.format("YYYY-MM-DD"));
+    },
     sx: {
       width: {
         xs: "100%",
@@ -165,6 +169,8 @@ export const rentAgreementInputs = [
       label: "تاريخ النهاية",
       name: "endDate",
     },
+    watchData: "startDate",
+
     pattern: {
       required: {
         value: true,

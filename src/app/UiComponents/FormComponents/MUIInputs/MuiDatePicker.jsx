@@ -2,13 +2,29 @@ import { FormControl, TextField } from "@mui/material";
 import { Controller } from "react-hook-form";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
-import "dayjs/locale/en-gb"; // Import the locale
+import "dayjs/locale/en-gb";
+import { useEffect, useRef } from "react";
 
-export function MuiDatePicker({ control, input, errors }) {
+export function MuiDatePicker({ control, input, errors, watch, setValue }) {
   const inputData = input.data;
   dayjs.locale("en-gb");
+  // const watchedDate = watch(input.watchData);
+
+  // useEffect(() => {
+  //   if (watchedDate) {
+  //     if (input.handleWatch) {
+  //       input.handleWatch(watchedDate, setValue);
+  //     }
+  //   }
+  // }, [watchedDate]);
+
   return (
-    <FormControl fullWidth error={!!errors[inputData.id]} sx={input.sx}>
+    <FormControl
+      fullWidth
+      error={!!errors[inputData.id]}
+      sx={input.sx}
+      className={"MUI" + inputData.id}
+    >
       <Controller
         name={inputData.id}
         control={control}
@@ -22,18 +38,19 @@ export function MuiDatePicker({ control, input, errors }) {
             value={value ? dayjs(value).locale("en-gb") : null}
             onChange={(date) => {
               onChange(date ? date.format("YYYY-MM-DD") : null); // Store the date in ISO format
+              if (input.onChange) {
+                input.onChange(date, setValue);
+              }
             }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                error={!!error}
-                helperText={error ? input.pattern.message : ""}
-                inputProps={{
-                  ...params.inputProps,
+            slotProps={{
+              textField: {
+                error: !!error,
+                helperText: error ? input.pattern.message : "",
+                inputProps: {
                   placeholder: "DD/MM/YYYY", // Placeholder format
-                }}
-              />
-            )}
+                },
+              },
+            }}
           />
         )}
       />
