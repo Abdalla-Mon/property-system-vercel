@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma"; // Adjust the path to your Prisma instance
 export async function createInvoice(data) {
-  console.log(data, "data from invioce");
   const invoice = await prisma.invoice.create({
     data: {
       amount: +data.paidAmount || 0,
@@ -26,7 +25,8 @@ export async function createIncomeOrExpenseFromInvoice(invoice) {
       invoice.invoiceType === "RENT" ||
       invoice.invoiceType === "TAX" ||
       invoice.invoiceType === "INSURANCE" ||
-      invoice.invoiceType === "REGISTRATION"
+      invoice.invoiceType === "REGISTRATION" ||
+      invoice.invoiceType === "CONTRACT_EXPENSE"
     ) {
       await prisma.income.create({
         data: {

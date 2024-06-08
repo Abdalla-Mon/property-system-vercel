@@ -264,9 +264,17 @@ async function getProperties() {
   }
 }
 
-async function getUnits() {
+async function getUnits(searchParams) {
+  console.log(searchParams, "searchParams");
+  const propertyId = searchParams.get("propertyId");
+  let whereClause = {};
+  if (propertyId) {
+    whereClause.propertyId = +propertyId;
+  }
   try {
     const units = await prisma.unit.findMany({
+      where: whereClause,
+
       select: {
         id: true,
         unitId: true,

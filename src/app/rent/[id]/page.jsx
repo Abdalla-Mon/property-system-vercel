@@ -9,8 +9,8 @@ import {
   Button,
   Card,
   CardActionArea,
+  CardActions,
   CardContent,
-  Grid,
   Typography,
 } from "@mui/material";
 
@@ -19,9 +19,10 @@ import { getData } from "@/helpers/functions/getData";
 import { PaymentModal } from "@/app/UiComponents/Modals/PaymentModal";
 
 import { DataCard } from "@/app/components/RentDataCard";
-import { PaymentStatus } from "@/app/constants/Enums";
+import { PaymentStatus, PaymentType } from "@/app/constants/Enums";
 import { updatePayment } from "@/services/client/updatePayment";
 import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
+import { useReactToPrint } from "react-to-print";
 
 export default function PropertyPage({ params }) {
   const id = params.id;
@@ -44,6 +45,10 @@ const ViewWrapper = ({ urlId }) => {
     }
   }, [data, loading]);
 
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
+  const componentRef = useRef();
   if (loading || typeof data !== "object" || wait) return <div>loading...</div>;
 
   const fullData = {
@@ -51,27 +56,61 @@ const ViewWrapper = ({ urlId }) => {
     contractExpenses,
   };
   return (
-    <>
+    <Box ref={componentRef}>
+      <GlobalStyles />
       <DataCard data={fullData} />
       <TableFormProvider
         url={"main/payments/" + urlId + "?renterId=" + data.renter.id + "&"}
       >
-        <Installments urlId={urlId} renter={data.renter} rentData={data} />
+        <Payments
+          renter={data.renter}
+          rentData={data}
+          url={`main/rentAgreements/${urlId}/installments`}
+          description={"فاتورة دفعة ايجار"}
+          title={"فاتورة دفعة ايجار"}
+          heading={"الدفعات"}
+        />
+        <Payments
+          renter={data.renter}
+          rentData={data}
+          url={`main/rentAgreements/${urlId}/feeInvoices`}
+          description={"فاتورة رسوم العقد"}
+          title={"فاتورة رسوم العقد"}
+          heading={"رسوم العقد"}
+        />
+        <Payments
+          renter={data.renter}
+          rentData={data}
+          url={`main/rentAgreements/${urlId}/contractExpenses`}
+          description={"فاتورة مصروفات العقد"}
+          title={"فاتورة مصروفات العقد"}
+          heading={"مصروفات العقد"}
+        />
       </TableFormProvider>
-    </>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handlePrint}
+        sx={{
+          mt: 5,
+        }}
+      >
+        طباعة الصفحة بالكامل{" "}
+      </Button>
+    </Box>
   );
 };
 
-const Installments = ({ urlId, renter, rentData }) => {
+const Payments = ({ renter, rentData, url, title, description, heading }) => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [id, setId] = useState(null);
   const [modalInputs, setModalInputs] = useState([]);
-
+  const { setOpenModal } = useTableForm();
   useEffect(() => {
     async function fetchData() {
       const data = await getData({
-        url: `main/rentAgreements/${urlId}/installments`,
+        url: url,
         setLoading,
         others: "",
       });
@@ -95,9 +134,9 @@ const Installments = ({ urlId, renter, rentData }) => {
       installmentId: currentPayment.installmentId,
       renterId: rentData.renterId,
       ownerId: rentData.unit.property.client.id,
-      title: "فاتورة دفعة ايجار",
-      description: "فاتورة دفعة ايجار",
-      invoiceType: "RENT",
+      title: title,
+      description: description,
+      invoiceType: currentPayment.paymentType,
     };
 
     const newData = await updatePayment(submitData, setSubmitLoading);
@@ -108,6 +147,7 @@ const Installments = ({ urlId, renter, rentData }) => {
       return item;
     });
     setData(updateData);
+    setOpenModal(false);
   }
 
   return (
@@ -117,12 +157,23 @@ const Installments = ({ urlId, renter, rentData }) => {
       }}
     >
       <Typography variant="h5" gutterBottom>
-        الدفعات
+        {heading}
       </Typography>
       {loading ? (
         <div>loading...</div>
       ) : (
-        <Grid container spacing={2}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "repeat(1, 1fr)",
+              sm: "repeat(2, 1fr)",
+              md: "repeat(3, 1fr)",
+              xl: "repeat(4, 1fr)",
+            },
+            gap: 2,
+          }}
+        >
           {data?.map((item, index) => (
             <Payment
               item={item}
@@ -132,7 +183,7 @@ const Installments = ({ urlId, renter, rentData }) => {
               renter={renter}
             />
           ))}
-        </Grid>
+        </Box>
       )}
       <PaymentModal id={id} modalInputs={modalInputs} submit={submit} />
     </Box>
@@ -141,8 +192,8 @@ const Installments = ({ urlId, renter, rentData }) => {
 
 function Payment({ item, setModalInputs, setId, renter }) {
   const { setOpenModal } = useTableForm();
-
   const [paymentType, setPaymentType] = useState("CASH");
+  console.log(item, "item");
 
   async function getRenterAccountData() {
     const res = await fetch("/api/clients/renter/" + renter.id);
@@ -168,7 +219,7 @@ function Payment({ item, setModalInputs, setId, renter }) {
           message: "يرجى إدخال القيمة المراد دفعها",
         },
         max: {
-          value: item.amount - item.paidAmount, // replace with your actual values
+          value: item.amount - item.paidAmount,
           message: `القيمة المراد دفعها يجب ان تكون اقل من ${item.amount - item.paidAmount} والتي هي القيمة المتبقية لهذه الدفعة `,
         },
       },
@@ -236,28 +287,39 @@ function Payment({ item, setModalInputs, setId, renter }) {
       setModalInputs(modalInputs);
     }
   }, [paymentType]);
+  console.log(item, "item");
   return (
-    <Grid item xs={12} sm={6} md={3}>
+    <Box
+      sx={{
+        gridColumn: "span 1",
+      }}
+    >
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             {item.installmentNumber}
           </Typography>
           <Typography variant="body1" gutterBottom>
-            تاريخ الدفع: {dayjs(item.dueDate).format("DD/MM/YYYY")}
+            ميعاد الدفع: {dayjs(item.dueDate).format("DD/MM/YYYY")}
           </Typography>
           <Typography variant="body1" gutterBottom>
-            قيمة الدفعه: {item.amount}
+            قيمة الدفعه: {item.amount.toFixed(2)}
           </Typography>
           <Typography variant="body1" gutterBottom>
-            ما تم دفعه: {item.paidAmount}
+            ما تم دفعه: {item.paidAmount.toFixed(2)}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            الباقي: {(item.amount - item.paidAmount).toFixed(2)}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            النوع : {PaymentType[item.paymentType]}
           </Typography>
           <Typography variant="body1" gutterBottom>
             الحالة: {PaymentStatus[item.status]}
           </Typography>
         </CardContent>
-        <CardActionArea>
-          {item.amount - item.paidAmount > 0 && (
+        <CardActions>
+          {item.status !== "PAID" && (
             <Button
               variant="contained"
               color="primary"
@@ -272,9 +334,9 @@ function Payment({ item, setModalInputs, setId, renter }) {
               دفع
             </Button>
           )}
-        </CardActionArea>
+        </CardActions>
       </Card>
-    </Grid>
+    </Box>
   );
 }
 
@@ -347,15 +409,14 @@ const createInputs = [
     },
   },
 ];
+
 const printStyles = `
   @media print {
+body{
+padding:15px ;
+}
     .MuiButton-root {
       display: none;
-    }
-    .MuiCard-root {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
     }
   }
 `;

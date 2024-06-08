@@ -16,8 +16,28 @@ const PaymentStatus = {
   PENDING: "قيد الانتظار",
   OVERDUE: "متأخر",
 };
+const PaymentType = {
+  RENT: "إيجار",
+  TAX: "ضريبة",
+  INSURANCE: "تأمين",
+  REGISTRATION: "تسجيل",
+  MAINTENANCE: "صيانة",
+  CONTRACT_EXPENSE: "مصاريف عقد",
+  OTHER: "أخرى",
+};
+// enum PaymentType {
+//   RENT
+// TAX
+// INSURANCE
+// REGISTRATION
+// MAINTENANCE
+// CONTRACT_EXPENSE
+// OTHER
+// }
+
 module.exports = {
   RentCollectionType,
   StatusType,
   PaymentStatus,
+  PaymentType,
 };

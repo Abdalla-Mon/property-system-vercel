@@ -37,8 +37,13 @@ const RentWrapper = () => {
     setRender,
   } = useDataFetcher("main/rentAgreements/");
   const { id, submitData } = useTableForm();
-  const [disabled, setDisabled] = useState({});
-  const [reFetch, setRefetch] = useState({});
+  const [propertyId, setPropertyId] = useState(null);
+  const [disabled, setDisabled] = useState({
+    unitId: true,
+  });
+  const [reFetch, setRefetch] = useState({
+    unitId: false,
+  });
 
   async function getRenters() {
     const res = await fetch("/api/fast-handler?id=renter");
@@ -59,8 +64,28 @@ const RentWrapper = () => {
     return { data: dataWithLabel };
   }
 
+  async function getProperties() {
+    const res = await fetch("/api/fast-handler?id=properties");
+    const data = await res.json();
+    return { data };
+  }
+
+  function handlePropertyChange(value) {
+    setPropertyId(value);
+    setDisabled({
+      ...disabled,
+      unitId: false,
+    });
+    setRefetch({
+      ...reFetch,
+      unitId: true,
+    });
+  }
+
   async function getUnits() {
-    const res = await fetch("/api/fast-handler?id=unit");
+    const res = await fetch(
+      "/api/fast-handler?id=unit&propertyId=" + propertyId,
+    );
     const data = await res.json();
     const dataWithLabel = data.map((item) => {
       return {
@@ -70,7 +95,7 @@ const RentWrapper = () => {
       };
     });
 
-    return { data: dataWithLabel };
+    return { data: dataWithLabel, id: propertyId };
   }
 
   async function getRentCollectionType() {
@@ -104,10 +129,15 @@ const RentWrapper = () => {
           extraId: false,
           getData: getRentTypes,
         };
+      case "propertyId":
+        return {
+          ...input,
+          getData: getProperties,
+          onChange: handlePropertyChange,
+        };
       case "unitId":
         return {
           ...input,
-          extraId: false,
           getData: getUnits,
         };
       default:
@@ -146,6 +176,30 @@ const RentWrapper = () => {
       renderCell: (params) => (
         <Link href={"rent/" + params.row.id}>
           <Button variant={"text"}>{params.row.id}</Button>
+        </Link>
+      ),
+    },
+    {
+      field: "rentAgreementNumber",
+      headerName: "رقم العقد",
+      width: 200,
+      printable: true,
+      cardWidth: 48,
+      renderCell: (params) => (
+        <Link href={"rent/" + params.row.id}>
+          <Button variant={"text"}>{params.row.rentAgreementNumber}</Button>
+        </Link>
+      ),
+    },
+    {
+      field: "propertyId",
+      headerName: "اسم العقار",
+      width: 200,
+      printable: true,
+      cardWidth: 48,
+      renderCell: (params) => (
+        <Link href={"/properties/" + params.row.unit.property.id}>
+          <Button variant={"text"}>{params.row.unit.property.name}</Button>
         </Link>
       ),
     },

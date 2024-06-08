@@ -487,10 +487,10 @@ model Invoice {
   bankAccount       BankAccount? @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
   propertyId        Int?
   property          Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
-renterId          Int?
-renter            Client? @relation("RenterToInvoice", fields: [renterId], references: [id], onDelete: Cascade)
-ownerId           Int?
-owner             Client? @relation("OwnerToInvoice", fields: [ownerId], references: [id], onDelete: Cascade)
+  renterId          Int?
+  renter            Client? @relation("RenterToInvoice", fields: [renterId], references: [id], onDelete: Cascade)
+  ownerId           Int?
+  owner             Client? @relation("OwnerToInvoice", fields: [ownerId], references: [id], onDelete: Cascade)
   rentAgreementId   Int?
   rentAgreement     RentAgreement? @relation(fields: [rentAgreementId], references: [id], onDelete: SetNull)
   installmentId     Int?
@@ -520,5 +520,6 @@ enum PaymentType {
   INSURANCE
   REGISTRATION
   MAINTENANCE
+  CONTRACT_EXPENSE
   OTHER
 }

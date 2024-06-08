@@ -181,8 +181,6 @@ export async function deleteRentAgreement(id) {
     await prisma.rentAgreement.delete({
       where: { id },
     });
-
-    console.log(`Rent agreement with id ${id} deleted successfully.`);
   } catch (error) {
     console.error(`Error deleting rent agreement with id ${id}:`, error);
     throw error;
@@ -394,7 +392,6 @@ export async function createFeeInvoices(rentAgreement) {
         amount: (rentAgreement.tax * rentAgreement.totalPrice) / 100,
         dueDate: rentAgreement.startDate,
         status: "PENDING",
-
         paymentType: "TAX",
       },
       {
@@ -453,12 +450,13 @@ export async function createContractExpenseInvoices({
 }) {
   try {
     for (const contractExpense of contractExpenses) {
-      await prisma.ContractExpenseToRentAgreement.create({
-        data: {
-          rentAgreementId: rentAgreement.id,
-          contractExpenseId: +contractExpense.id,
-        },
-      });
+      const contractExpenceToRent =
+        await prisma.ContractExpenseToRentAgreement.create({
+          data: {
+            rentAgreementId: rentAgreement.id,
+            contractExpenseId: +contractExpense.id,
+          },
+        });
 
       await prisma.payment.create({
         data: {
@@ -468,7 +466,8 @@ export async function createContractExpenseInvoices({
           propertyId: rentAgreement.unit.property.id,
           status: "PENDING",
           rentAgreementId: rentAgreement.id,
-          paymentType: "OTHER",
+          paymentType: "CONTRACT_EXPENSE",
+          contractExpenseId: contractExpenceToRent.id,
         },
       });
     }
@@ -482,7 +481,7 @@ export async function createContractExpenseInvoices({
   }
 }
 
-export async function getRentAgreementPayments(
+export async function getRentAgreementPaymentsForInstallments(
   page,
   limit,
   searchParams,
@@ -502,12 +501,59 @@ export async function getRentAgreementPayments(
         invoices: true,
       },
     });
-    console.log(payments, "payment");
     return {
       data: payments,
     };
   } catch (error) {
     console.error("Error fetching installments:", error);
+    throw error;
+  }
+}
+
+export async function gentRentAgreementPaymentsForFees(
+  page,
+  limit,
+  searchParams,
+  params,
+) {
+  const { id: rentAgreementId } = params;
+  try {
+    const payments = await prisma.payment.findMany({
+      where: {
+        rentAgreementId: +rentAgreementId,
+        paymentType: {
+          in: ["TAX", "INSURANCE", "REGISTRATION"],
+        },
+      },
+    });
+    return {
+      data: payments,
+    };
+  } catch (error) {
+    console.error("Error fetching fees payments:", error);
+    throw error;
+  }
+}
+
+export async function getRentAgreementPaymentForContractExpences(
+  page,
+  limit,
+  searchParams,
+  params,
+) {
+  const { id: rentAgreementId } = params;
+  try {
+    const payments = await prisma.payment.findMany({
+      where: {
+        rentAgreementId: +rentAgreementId,
+        paymentType: "CONTRACT_EXPENSE",
+      },
+    });
+    return {
+      data: payments,
+    };
+  } catch (error) {
+    console.error("Error fetching contract expenses payments:", error);
     throw error;
   }
 }

@@ -5,16 +5,17 @@ import dayjs from "dayjs";
 export const rentAgreementInputs = [
   {
     data: {
-      id: "unitId",
+      id: "propertyId",
       type: "select",
-      label: "الوحدة",
-      name: "unitId",
+      label: "العقار",
+      name: "propertyId",
     },
     autocomplete: true,
+    extraId: false,
     pattern: {
       required: {
         value: true,
-        message: "يرجى إدخال الوحدة",
+        message: "يرجى إدخال العقار",
       },
     },
     sx: {
@@ -27,13 +28,34 @@ export const rentAgreementInputs = [
   },
   {
     data: {
+      id: "unitId",
+      type: "select",
+      label: "الوحدة",
+      name: "unitId",
+    },
+    autocomplete: true,
+    extraId: true,
+    rerender: true,
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال الوحدة",
+      },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+    },
+  },
+  {
+    data: {
       id: "rentAgreementNumber",
       type: "text",
       label: "رقم العقد",
       name: "rentAgreementNumber",
     },
-    autocomplete: true,
-
     pattern: {
       required: {
         value: true,
@@ -45,6 +67,7 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -57,6 +80,7 @@ export const rentAgreementInputs = [
     },
     createData: renterInputs,
     autocomplete: true,
+
     pattern: {
       required: {
         value: true,
@@ -68,7 +92,6 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {
@@ -92,6 +115,7 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -114,7 +138,6 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {
@@ -135,6 +158,7 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -159,7 +183,6 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {
@@ -182,6 +205,7 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
 
@@ -203,7 +227,6 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {
@@ -224,6 +247,7 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -244,7 +268,6 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
 ];

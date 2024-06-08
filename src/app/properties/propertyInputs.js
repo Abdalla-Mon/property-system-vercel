@@ -126,9 +126,9 @@ export const propertyInputs = [
       label: "المدينة",
       name: "cityId",
     },
-    extraId: true,
     createData: cityInputs,
     autocomplete: true,
+    extraId: true,
     rerender: true,
     sx: {
       width: {
