@@ -158,12 +158,13 @@ async function processPayments(payments) {
             id: payment.installment.id,
           },
         });
+      } else {
+        await prisma.payment.delete({
+          where: {
+            id: payment.id,
+          },
+        });
       }
-      await prisma.payment.delete({
-        where: {
-          id: payment.id,
-        },
-      });
     }
   }
 }
