@@ -26,6 +26,7 @@ export async function getReports(page, limit, searchParams, params) {
             rentAgreements: true,
           },
         },
+        client: true,
         incomes: {
           where: {
             date: {
@@ -47,6 +48,7 @@ export async function getReports(page, limit, searchParams, params) {
 
     if (property) {
       reportData.name = property.name;
+      reportData.client = property.client;
       reportData.location = property.location;
       reportData.builtArea = property.builtArea;
       reportData.price = property.price;

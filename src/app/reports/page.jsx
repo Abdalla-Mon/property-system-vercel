@@ -129,6 +129,7 @@ const Reports = () => {
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
+    documentTitle: "تقرير العقار",
   });
 
   const renderChart = (data, title, backgroundColor) => (
@@ -209,7 +210,7 @@ const Reports = () => {
   );
 
   if (loading) return <CircularProgress />;
-
+  console.log(reportData, "reportData");
   return (
     <Container>
       <Box sx={{ my: 4 }}>
@@ -259,27 +260,55 @@ const Reports = () => {
         </Button>
 
         {reportData && (
-          <Box sx={{ mt: 4 }} ref={componentRef}>
-            <Typography variant="h6">تفاصيل المالك</Typography>
-            <Typography variant="subtitle1">
-              اسم المالك: {reportData.ownerName}
-            </Typography>
-            <Typography variant="subtitle1">
-              تاريخ البدء: {startDate.format("DD/MM/YYYY")}
-            </Typography>
-            <Typography variant="subtitle1">
-              تاريخ الانتهاء: {endDate.format("DD/MM/YYYY")}
-            </Typography>
+          <Box
+            sx={{ mt: 4, p: 2, border: "1px solid #ddd" }}
+            ref={componentRef}
+          >
+            <Box sx={{ my: 2 }}>
+              <Typography variant="h6">
+                تقرير من المدة {startDate.format("DD/MM/YYYY")} إلى{" "}
+                {endDate.format("DD/MM/YYYY")}
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                mb: 4,
+                p: 2,
+                backgroundColor: "#f5f5f5",
+                borderRadius: "8px",
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                تفاصيل المالك
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                  gap: "10px",
+                }}
+              >
+                <strong>اسم المالك:</strong> {reportData.client?.name}
+                <strong> هوية المالك:</strong> {reportData.client?.nationalId}
+                <strong> ايميل المالك:</strong> {reportData.client?.email}
+                <strong> رقمة هاتف المالك:</strong> {reportData.client?.phone}
+              </Typography>
+            </Box>
 
-            <Typography variant="h6">النتائج</Typography>
             <Typography variant="h6">{reportData.name}</Typography>
-            <Typography variant="subtitle1">تفاصيل العقار</Typography>
+            <Typography variant="subtitle1" className={"mt-3"}>
+              تفاصيل العقار
+            </Typography>
             {renderTable([reportData], columnsPropertyDetails)}
-
-            <Typography variant="subtitle1">الوحدات</Typography>
+            <Typography variant="subtitle1" className={"mt-3"}>
+              الوحدات
+            </Typography>
             {renderTable(reportData.units, columnsUnits)}
 
-            <Typography variant="subtitle1">عقود الإيجار</Typography>
+            <Typography variant="subtitle1" className={"mt-3"}>
+              عقود الإيجار
+            </Typography>
             {renderTable(
               reportData.units.flatMap((unit) => unit.rentAgreements),
               columnsRentAgreements,

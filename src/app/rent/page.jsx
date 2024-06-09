@@ -15,9 +15,8 @@ import { RenewRentModal } from "@/app/UiComponents/Modals/RenewRent"; // Import 
 import { CancelRentModal } from "@/app/UiComponents/Modals/CancelRentModal";
 import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 import { Button } from "@mui/material";
-import Link from "next/link"; // Import the CancelRentModal
-import { StatusType } from "@/app/constants/enums";
-
+import Link from "next/link";
+import { StatusType } from "@/app/constants/Enums"; // Import the CancelRentModal
 export default function PropertyPage() {
   return (
     <TableFormProvider url={"fast-handler"}>

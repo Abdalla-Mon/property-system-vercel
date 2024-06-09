@@ -34,9 +34,12 @@ const navItems = [
   { href: "/rent", Icon: PaymentIcon, text: "عقود الايجار" },
   { href: "/invoices", Icon: ReceiptIcon, text: "الفواتير" },
   { href: "/maintenance", Icon: BuildIcon, text: "الصيانه" },
+  { href: "/reports", Icon: ReceiptIcon, text: "التقارير" },
   { href: "/owners", Icon: PeopleIcon, text: "الملاك" },
   { href: "/renters", Icon: GroupIcon, text: "المستأجرين" },
+
   { href: "/settings", Icon: SettingsIcon, text: "الاعدادات" },
+
   { href: "/tasks", Icon: PeopleIcon, text: "مهام المطور" },
 ];
 
