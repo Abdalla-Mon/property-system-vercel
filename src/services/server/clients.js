@@ -181,6 +181,17 @@ export async function updateOwner(id, data) {
   return updatedOwner;
 }
 
+export async function getOwnerById(page, limit, searchParams, params) {
+  const id = params.id;
+  const owner = await prisma.client.findUnique({
+    where: { id: +id },
+    include: {
+      bankAccounts: true,
+    },
+  });
+  return owner;
+}
+
 export async function deleteOwner(id) {
   return await prisma.client.delete({
     where: { id },

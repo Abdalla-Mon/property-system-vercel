@@ -7,6 +7,18 @@ import CssBaseline from "@mui/material/CssBaseline";
 
 const theme = createTheme({
   direction: "rtl", // Set the direction to RTL
+  typography: {
+    fontFamily: "inherit",
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          fontFamily: "inherit",
+        },
+      },
+    },
+  },
 });
 // Create rtl cache
 const cacheRtl = createCache({

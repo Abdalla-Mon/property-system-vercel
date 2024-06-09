@@ -3,7 +3,8 @@ import TableFormProvider, {
   useTableForm,
 } from "@/app/context/TableFormProvider/TableFormProvider";
 import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
+
 import {
   Box,
   Button,
@@ -15,6 +16,8 @@ import {
   TableHead,
   TableRow,
   Paper,
+  TableFooter,
+  useTheme,
 } from "@mui/material";
 
 import dayjs from "dayjs";
@@ -25,6 +28,8 @@ import { PaymentStatus, PaymentType } from "@/app/constants/Enums";
 import { updatePayment } from "@/services/client/updatePayment";
 import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
 import { useReactToPrint } from "react-to-print";
+import TinyMCEEditor from "@/app/components/WordComponent/Tiny";
+import { handleRequestSubmit } from "@/helpers/functions/handleRequestSubmit";
 
 export default function PropertyPage({ params }) {
   const id = params.id;
@@ -35,6 +40,7 @@ const ViewWrapper = ({ urlId }) => {
   const { data, loading } = useDataFetcher("main/rentAgreements/" + urlId);
   const [contractExpenses, setContractExpenses] = useState(null);
   const [wait, setWait] = useState(true);
+  const [isPrinting, setIsPrinting] = useState(false);
   useEffect(() => {
     if (!loading && typeof data === "object") {
       setContractExpenses(
@@ -56,7 +62,7 @@ const ViewWrapper = ({ urlId }) => {
     ...data,
     contractExpenses,
   };
-  console.log(data);
+
   return (
     <Box ref={componentRef}>
       <GlobalStyles />
@@ -96,6 +102,7 @@ const ViewWrapper = ({ urlId }) => {
           showName={true}
         />
       </TableFormProvider>
+      {!isPrinting && <RentAgreementDescription data={data} />}
       <Button
         variant="contained"
         color="primary"
@@ -154,10 +161,14 @@ const Payments = ({
     const newData = await updatePayment(submitData, setSubmitLoading);
     const updateData = data.map((item) => {
       if (item.id === id) {
-        return newData.payment;
+        return {
+          ...newData.payment,
+          invoices: [...item.invoices, newData.invoice],
+        };
       }
       return item;
     });
+
     setData(updateData);
     setOpenModal(false);
   }
@@ -171,9 +182,10 @@ const Payments = ({
         <div>loading...</div>
       ) : (
         <TableContainer component={Paper}>
-          <Table>
+          <Table sx={{ minWidth: 650 }} aria-label="payment table">
             <TableHead>
               <TableRow>
+                <TableCell>دفعه رقم</TableCell>
                 <TableCell>ميعاد الدفع</TableCell>
                 {showName && <TableCell>اسم المصروف</TableCell>}
                 <TableCell>قيمة الدفعه</TableCell>
@@ -185,17 +197,34 @@ const Payments = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.map((item) => (
-                <PaymentRow
-                  key={item.id}
-                  item={item}
-                  setId={setId}
-                  setModalInputs={setModalInputs}
-                  renter={renter}
-                  showName={showName}
-                />
+              {data?.map((item, index) => (
+                <React.Fragment key={item.id}>
+                  <PaymentRow
+                    item={item}
+                    setId={setId}
+                    setModalInputs={setModalInputs}
+                    renter={renter}
+                    showName={showName}
+                    index={index + 1}
+                  />
+                  {item.invoices && item.invoices.length > 0 && (
+                    <InvoiceRows invoices={item.invoices} index={index + 1} />
+                  )}
+                </React.Fragment>
               ))}
             </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={9}>
+                  <Typography variant="body2" align="center">
+                    إجمالي المدفوعات:{" "}
+                    {data
+                      .reduce((acc, item) => acc + item.paidAmount, 0)
+                      .toFixed(2)}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            </TableFooter>
           </Table>
         </TableContainer>
       )}
@@ -204,7 +233,7 @@ const Payments = ({
   );
 };
 
-const PaymentRow = ({ item, setModalInputs, setId, renter, showName }) => {
+const PaymentRow = ({ item, setModalInputs, setId, index, showName }) => {
   const { setOpenModal } = useTableForm();
   const [paymentType, setPaymentType] = useState("CASH");
 
@@ -225,7 +254,7 @@ const PaymentRow = ({ item, setModalInputs, setId, renter, showName }) => {
         label: "القيمة المراد دفعها",
         type: "number",
         id: "paidAmount",
-        defaultValue: item.amount - item.paidAmount,
+        defaultValue: (item.amount - item.paidAmount).toFixed(2),
       },
       pattern: {
         required: {
@@ -286,7 +315,7 @@ const PaymentRow = ({ item, setModalInputs, setId, renter, showName }) => {
           pattern: {
             required: {
               value: true,
-              message: "يرجى إدخال اسم البنك",
+              message: "يرجى إدخال رقم حساب المالك",
             },
           },
           sx: {
@@ -303,14 +332,30 @@ const PaymentRow = ({ item, setModalInputs, setId, renter, showName }) => {
   }, [paymentType]);
 
   return (
-    <TableRow>
+    <TableRow hover>
+      <TableCell>{index}</TableCell>
       <TableCell>{dayjs(item.dueDate).format("DD/MM/YYYY")}</TableCell>
       {showName && <TableCell>{item.title}</TableCell>}
       <TableCell>{item.amount.toFixed(2)}</TableCell>
       <TableCell>{item.paidAmount.toFixed(2)}</TableCell>
       <TableCell>{(item.amount - item.paidAmount).toFixed(2)}</TableCell>
       <TableCell>{PaymentType[item.paymentType]}</TableCell>
-      <TableCell>{PaymentStatus[item.status]}</TableCell>
+      <TableCell>
+        <Typography
+          variant="body2"
+          sx={{
+            color:
+              item.status === "PAID"
+                ? "green"
+                : item.status === "PENDING"
+                  ? "orange"
+                  : "red",
+            fontWeight: "bold",
+          }}
+        >
+          {PaymentStatus[item.status]}
+        </Typography>
+      </TableCell>
       <TableCell>
         {item.status !== "PAID" && (
           <Button
@@ -330,6 +375,41 @@ const PaymentRow = ({ item, setModalInputs, setId, renter, showName }) => {
       </TableCell>
     </TableRow>
   );
+};
+
+const InvoiceRows = ({ invoices, index }) => {
+  return invoices.map((invoice) => (
+    <TableRow key={invoice.id} sx={{ backgroundColor: "#f9f9f9" }}>
+      <TableCell colSpan={8}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr 1fr 2fr 1fr 1fr ",
+            gap: 1,
+            padding: 1,
+            backgroundColor: "#f1f1f1",
+            borderRadius: 1,
+          }}
+        >
+          <Typography variant="h6"> {index}</Typography>
+          {/*<Typography variant="body2">رقم الفاتورة {invoice.id}</Typography>*/}
+          <Typography variant="body2">
+            تاريخ الدفع: {dayjs(invoice.createdAt).format("DD/MM/YYYY")}
+          </Typography>
+          <Typography variant="body2">القيمة: {invoice.amount}</Typography>
+          <Typography variant="body2">
+            طريقة الدفع:{" "}
+            {invoice.paymentTypeMethod === "CASH" ? "كاش" : "تحويل بنكي"}
+          </Typography>
+          <Typography variant="body2">
+            {invoice.bankAccount && (
+              <>رقم حساب المالك: {invoice.bankAccount.accountNumber}</>
+            )}
+          </Typography>
+        </Box>
+      </TableCell>
+    </TableRow>
+  ));
 };
 
 async function getBanksData() {
@@ -401,6 +481,47 @@ const createInputs = [
     },
   },
 ];
+
+function RentAgreementDescription({ data }) {
+  const [description, setDescription] = useState(data.customDescription);
+  const { setLoading } = useToastContext();
+
+  async function submit() {
+    await handleRequestSubmit(
+      {
+        customDescription: description,
+      },
+      setLoading,
+      "main/rentAgreements/" + data.id + "/updateDescription",
+      false,
+      "جاري حفظ النص",
+    );
+  }
+
+  return (
+    <Box
+      className="no-print"
+      sx={{
+        mt: 5,
+        maxWidth: "100%",
+        overflow: "auto",
+      }}
+    >
+      <TinyMCEEditor
+        description={description}
+        setDescription={setDescription}
+      />
+      <Button
+        onClick={() => submit()}
+        variant={"contained"}
+        sx={{ mt: 2 }}
+        size={"large"}
+      >
+        حفظ نص العقد
+      </Button>
+    </Box>
+  );
+}
 
 const printStyles = `
   @media print {

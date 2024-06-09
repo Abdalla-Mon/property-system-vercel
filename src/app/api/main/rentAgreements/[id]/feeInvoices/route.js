@@ -1,11 +1,11 @@
 import { createHandler } from "@/app/api/handler";
 import {
-  createFeeInvoices,
+  createFeePayments,
   gentRentAgreementPaymentsForFees,
 } from "@/services/server/rentAgreements";
 
 const handler = createHandler({
-  postService: createFeeInvoices,
+  postService: createFeePayments,
   getService: gentRentAgreementPaymentsForFees,
 });
 

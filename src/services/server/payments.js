@@ -27,6 +27,9 @@ export async function updatePayment(id, data) {
         paidAmount: +data.paidAmount + +data.currentPaidAmount,
         status: "PENDING",
       },
+      include: {
+        invoices: true,
+      },
     });
   } else {
     payment = await prisma.payment.update({
@@ -34,6 +37,9 @@ export async function updatePayment(id, data) {
       data: {
         paidAmount: +data.paidAmount + +data.currentPaidAmount,
         status: "PAID",
+      },
+      include: {
+        invoices: true,
       },
     });
     if (data.paymentType === "RENT") {

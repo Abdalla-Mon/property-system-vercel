@@ -2,10 +2,8 @@ import { useEffect, useRef, useState } from "react";
 
 const TinyMCEEditor = ({ description, setDescription }) => {
   const editorRef = useRef(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(false);
     // Check if TinyMCE script is already loaded
     if (typeof window === "undefined") return;
     if (!window.tinymce) {

@@ -5,14 +5,29 @@ export async function createInvoice(data) {
       amount: +data.paidAmount || 0,
       description: data.description || "",
       title: data.title || "",
-      renterId: data.renterId || null,
-      ownerId: data.ownerId || null,
-      propertyId: data.propertyId || null,
-      rentAgreementId: data.rentAgreementId || null,
-      installmentId: data.installmentId || null,
-      maintenanceId: data.maintenanceId || null,
-      bankAccountId: data.bankAccountId || null,
+      bankAccount: data.bankAccountId
+        ? { connect: { id: data.bankAccountId } }
+        : undefined,
       invoiceType: data.invoiceType || "",
+      paymentTypeMethod: data.paymentTypeMethod || "",
+      payment: data.paymentId ? { connect: { id: data.paymentId } } : undefined,
+      renter: data.renterId ? { connect: { id: data.renterId } } : undefined,
+      owner: data.ownerId ? { connect: { id: data.ownerId } } : undefined,
+      property: data.propertyId
+        ? { connect: { id: data.propertyId } }
+        : undefined,
+      rentAgreement: data.rentAgreementId
+        ? { connect: { id: data.rentAgreementId } }
+        : undefined,
+      installment: data.installmentId
+        ? { connect: { id: data.installmentId } }
+        : undefined,
+      maintenance: data.maintenanceId
+        ? { connect: { id: data.maintenanceId } }
+        : undefined,
+    },
+    include: {
+      bankAccount: true,
     },
   });
   await createIncomeOrExpenseFromInvoice({ ...invoice, invoiceId: invoice.id });

@@ -4,8 +4,8 @@ import { List, ListItem, ListItemText } from "@mui/material";
 
 const initialTasks = [
   {
-    title: "اضافة خصم للعقار ",
-    done: false,
+    title: "اضافة خصم للعقد ",
+    done: true,
   },
   {
     title: "جعل رقم العقار يتم توليده تلقائيا",
@@ -16,28 +16,32 @@ const initialTasks = [
     done: true,
   },
   {
-    title: "قسم الصيانة والذي يضمن تقديم طلبات الصيانة ومتابعتها",
-    done: false,
-  },
-  {
-    title: "اضافه المتبقي من الدفعه كصف اخر في الدفعات",
-    done: false,
-  },
-  {
     title: "تعديل شكل الدفعات ",
     done: true,
   },
   {
-    title: "تعديل شكل الدفعات و تعديل الدفعه بحيث تكون اقرب ل50 او 100",
+    title: "ازاله مصروف العقار واتاحة اضافة مصاريف اخري",
+    done: true,
+  },
+  {
+    title: "نموذج طباعة العقد",
+    done: true,
+  },
+  {
+    title: "اضافه المتبقي من الدفعه كصف اخر في الدفعات",
+    done: true,
+  },
+  {
+    title: " تعديل الدفعه بحيث تكون اقرب ل50 او 100",
+    done: true,
+  },
+  {
+    title: "قسم الصيانة والذي يضمن تقديم طلبات الصيانة ومتابعتها",
     done: false,
   },
   {
     title: "نقل زر اضافة الوحده داخل العقار الي اسفل الفورم",
     done: false,
-  },
-  {
-    title: "ازاله مصروف العقار واتاحة اضافة مصاريف اخري",
-    done: true,
   },
   {
     title: "اماره ثم مدينه ثم منطقه ثم حي",
@@ -68,7 +72,6 @@ const initialTasks = [
     title: "فورم الوحده والعقار يكون مودل افضل؟",
     done: false,
   },
-
   {
     title:
       "تقارير العقارات والتي تضمن عدة تقارير مثلا الوحدات المستاجره وغير المستاجره , المستحقات والربح والمصروفات",
@@ -79,16 +82,13 @@ const initialTasks = [
       "الصفحة الرئيسية وما يتضمنها من احصائيات وتقارير وعرض المستحقات والايجار الذي قارب علي الانتهاء",
     done: false,
   },
+  {
+    title: "تعديل القيم الثابته للرسوم",
+  },
 ];
 
 export default function Tasks() {
   const [tasks, setTasks] = useState(initialTasks);
-
-  const handleToggle = (index) => {
-    const newTasks = [...tasks];
-    newTasks[index].done = !newTasks[index].done;
-    setTasks(newTasks);
-  };
 
   const sortedTasks = tasks
     .map((task, index) => ({ ...task, index }))

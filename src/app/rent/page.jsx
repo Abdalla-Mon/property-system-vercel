@@ -170,18 +170,6 @@ const RentWrapper = () => {
 
   const columns = [
     {
-      field: "id",
-      headerName: "ID",
-      width: 100,
-      printable: true,
-      cardWidth: 48,
-      renderCell: (params) => (
-        <Link href={"rent/" + params.row.id}>
-          <Button variant={"text"}>{params.row.id}</Button>
-        </Link>
-      ),
-    },
-    {
       field: "rentAgreementNumber",
       headerName: "رقم العقد",
       width: 200,
@@ -213,24 +201,19 @@ const RentWrapper = () => {
       cardWidth: 48,
       renderCell: (params) => (
         <Link href={"/units/" + params.row.unit?.id}>
-          <Button variant={"text"}>{params.row.unit?.unitId}</Button>
-        </Link>
-      ),
-    },
-    {
-      field: "owner",
-      headerName: "المالك",
-      width: 200,
-      printable: true,
-      cardWidth: 48,
-      renderCell: (params) => (
-        <Link href={"/owners/" + params.row.unit.property?.client.id}>
-          <Button variant={"text"}>
-            {params.row.unit.property?.client.name}
+          <Button
+            variant={"text"}
+            sx={{
+              maxWidth: 100,
+              overflow: "auto",
+            }}
+          >
+            {params.row.unit?.unitId}
           </Button>
         </Link>
       ),
     },
+
     {
       field: "renter",
       headerName: "المستأجر",
@@ -238,7 +221,10 @@ const RentWrapper = () => {
       printable: true,
       cardWidth: 48,
       renderCell: (params) => (
-        <Link href={"/renters/" + params.row.renter?.id}>
+        <Link
+          href={"/renters/" + params.row.renter?.id}
+          className={"flex justify-center"}
+        >
           <Button variant={"text"}>{params.row.renter?.name}</Button>
         </Link>
       ),
@@ -291,7 +277,6 @@ const RentWrapper = () => {
       ),
     },
   ];
-
   const [otherExpenses, setOtherExpenses] = useState([]);
   const { setLoading: setSubmitLoading } = useToastContext();
 

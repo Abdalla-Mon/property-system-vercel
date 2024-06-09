@@ -93,13 +93,20 @@ export const DataCard = ({ data }) => {
             label=" يتم تحصيل الايجار كل"
             value={RentCollectionType[data.rentCollectionType]}
           />
+          <GridRow
+            label={"سعر عقد الايجار سنويا  قبل الخصم"}
+            value={data.totalContractPrice}
+          />
+          <GridRow
+            label="الخصم"
+            value={data.totalContractPrice - data.totalPrice}
+          />
           <GridRow label="سعر عقد الايجار سنويا " value={data.totalPrice} />
           <GridRow label="الضريبة" value={data.tax} />
           <GridRow
             label="قمية الضريبه"
             value={(data.tax * data.totalPrice) / 100}
           />
-
           <GridRow label="التأمين" value={data.insuranceFees} />
           <GridRow label="رسوم التسجيل" value={data.registrationFees} />
           <GridRow label="الحالة" value={StatusType[data.status]} />
@@ -127,6 +134,7 @@ export const DataCard = ({ data }) => {
               </Box>
             </Box>
           )}
+
           <GridRow
             label="المبلغ الكلي"
             value={

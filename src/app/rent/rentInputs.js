@@ -98,29 +98,7 @@ export const rentAgreementInputs = [
       },
     },
   },
-  {
-    id: "rentCollectionType",
-    data: {
-      id: "rentCollectionType",
-      type: "select",
-      label: "نوع التحصيل",
-      name: "rentCollectionType",
-    },
-    hasOptions: true,
-    pattern: {
-      required: {
-        value: true,
-        message: "يرجى إدخال نوع التحصيل",
-      },
-    },
-    sx: {
-      width: {
-        xs: "100%",
-        md: "48%",
-      },
-      mr: "auto",
-    },
-  },
+
   {
     data: {
       id: "totalPrice",
@@ -133,6 +111,22 @@ export const rentAgreementInputs = [
         value: true,
         message: "يرجى إدخال السعر الكلي",
       },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+      mr: "auto",
+    },
+  },
+  {
+    data: {
+      id: "discount",
+      type: "number",
+      label: "الخصم",
+      name: "discount",
+      defaultValue: 0,
     },
     sx: {
       width: {
@@ -155,7 +149,7 @@ export const rentAgreementInputs = [
       },
     },
     onChange: (date, setValue) => {
-      const newEndDate = dayjs(date).add(1, "year");
+      const newEndDate = dayjs(date).add(1, "year").subtract(1, "day");
       setValue("endDate", newEndDate.format("YYYY-MM-DD"));
     },
     sx: {
@@ -188,18 +182,19 @@ export const rentAgreementInputs = [
       },
     },
   },
-
   {
+    id: "rentCollectionType",
     data: {
-      id: "tax",
-      type: "number",
-      label: "الضريبة",
-      name: "tax",
+      id: "rentCollectionType",
+      type: "select",
+      label: "نوع التحصيل",
+      name: "rentCollectionType",
     },
+    hasOptions: true,
     pattern: {
       required: {
         value: true,
-        message: "يرجى إدخال الضريبة",
+        message: "يرجى إدخال نوع التحصيل",
       },
     },
     sx: {
@@ -212,10 +207,32 @@ export const rentAgreementInputs = [
   },
   {
     data: {
+      id: "tax",
+      type: "number",
+      label: "الضريبة",
+      name: "tax",
+      defaultValue: 0,
+    },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال الضريبة",
+      },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+    },
+  },
+  {
+    data: {
       id: "registrationFees",
       type: "number",
       label: "رسوم التسجيل",
       name: "registrationFees",
+      defaultValue: 250,
     },
     pattern: {
       required: {
@@ -228,6 +245,7 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -236,6 +254,7 @@ export const rentAgreementInputs = [
       type: "number",
       label: "رسوم التأمين",
       name: "insuranceFees",
+      defaultValue: 500,
     },
     pattern: {
       required: {

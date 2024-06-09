@@ -258,9 +258,9 @@ export async function createRentAgreement(data) {
         tax: +data.tax,
         registrationFees: +data.registrationFees,
         insuranceFees: +data.insuranceFees,
-        totalPrice: +data.totalPrice,
+        totalPrice: +data.totalPrice - data.discount,
+        totalContractPrice: +data.totalPrice,
         rentCollectionType: data.rentCollectionType,
-        totalContractPrice: 0,
         customDescription: rentAgreementType.description,
         renter: {
           connect: {
@@ -321,27 +321,32 @@ export async function createRentAgreement(data) {
 
 export async function createInstallmentsAndPayments(rentAgreement) {
   try {
-    const installmentAmount =
-      rentAgreement.totalPrice /
+    const totalInstallments =
       RentCollectionType[rentAgreement.rentCollectionType];
-    const installments = Array(
-      RentCollectionType[rentAgreement.rentCollectionType],
-    )
+    const installmentBaseAmount = rentAgreement.totalPrice / totalInstallments;
+
+    let remainingAmount = rentAgreement.totalPrice;
+    const installments = Array(totalInstallments)
       .fill()
       .map((_, i) => {
         const startDate = new Date(rentAgreement.startDate);
         const dueDate = new Date(
           startDate.setMonth(
-            startDate.getMonth() +
-              i * (12 / RentCollectionType[rentAgreement.rentCollectionType]),
+            startDate.getMonth() + i * (12 / totalInstallments),
           ),
         );
         const endDate = new Date(
-          dueDate.setMonth(
-            dueDate.getMonth() +
-              12 / RentCollectionType[rentAgreement.rentCollectionType],
-          ),
+          dueDate.setMonth(dueDate.getMonth() + 12 / totalInstallments),
         );
+
+        let installmentAmount;
+        if (i === totalInstallments - 1) {
+          installmentAmount = remainingAmount; // Last installment gets the remaining amount
+        } else {
+          installmentAmount = Math.round(installmentBaseAmount / 50) * 50;
+          remainingAmount -= installmentAmount;
+        }
+
         return {
           startDate: convertToISO(new Date(rentAgreement.startDate)),
           dueDate: convertToISO(dueDate),
@@ -386,7 +391,7 @@ export async function createInstallmentsAndPayments(rentAgreement) {
   }
 }
 
-export async function createFeeInvoices(rentAgreement) {
+export async function createFeePayments(rentAgreement) {
   try {
     const feeInvoices = [
       {
@@ -409,8 +414,11 @@ export async function createFeeInvoices(rentAgreement) {
       },
     ];
 
-    for (const payment of feeInvoices) {
-      if (payment.amount > 0) {
+    for (let i = 0; i < feeInvoices.length; i++) {
+      let payment = feeInvoices[i];
+      payment.amount = Math.round(payment.amount / 50) * 50;
+
+      if (payment.amount > 1) {
         await prisma.payment.create({
           data: {
             ...payment,
@@ -443,16 +451,18 @@ export async function createFeeInvoices(rentAgreement) {
   }
 }
 
-export async function createOtherExpenseInvoices({
+export async function createOtherExpensePayments({
   rentAgreement,
   otherExpenses,
 }) {
   try {
     for (const otherExpense of otherExpenses) {
+      let amount = Math.round(+otherExpense.value / 50) * 50;
+
       await prisma.payment.create({
         data: {
           title: otherExpense.name,
-          amount: +otherExpense.value,
+          amount: amount,
           dueDate: rentAgreement.startDate,
           clientId: rentAgreement.unit.property.client.id,
           propertyId: rentAgreement.unit.property.id,
@@ -472,7 +482,7 @@ export async function createOtherExpenseInvoices({
   }
 }
 
-export async function createContractExpenseInvoices({
+export async function createContractExpensePayments({
   rentAgreement,
   contractExpenses,
 }) {
@@ -486,9 +496,11 @@ export async function createContractExpenseInvoices({
           },
         });
 
+      let amount = Math.round(contractExpense.value / 50) * 50;
+
       await prisma.payment.create({
         data: {
-          amount: contractExpense.value,
+          amount: amount,
           dueDate: rentAgreement.startDate,
           clientId: rentAgreement.unit.property.client.id,
           propertyId: rentAgreement.unit.property.id,
@@ -509,6 +521,196 @@ export async function createContractExpenseInvoices({
   }
 }
 
+// export async function createInstallmentsAndPayments(rentAgreement) {
+//   try {
+//     const installmentAmount =
+//       rentAgreement.totalPrice /
+//       RentCollectionType[rentAgreement.rentCollectionType];
+//     const installments = Array(
+//       RentCollectionType[rentAgreement.rentCollectionType],
+//     )
+//       .fill()
+//       .map((_, i) => {
+//         const startDate = new Date(rentAgreement.startDate);
+//         const dueDate = new Date(
+//           startDate.setMonth(
+//             startDate.getMonth() +
+//               i * (12 / RentCollectionType[rentAgreement.rentCollectionType]),
+//           ),
+//         );
+//         const endDate = new Date(
+//           dueDate.setMonth(
+//             dueDate.getMonth() +
+//               12 / RentCollectionType[rentAgreement.rentCollectionType],
+//           ),
+//         );
+//         return {
+//           startDate: convertToISO(new Date(rentAgreement.startDate)),
+//           dueDate: convertToISO(dueDate),
+//           endDate: convertToISO(endDate),
+//           status: false,
+//           rentAgreementId: rentAgreement.id,
+//           amount: installmentAmount,
+//         };
+//       });
+//
+//     for (let i = 0; i < installments.length; i++) {
+//       const installment = installments[i];
+//       const dueDate = new Date(installment.dueDate);
+//       const amount = installment.amount;
+//       delete installment.dueDate;
+//       delete installment.amount;
+//
+//       const createdInstallment = await prisma.installment.create({
+//         data: installment,
+//       });
+//
+//       await prisma.payment.create({
+//         data: {
+//           amount: amount,
+//           dueDate: dueDate,
+//           status: "PENDING",
+//           clientId: rentAgreement.unit.property.client.id,
+//           propertyId: rentAgreement.unit.property.id,
+//           rentAgreementId: rentAgreement.id,
+//           installmentId: createdInstallment.id,
+//           paymentType: "RENT",
+//         },
+//       });
+//     }
+//     return {
+//       data: {},
+//       message: "تمت اضافه الدفعات بنجاح",
+//     };
+//   } catch (error) {
+//     console.error("Error creating installments and invoices:", error);
+//     throw error;
+//   }
+// }
+//
+// export async function createFeePayments(rentAgreement) {
+//   try {
+//     const feeInvoices = [
+//       {
+//         amount: (rentAgreement.tax * rentAgreement.totalPrice) / 100,
+//         dueDate: rentAgreement.startDate,
+//         status: "PENDING",
+//         paymentType: "TAX",
+//       },
+//       {
+//         amount: rentAgreement.insuranceFees,
+//         dueDate: rentAgreement.startDate,
+//         status: "PENDING",
+//         paymentType: "INSURANCE",
+//       },
+//       {
+//         amount: rentAgreement.registrationFees,
+//         dueDate: rentAgreement.startDate,
+//         status: "PENDING",
+//         paymentType: "REGISTRATION",
+//       },
+//     ];
+//
+//     for (const payment of feeInvoices) {
+//       if (payment.amount > 1) {
+//         await prisma.payment.create({
+//           data: {
+//             ...payment,
+//             client: {
+//               connect: {
+//                 id: rentAgreement.unit.property.client.id,
+//               },
+//             },
+//             property: {
+//               connect: {
+//                 id: rentAgreement.unit.property.id,
+//               },
+//             },
+//             rentAgreement: {
+//               connect: {
+//                 id: rentAgreement.id,
+//               },
+//             },
+//           },
+//         });
+//       }
+//     }
+//     return {
+//       data: {},
+//       message: "تمت اضافه رسوم العقد بنجاح",
+//     };
+//   } catch (error) {
+//     console.error("Error creating fee invoices:", error);
+//     throw error;
+//   }
+// }
+//
+// export async function createOtherExpensePayments({
+//   rentAgreement,
+//   otherExpenses,
+// }) {
+//   try {
+//     for (const otherExpense of otherExpenses) {
+//       await prisma.payment.create({
+//         data: {
+//           title: otherExpense.name,
+//           amount: +otherExpense.value,
+//           dueDate: rentAgreement.startDate,
+//           clientId: rentAgreement.unit.property.client.id,
+//           propertyId: rentAgreement.unit.property.id,
+//           status: "PENDING",
+//           rentAgreementId: rentAgreement.id,
+//           paymentType: "OTHER_EXPENSE",
+//         },
+//       });
+//     }
+//     return {
+//       data: {},
+//       message: "تمت اضافه  مصروفات اخري بنجاح",
+//     };
+//   } catch (error) {
+//     console.error("Error creating other expenses invoices:", error);
+//     throw error;
+//   }
+// }
+//
+// export async function createContractExpensePayments({
+//   rentAgreement,
+//   contractExpenses,
+// }) {
+//   try {
+//     for (const contractExpense of contractExpenses) {
+//       const contractExpenceToRent =
+//         await prisma.ContractExpenseToRentAgreement.create({
+//           data: {
+//             rentAgreementId: rentAgreement.id,
+//             contractExpenseId: +contractExpense.id,
+//           },
+//         });
+//
+//       await prisma.payment.create({
+//         data: {
+//           amount: contractExpense.value,
+//           dueDate: rentAgreement.startDate,
+//           clientId: rentAgreement.unit.property.client.id,
+//           propertyId: rentAgreement.unit.property.id,
+//           status: "PENDING",
+//           rentAgreementId: rentAgreement.id,
+//           paymentType: "CONTRACT_EXPENSE",
+//           contractExpenseId: contractExpenceToRent.id,
+//         },
+//       });
+//     }
+//     return {
+//       data: {},
+//       message: "تمت اضافه  مصروفات العقود بنجاح",
+//     };
+//   } catch (error) {
+//     console.error("Error creating contract expense invoices:", error);
+//     throw error;
+//   }
+// }
+
 export async function getRentAgreementPaymentsForInstallments(
   page,
   limit,
@@ -526,7 +728,11 @@ export async function getRentAgreementPaymentsForInstallments(
       },
       include: {
         installment: true,
-        invoices: true,
+        invoices: {
+          include: {
+            bankAccount: true,
+          },
+        },
       },
     });
     return {
@@ -553,6 +759,13 @@ export async function gentRentAgreementPaymentsForFees(
           in: ["TAX", "INSURANCE", "REGISTRATION"],
         },
       },
+      include: {
+        invoices: {
+          include: {
+            bankAccount: true,
+          },
+        },
+      },
     });
     return {
       data: payments,
@@ -575,6 +788,13 @@ export async function getRentAgreementPaymentForContractExpences(
       where: {
         rentAgreementId: +rentAgreementId,
         paymentType: "CONTRACT_EXPENSE",
+      },
+      include: {
+        invoices: {
+          include: {
+            bankAccount: true,
+          },
+        },
       },
     });
     return {
@@ -599,12 +819,41 @@ export async function getRentAgreementPaymentForOthersExpences(
         rentAgreementId: +rentAgreementId,
         paymentType: "OTHER_EXPENSE",
       },
+      include: {
+        invoices: {
+          include: {
+            bankAccount: true,
+          },
+        },
+      },
     });
     return {
       data: payments,
     };
   } catch (error) {
     console.error("Error fetching contract expenses payments:", error);
+    throw error;
+  }
+}
+
+export async function updateRentAgreementDescription(data, params) {
+  const id = params.id;
+  try {
+    const updatedRentAgreement = await prisma.rentAgreement.update({
+      where: {
+        id: +id,
+      },
+      data: {
+        customDescription: data.customDescription,
+      },
+    });
+
+    return {
+      data: updatedRentAgreement,
+      message: "تم تحديث الوصف بنجاح",
+    };
+  } catch (error) {
+    console.error("Error updating rent agreement description:", error);
     throw error;
   }
 }

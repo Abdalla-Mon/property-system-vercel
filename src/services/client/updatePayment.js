@@ -13,8 +13,9 @@ export async function updatePayment(data, setLoading) {
     "جاري تحديث الدفعة...",
     "PUT",
   );
+
   const invoice = await handleRequestSubmit(
-    { ...data },
+    { ...data, paymentId: payment.data.id },
     setLoading,
     `main/payments/${data.id}/invoices`,
     false,
