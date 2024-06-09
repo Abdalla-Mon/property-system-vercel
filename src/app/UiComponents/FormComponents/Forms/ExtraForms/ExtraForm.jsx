@@ -33,6 +33,7 @@ export const ExtraForm = ({
   useEffect(() => {
     if (!openModal && !editPage) {
       setItems([]);
+      setIsEditing({ ...isEditing, [name]: [] });
     } else {
       setIsEditing({
         ...isEditing,

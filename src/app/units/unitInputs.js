@@ -2,7 +2,6 @@ import { unitTypeInputs } from "@/app/settings/unit-type/unitTypeInputs";
 
 export const unitInputs = [
   {
-    id: "unitType",
     data: {
       id: "propertyId",
       type: "select",

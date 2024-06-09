@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const useEditState = (initialItems) => {
+const useEditState = (initialItems, rerender) => {
   const initialSnackbarState = initialItems.reduce((acc, item) => {
     acc[item.name] = false;
     return acc;
@@ -15,6 +15,7 @@ const useEditState = (initialItems) => {
     acc[item.name] = [];
     return acc;
   }, {});
+
   const [isEditing, setIsEditing] = useState(initialEditingState);
   const [snackbarOpen, setSnackbarOpen] = useState(initialSnackbarState);
   const [snackbarMessage, setSnackbarMessage] = useState(initialMessageState);
@@ -38,6 +39,22 @@ const useEditState = (initialItems) => {
     return allChecksPassed;
   };
 
+  // Function to reset all states to their initial values
+  useEffect(() => {
+    console.log(isEditing, "isEditing");
+  }, [rerender]);
+  const resetStates = () => {
+    setIsEditing(initialEditingState);
+    setSnackbarOpen(initialSnackbarState);
+    setSnackbarMessage(initialMessageState);
+  };
+
+  const triggerRerender = () => {
+    setIsEditing((prev) => ({ ...prev }));
+    setSnackbarOpen((prev) => ({ ...prev }));
+    setSnackbarMessage((prev) => ({ ...prev }));
+  };
+
   return {
     isEditing,
     setIsEditing,
@@ -46,6 +63,8 @@ const useEditState = (initialItems) => {
     snackbarMessage,
     setSnackbarMessage,
     handleEditBeforeSubmit,
+    resetStates,
+    triggerRerender,
   };
 };
 

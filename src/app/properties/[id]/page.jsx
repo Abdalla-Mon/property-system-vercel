@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { propertyInputs } from "@/app/properties/propertyInputs";
 import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
 import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
-import { Button } from "@mui/material";
+import { Button, Modal, Box, Typography } from "@mui/material";
 import Link from "next/link";
 import CustomTable from "@/app/components/Tables/CustomTable";
 import { unitInputs } from "@/app/units/unitInputs";
@@ -44,7 +44,7 @@ const PropertyWrapper = ({ urlId }) => {
   const [stateId, setStateId] = useState(null);
   const [cityId, setCityId] = useState(null);
   const [districtId, setDistrictId] = useState(null);
-  const [renderdDefault, setRenderedDefault] = useState(false);
+  const [renderedDefault, setRenderedDefault] = useState(false);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({});
   const [disabled, setDisabled] = useState({
@@ -74,6 +74,11 @@ const PropertyWrapper = ({ urlId }) => {
     setSnackbarMessage,
     handleEditBeforeSubmit,
   } = useEditState([{ name: "meters", message: "عدادات الكهرباء" }]);
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
+  const handleOpenEditModal = () => setEditModalOpen(true);
+  const handleCloseEditModal = () => setEditModalOpen(false);
 
   useEffect(() => {
     async function getPropertyData() {
@@ -291,7 +296,6 @@ const PropertyWrapper = ({ urlId }) => {
     );
     setMeters(updated.electricityMeters);
     setData(updated);
-    console.log(updated);
   }
 
   async function handleDelete(id) {
@@ -365,6 +369,46 @@ const PropertyWrapper = ({ urlId }) => {
       ),
     },
     {
+      field: "rentAgreements",
+      headerName: "الحاله",
+      width: 200,
+      printable: true,
+      cardWidth: 48,
+      renderCell: (params) => {
+        let id;
+        const isActiveAndNotExpired = params.row.rentAgreements?.some(
+          (agreement) => {
+            if (
+              agreement.status === "ACTIVE" &&
+              new Date(agreement.endDate) > new Date()
+            ) {
+              id = agreement.id;
+              return true;
+            }
+          },
+        );
+
+        return (
+          <div>
+            {isActiveAndNotExpired ? (
+              <Link href={`/rent/${id}`}>
+                <Button variant={"text"}>مؤجره</Button>
+              </Link>
+            ) : (
+              <div>شاغرة</div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      field: "electricityMeter",
+      headerName: "عداد الكهرباء",
+      width: 200,
+      printable: true,
+      cardWidth: 48,
+    },
+    {
       field: "floor",
       headerName: "الدور",
       width: 200,
@@ -385,7 +429,7 @@ const PropertyWrapper = ({ urlId }) => {
 
   return (
     <div>
-      {loading || !renderdDefault ? (
+      {loading || !renderedDefault ? (
         <div>جاري تحميل بيانات العقار</div>
       ) : (
         <>
@@ -393,44 +437,73 @@ const PropertyWrapper = ({ urlId }) => {
             <div>جاري تحميل </div>
           ) : (
             <div className={"flex gap-3 items-center"}>
-              اضافه وحده جديده لهذا العقار؟
-              <CreateUnit
-                propertyId={urlId}
-                setUnits={setUnits}
-                units={units}
-              />
+              <Button variant="outlined" onClick={handleOpenEditModal}>
+                تعديل العقار
+              </Button>
+              <div className={"flex gap-3 items-center"}>
+                اضافه وحده جديده
+                <CreateUnit
+                  propertyId={urlId}
+                  setUnits={setUnits}
+                  units={units}
+                />
+              </div>
             </div>
           )}
 
-          <div className="mb-4">
-            <Form
-              formTitle={"تعديل العقار"}
-              inputs={dataInputs}
-              onSubmit={(data) => {
-                create(data);
+          <Modal open={editModalOpen} onClose={handleCloseEditModal}>
+            <Box
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: {
+                  xs: "90%",
+                  md: "fit-content",
+                },
+                height: "90%",
+                overflowY: "auto",
+                bgcolor: "background.paper",
+                border: "2px solid #000",
+                boxShadow: 24,
+                p: {
+                  xs: 1,
+                  sm: 2,
+                  md: 4,
+                },
               }}
-              disabled={disabled}
-              variant={"outlined"}
-              btnText={"تعديل"}
-              reFetch={reFetch}
             >
-              <ExtraForm
-                setItems={setMeters}
-                items={electricityMeters}
-                fields={metersFields}
-                title={"عداد"}
-                formTitle={"عدادات الكهرباء"}
-                name={"meters"}
-                setSnackbarMessage={setSnackbarMessage}
-                setSnackbarOpen={setSnackbarOpen}
-                snackbarMessage={snackbarMessage}
-                snackbarOpen={snackbarOpen}
-                isEditing={isMetersEditing}
-                setIsEditing={setIsMetersEditing}
-                editPage={true}
-              />
-            </Form>
-          </div>
+              <Form
+                formTitle={"تعديل العقار"}
+                inputs={dataInputs}
+                onSubmit={(data) => {
+                  create(data);
+                  handleCloseEditModal();
+                }}
+                disabled={disabled}
+                variant={"outlined"}
+                btnText={"تعديل"}
+                reFetch={reFetch}
+              >
+                <ExtraForm
+                  setItems={setMeters}
+                  items={electricityMeters}
+                  fields={metersFields}
+                  title={"عداد"}
+                  formTitle={"عدادات الكهرباء"}
+                  name={"meters"}
+                  setSnackbarMessage={setSnackbarMessage}
+                  setSnackbarOpen={setSnackbarOpen}
+                  snackbarMessage={snackbarMessage}
+                  snackbarOpen={snackbarOpen}
+                  isEditing={isMetersEditing}
+                  setIsEditing={setIsMetersEditing}
+                  editPage={true}
+                />
+              </Form>
+            </Box>
+          </Modal>
         </>
       )}
       {unitsLoading && !units ? (

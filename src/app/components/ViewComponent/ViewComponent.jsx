@@ -5,8 +5,8 @@ import DataGrid from "@/app/components/DataGrid/DataGrid";
 import CustomTable from "@/app/components/Tables/CustomTable";
 import { EditTableModal } from "@/app/UiComponents/Modals/EditTableModal";
 import { useTableForm } from "@/app/context/TableFormProvider/TableFormProvider";
-import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
 import { Button } from "@mui/material";
+import { CreateFormModal } from "@/app/UiComponents/Modals/CreateFormModal"; // Import the new modal component
 
 export default function ViewComponent({
   columns,
@@ -35,10 +35,12 @@ export default function ViewComponent({
   handleEditBeforeSubmit,
   noTabs,
   submitFunction,
+  setIdEditing,
 }) {
   const [view, setView] = useState("table");
   const [showForm, setShowForm] = useState(directEdit);
   const { openModal, submitData } = useTableForm();
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   async function create(data) {
     if (handleEditBeforeSubmit) {
@@ -55,6 +57,7 @@ export default function ViewComponent({
     } else {
       setTotal((old) => old + 1);
     }
+    return newData;
   }
 
   useEffect(() => {
@@ -62,6 +65,15 @@ export default function ViewComponent({
       setShowForm(false);
     }
   }, [openModal]);
+
+  const handleOpenCreateModal = () => {
+    if (setIdEditing) {
+      setIdEditing(null);
+    }
+    setCreateModalOpen(true);
+  };
+  const handleCloseCreateModal = () => setCreateModalOpen(false);
+
   return (
     <div className="">
       {openModal && !noModal && (
@@ -85,9 +97,9 @@ export default function ViewComponent({
           <Button
             variant="outlined"
             color="primary"
-            onClick={() => setShowForm(!showForm)} // Toggle form visibility
+            onClick={handleOpenCreateModal} // Open the create form modal
           >
-            {showForm ? "إخفاء النموذج" : "اظهار نموذج الانشاء"}
+            {showForm ? "إخفاء النموذج" : " اتشاء"}
           </Button>
           <Button
             variant="outlined"
@@ -107,24 +119,6 @@ export default function ViewComponent({
         </div>
       )}
 
-      {showForm && !noTabs && (
-        <div className="mb-4">
-          <Form
-            formTitle={"إضافة"}
-            inputs={inputs}
-            onSubmit={(data) => {
-              create(data);
-            }}
-            variant={"outlined"}
-            btnText={directEdit ? "تعديل" : "إضافة"}
-            disabled={disabled}
-            extraData={createModalsData}
-            reFetch={reFetch}
-          >
-            {children}
-          </Form>
-        </div>
-      )}
       {view === "table" && (
         <CustomTable
           columns={columns}
@@ -152,6 +146,22 @@ export default function ViewComponent({
           setTotal={setTotal}
         />
       )}
+      <CreateFormModal
+        open={createModalOpen}
+        handleClose={handleCloseCreateModal}
+        inputs={inputs}
+        onSubmit={async (data) => {
+          const submit = await create(data);
+          if (submit) {
+            handleCloseCreateModal();
+          }
+        }}
+        disabled={disabled}
+        createModalsData={createModalsData}
+        reFetch={reFetch}
+      >
+        {children}
+      </CreateFormModal>
     </div>
   );
 }

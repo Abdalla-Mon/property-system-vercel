@@ -123,6 +123,7 @@ function MUIAutoComplete({
       handleClose();
     }
   }, [select]);
+
   const handleOpen = async () => {
     setOpen(true);
     if (getData && (!opened || select.rerender)) {

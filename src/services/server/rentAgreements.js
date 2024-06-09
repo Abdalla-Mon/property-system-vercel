@@ -307,6 +307,14 @@ export async function createRentAgreement(data) {
         },
       },
     });
+    await prisma.unit.update({
+      where: {
+        id: +data.unitId,
+      },
+      data: {
+        clientId: +data.renterId,
+      },
+    });
 
     return {
       data: newRentAgreement,

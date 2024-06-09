@@ -34,7 +34,7 @@ const PropertyWrapper = () => {
     setRender,
   } = useDataFetcher("main/units");
   const { id, submitData } = useTableForm();
-  const [disabled, setDisabled] = useState({});
+  const [disabled, setDisabled] = useState();
 
   const [reFetch, setRefetch] = useState({});
 
@@ -59,6 +59,11 @@ const PropertyWrapper = () => {
   };
   unitInputs[0] = {
     ...unitInputs[0],
+    data: {
+      ...unitInputs[0].data,
+      disabled: false,
+    },
+    value: null,
     extraId: false,
     getData: getProperties,
   };
