@@ -41,7 +41,7 @@ const initialTasks = [
   },
   {
     title: "نقل زر اضافة الوحده داخل العقار الي اسفل الفورم",
-    done: false,
+    done: true,
   },
   {
     title: "اماره ثم مدينه ثم منطقه ثم حي",
@@ -49,7 +49,7 @@ const initialTasks = [
   },
   {
     title: "لما اذهب الي عقار يتم عرض الوحدات الخاصه بهذا العقار",
-    done: false,
+    done: true,
   },
   {
     title: "قسم الفواتير والذي يضمن متابعة الفواتير",
@@ -70,7 +70,7 @@ const initialTasks = [
   },
   {
     title: "فورم الوحده والعقار يكون مودل افضل؟",
-    done: false,
+    done: true,
   },
   {
     title:
