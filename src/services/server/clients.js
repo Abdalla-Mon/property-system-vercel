@@ -197,3 +197,10 @@ export async function deleteOwner(id) {
     where: { id },
   });
 }
+
+export async function getClients() {
+  const clients = await prisma.client.findMany();
+  return {
+    data: clients,
+  };
+}

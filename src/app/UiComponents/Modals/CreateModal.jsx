@@ -10,7 +10,9 @@ const modalStyle = (fullWidth) => ({
     ? "29.5cm"
     : {
         xs: "90%",
-        md: "50%",
+
+        md: "750px",
+        lg: "850px",
       },
   top: "50%",
   left: "50%",

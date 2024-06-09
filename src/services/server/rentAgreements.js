@@ -54,101 +54,117 @@ export async function getRentAgreements(page, limit) {
   };
 }
 
-export async function updateRentAgreement(data) {
-  const { extraData } = data;
-  const { contractExpenses } = extraData;
+export async function updateRentAgreement(id, data, params, searchParams) {
+  const installments = searchParams.get("installments");
+  const otherExpenses = searchParams.get("otherExpenses");
+  const feeInvoices = searchParams.get("feeInvoices");
+  const renew = searchParams.get("renew");
+  const cancel = searchParams.get("cancel");
+  if (installments) {
+    const noPaidPayments = await prisma.payment.findMany({
+      where: {
+        rentAgreementId: +id,
+        OR: [{ status: "PENDING" }, { status: "OVERDUE" }],
+      },
+      include: {
+        installment: true, // Include related installment
+      },
+    });
+    await processPayments(noPaidPayments);
+    return {
+      data: {},
+      message: "تم تحديث الدفعات القديمة بنجاح",
+    };
+  }
+  if (feeInvoices) {
+    const noPaidPayments = await prisma.payment.findMany({
+      where: {
+        rentAgreementId: +id,
+        paymentType: {
+          in: ["TAX", "INSURANCE", "REGISTRATION"],
+        },
+        OR: [{ status: "PENDING" }, { status: "OVERDUE" }],
+      },
+    });
+    await processPayments(noPaidPayments, false);
+    return {
+      data: {},
+      message: "تم تحديث رسوم العقد بنجاح",
+    };
+  }
+  if (otherExpenses) {
+    const noPaidPayments = await prisma.payment.findMany({
+      where: {
+        rentAgreementId: +id,
+        paymentType: "OTHER_EXPENSE",
+        OR: [{ status: "PENDING" }, { status: "OVERDUE" }],
+      },
+    });
+    await processPayments(noPaidPayments, false);
+    return {
+      data: {},
+      message: "تم تحديث مصروفات اخري بنجاح",
+    };
+  }
+  if (renew) {
+    await prisma.rentAgreement.update({
+      where: {
+        id: +id,
+      },
+      data: {
+        status: "EXPIRED",
+      },
+    });
+  }
+  if (cancel) {
+    await prisma.rentAgreement.update({
+      where: {
+        id: +id,
+      },
+      data: {
+        status: "CANCELED",
+      },
+    });
+  }
+}
 
-  try {
-    const updatedRentAgreement = await prisma.$transaction(async (prisma) => {
-      const updatedAgreement = await prisma.rentAgreement.update({
+async function processPayments(payments) {
+  for (const payment of payments) {
+    if (payment.paidAmount > 1) {
+      let updateData = {
+        status: "PAID",
+        amount: payment.paidAmount,
+      };
+
+      if (payment.installment) {
+        updateData.installment = {
+          update: {
+            status: true,
+          },
+        };
+      }
+
+      await prisma.payment.update({
         where: {
-          id: +data.id,
+          id: payment.id,
         },
-        data: {
-          rentAgreementNumber: data.rentAgreementNumber,
-          startDate: convertToISO(data.startDate),
-          endDate: convertToISO(data.endDate),
-          tax: +data.tax,
-          registrationFees: +data.registrationFees,
-          insuranceFees: +data.insuranceFees,
-          totalPrice: +data.totalPrice,
-          rentCollectionType: data.rentCollectionType,
-          renter: {
-            connect: {
-              id: +data.renterId,
-            },
-          },
-          type: {
-            connect: {
-              id: +data.typeId,
-            },
-          },
-          unit: {
-            connect: {
-              id: +data.unitId,
-            },
-          },
-        },
-        include: {
-          type: {
-            select: {
-              id: true,
-              title: true,
-            },
-          },
-          contractExpenses: true,
-          installments: true,
-          renter: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          unit: {
-            select: {
-              id: true,
-              unitId: true,
-              property: {
-                select: {
-                  id: true,
-                  name: true,
-                  client: {
-                    select: {
-                      id: true,
-                      name: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+        data: updateData,
       });
-
-      // Delete existing ContractExpenseToRentAgreement records
-      await prisma.contractExpenseToRentAgreement.deleteMany({
-        where: {
-          rentAgreementId: updatedAgreement.id,
-        },
-      });
-
-      // Create new ContractExpenseToRentAgreement records
-      for (const contractExpense of contractExpenses) {
-        await prisma.contractExpenseToRentAgreement.create({
-          data: {
-            rentAgreementId: updatedAgreement.id,
-            contractExpenseId: +contractExpense.id,
+    } else {
+      if (payment.installment) {
+        // If there's a related installment
+        await prisma.installment.delete({
+          where: {
+            id: payment.installment.id,
           },
         });
       }
-
-      return updatedAgreement;
-    });
-
-    return updatedRentAgreement;
-  } catch (error) {
-    console.error("Error updating rent agreement:", error);
-    throw error;
+      await prisma.payment.delete({
+        where: {
+          id: payment.id,
+        },
+      });
+    }
   }
 }
 

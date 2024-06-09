@@ -41,7 +41,8 @@ export async function createIncomeOrExpenseFromInvoice(invoice) {
       invoice.invoiceType === "TAX" ||
       invoice.invoiceType === "INSURANCE" ||
       invoice.invoiceType === "REGISTRATION" ||
-      invoice.invoiceType === "CONTRACT_EXPENSE"
+      invoice.invoiceType === "CONTRACT_EXPENSE" ||
+      invoice.invoiceType === "OTHER_EXPENSE"
     ) {
       await prisma.income.create({
         data: {

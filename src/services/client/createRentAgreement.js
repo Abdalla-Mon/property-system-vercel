@@ -1,6 +1,29 @@
 import { handleRequestSubmit } from "@/helpers/functions/handleRequestSubmit";
 
-export async function submitRentAgreement(data, setLoading) {
+export async function submitRentAgreement(
+  data,
+  setLoading,
+  method,
+  others,
+  cancel,
+) {
+  if (method === "PUT") {
+    {
+      for (const req of others) {
+        await handleRequestSubmit(
+          data,
+          setLoading,
+          `main/rentAgreements${req.route}`,
+          false,
+          req.message,
+          "PUT",
+        );
+      }
+    }
+  }
+  if (cancel) {
+    return;
+  }
   const rentAgreementResponse = await handleRequestSubmit(
     data,
     setLoading,
@@ -24,7 +47,6 @@ export async function submitRentAgreement(data, setLoading) {
     false,
     "جاري إنشاء الدفعات ...",
   );
-  // Create Fee Invoices
   const feeInvoicesData = { ...rentAgreementResponse.data };
   await handleRequestSubmit(
     feeInvoicesData,
@@ -35,7 +57,6 @@ export async function submitRentAgreement(data, setLoading) {
   );
   if (!data.extraData.otherExpenses || data.extraData.otherExpenses?.length < 1)
     return rentAgreementResponse.data;
-  // Create other Expense Invoices
   const otherExpensesData = {
     rentAgreement: rentAgreementResponse.data,
     otherExpenses: data.extraData.otherExpenses,

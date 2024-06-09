@@ -47,9 +47,10 @@ export function createHandler({
 
     async PUT(request, { params }) {
       const data = await request.json();
+      const searchParams = request.nextUrl.searchParams;
       const { id } = params;
       try {
-        const req = await putService(+id, data, params);
+        const req = await putService(+id, data, params, searchParams);
         return Response.json({
           data: req,
           message: "تم التعديل بنجاح",
@@ -66,6 +67,7 @@ export function createHandler({
 
     async DELETE(request, { params }) {
       const { id } = params;
+
       try {
         const req = await deleteService(+id, params);
         return Response.json({

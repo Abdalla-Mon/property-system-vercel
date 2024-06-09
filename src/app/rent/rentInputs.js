@@ -83,8 +83,8 @@ export const rentAgreementInputs = [
       label: "نوع العقد",
       name: "typeId",
     },
-    createData: rentAgreementTypeInputs,
     autocomplete: true,
+
     pattern: {
       required: {
         value: true,

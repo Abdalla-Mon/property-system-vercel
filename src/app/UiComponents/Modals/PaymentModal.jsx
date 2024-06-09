@@ -4,7 +4,13 @@ import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
 
 const modalStyle = (fullWidth) => ({
   position: "absolute",
-  width: fullWidth ? "29.5cm" : "50%",
+  width: fullWidth
+    ? "29.5cm"
+    : {
+        xs: "90%",
+        md: "750px",
+        lg: "850px",
+      },
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",

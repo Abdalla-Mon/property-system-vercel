@@ -21,7 +21,9 @@ export function CreateFormModal({
           transform: "translate(-50%, -50%)",
           width: {
             xs: "90%",
-            md: "fit-content",
+
+            md: "750px",
+            lg: "850px",
           },
           height: "90%",
           overflowY: "auto",

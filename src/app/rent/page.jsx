@@ -2,19 +2,21 @@
 import TableFormProvider, {
   useTableForm,
 } from "@/app/context/TableFormProvider/TableFormProvider";
-import { Button } from "@mui/material";
 import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
 import { useState } from "react";
 
-import Link from "next/link";
 import { rentAgreementInputs } from "./rentInputs";
-import { MultiSelectInput } from "@/app/UiComponents/FormComponents/MUIInputs/MultiSelectAutoComplete";
 import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
 import { submitRentAgreement } from "@/services/client/createRentAgreement";
-import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 import useEditState from "@/helpers/hooks/useEditState";
 import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
+import { RenewRentModal } from "@/app/UiComponents/Modals/RenewRent"; // Import the RenewRentModal
+import { CancelRentModal } from "@/app/UiComponents/Modals/CancelRentModal";
+import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
+import { Button } from "@mui/material";
+import Link from "next/link"; // Import the CancelRentModal
+import { StatusType } from "@/app/constants/enums";
 
 export default function PropertyPage() {
   return (
@@ -46,6 +48,10 @@ const RentWrapper = () => {
   const [reFetch, setRefetch] = useState({
     unitId: false,
   });
+  const [renewModalOpen, setRenewModalOpen] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [renewData, setRenewData] = useState(null);
+  const [cancelData, setCancelData] = useState(null);
 
   async function getRenters() {
     const res = await fetch("/api/fast-handler?id=renter");
@@ -168,6 +174,106 @@ const RentWrapper = () => {
     }
   }
 
+  const handleOpenRenewModal = (rentData) => {
+    setRenewData(rentData);
+    setRenewModalOpen(true);
+  };
+
+  const handleCloseRenewModal = () => {
+    setRenewModalOpen(false);
+    setRenewData(null);
+  };
+
+  const handleOpenCancelModal = (rentData) => {
+    setCancelData(rentData);
+    setCancelModalOpen(true);
+  };
+
+  const handleCloseCancelModal = () => {
+    setCancelModalOpen(false);
+    setCancelData(null);
+  };
+
+  const handleCancelConfirm = async () => {
+    await submitRentAgreement(
+      { ...cancelData },
+      setSubmitLoading,
+      "PUT",
+      [
+        {
+          route: `/${cancelData.id}?installments=true`,
+          message: "جاري البحث عن اي دفعات لم يتم استلامها...",
+        },
+        {
+          route: `/${cancelData.id}?feeInvoices=true`,
+          message: "جاري البحث عن اي رسوم لم يتم دفعها...",
+        },
+        {
+          route: `/${cancelData.id}?otherExpenses=true`,
+          message: "جاري البحث عن اي مصاريف اخري لم يتم دفعها...",
+        },
+        {
+          route: `/${cancelData.id}?cancel=true`,
+          message: "جاري تحديث حالة العقد القديم...",
+        },
+      ],
+      true,
+    );
+    const newData = data.map((item) => {
+      if (item.id === cancelData.id) {
+        return { ...item, status: "CANCELED" };
+      }
+      return item;
+    });
+    setData(newData);
+    handleCloseCancelModal();
+  };
+
+  const [otherExpenses, setOtherExpenses] = useState([]);
+  const { setLoading: setSubmitLoading } = useToastContext();
+
+  const handleRenewSubmit = async (data) => {
+    if (handleEditBeforeSubmit) {
+      const continueCreation = handleEditBeforeSubmit();
+      if (!continueCreation) return;
+    }
+    const extraData = { otherExpenses };
+    data = { ...data, extraData };
+    const returedData = await submitRentAgreement(
+      { ...data },
+      setSubmitLoading,
+      "PUT",
+      [
+        {
+          route: `/${renewData.id}?installments=true`,
+          message: "جاري البحث عن اي دفعات لم يتم استلامها...",
+        },
+        {
+          route: `/${renewData.id}?feeInvoices=true`,
+          message: "جاري البحث عن اي رسوم لم يتم دفعها...",
+        },
+        {
+          route: `/${renewData.id}?otherExpenses=true`,
+          message: "جاري البحث عن اي مصاريف اخري لم يتم دفعها...",
+        },
+        {
+          route: `/${renewData.id}?renew=true`,
+          message: "جاري تحديث حالة العقد القديم...",
+        },
+      ],
+    );
+
+    setData((old) =>
+      [...old, returedData].map((item) => {
+        if (item.id === renewData.id) {
+          return { ...item, status: "EXPIRED" };
+        }
+        return item;
+      }),
+    );
+    handleCloseRenewModal();
+  };
+
   const columns = [
     {
       field: "rentAgreementNumber",
@@ -235,9 +341,7 @@ const RentWrapper = () => {
       width: 200,
       printable: true,
       cardWidth: 48,
-      renderCell: (params) => (
-        <>{params.row.status === "ACTIVE" ? "نشط" : "منتهي"}</>
-      ),
+      renderCell: (params) => <>{StatusType[params.row.status]}</>,
     },
     {
       field: "startDate",
@@ -272,13 +376,37 @@ const RentWrapper = () => {
       printable: false,
       renderCell: (params) => (
         <>
+          {params.row.status === "ACTIVE" && (
+            <>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{
+                  mt: 1,
+                  mr: 1,
+                }}
+                onClick={() => handleOpenRenewModal(params.row)}
+              >
+                تجديد
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                sx={{
+                  mt: 1,
+                  mr: 1,
+                }}
+                onClick={() => handleOpenCancelModal(params.row)}
+              >
+                الغاء العقد
+              </Button>
+            </>
+          )}
           <DeleteBtn handleDelete={() => handleDelete(params.row.id)} />
         </>
       ),
     },
   ];
-  const [otherExpenses, setOtherExpenses] = useState([]);
-  const { setLoading: setSubmitLoading } = useToastContext();
 
   const otherExpencesFields = [
     {
@@ -350,13 +478,38 @@ const RentWrapper = () => {
             setIsEditing={setIsEditing}
           />
         </div>
-        {/*<MultiSelectInput*/}
-        {/*  route={"fast-handler?id=contractExpenses"}*/}
-        {/*  items={contractExpenses}*/}
-        {/*  setItems={setContractExpenses}*/}
-        {/*  label={"مصروفات العقود"}*/}
-        {/*/>*/}
       </ViewComponent>
+
+      <RenewRentModal
+        open={renewModalOpen}
+        handleClose={handleCloseRenewModal}
+        initialData={renewData}
+        inputs={dataInputs}
+        onSubmit={handleRenewSubmit}
+      >
+        <div className={"w-full"}>
+          <ExtraForm
+            setItems={setOtherExpenses}
+            items={otherExpenses}
+            fields={otherExpencesFields}
+            title={"مصاريف اخري"}
+            formTitle={"مصاريف اخري"}
+            name={"otherExpenses"}
+            setSnackbarMessage={setSnackbarMessage}
+            setSnackbarOpen={setSnackbarOpen}
+            snackbarMessage={snackbarMessage}
+            snackbarOpen={snackbarOpen}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+          />
+        </div>
+      </RenewRentModal>
+
+      <CancelRentModal
+        open={cancelModalOpen}
+        handleClose={handleCloseCancelModal}
+        handleConfirm={handleCancelConfirm}
+      />
     </>
   );
 };

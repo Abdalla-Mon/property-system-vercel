@@ -11,11 +11,13 @@ const StatusType = {
   CANCELED: "ملغى",
   EXPIRED: "منتهي",
 };
+
 const PaymentStatus = {
   PAID: "مدفوع",
   PENDING: "قيد الانتظار",
   OVERDUE: "متأخر",
 };
+
 const PaymentType = {
   RENT: "إيجار",
   TAX: "ضريبة",
