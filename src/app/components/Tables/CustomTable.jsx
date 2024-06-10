@@ -44,7 +44,23 @@ export default function CustomTable({
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    pageStyle: "@media print { .MuiTablePagination-root { display: none; } }",
+    pageStyle: `
+      @media print {
+        .MuiTablePagination-root { 
+          display: none; 
+        }
+        @page {
+          size: auto;  /* auto is the current printer page size */
+          margin: 10mm;  /* this affects the margin in the printer settings */
+        }
+        body {
+          -webkit-print-color-adjust: exact;
+        }
+        .MuiTableContainer-root {
+          max-height: none !important;
+        }
+      }
+    `,
     onBeforeGetContent: () => {
       setPrintMode(true);
       return Promise.resolve();
@@ -118,7 +134,7 @@ export default function CustomTable({
       <TableContainer
         ref={componentRef}
         sx={{
-          maxHeight: 600,
+          maxHeight: 800,
           overflowY: "auto",
         }}
       >

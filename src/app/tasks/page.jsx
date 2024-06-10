@@ -10,7 +10,7 @@ const initialTasks = [
   {
     title:
       "عند طباعة اي جدول يتم طباعة الجدول باكملة لان حاليا بيطبع جزء بسبب ال scroll",
-    done: false,
+    done: true,
   },
   {
     title:
