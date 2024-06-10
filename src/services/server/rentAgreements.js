@@ -355,14 +355,17 @@ export async function createInstallmentsAndPayments(rentAgreement) {
       .fill()
       .map((_, i) => {
         const startDate = new Date(rentAgreement.startDate);
-        const dueDate = new Date(
-          startDate.setMonth(
-            startDate.getMonth() + i * (12 / totalInstallments),
-          ),
-        );
-        const endDate = new Date(
-          dueDate.setMonth(dueDate.getMonth() + 12 / totalInstallments),
-        );
+
+        // Calculate due date with the first installment today, then every interval minus one day
+        let dueDate = new Date(startDate);
+        if (i > 0) {
+          dueDate.setMonth(startDate.getMonth() + i * (12 / totalInstallments));
+          dueDate.setDate(dueDate.getDate() - i);
+        }
+
+        // Calculate end date
+        const endDate = new Date(dueDate);
+        endDate.setMonth(dueDate.getMonth() + 12 / totalInstallments);
 
         let installmentAmount;
         if (i === totalInstallments - 1) {
