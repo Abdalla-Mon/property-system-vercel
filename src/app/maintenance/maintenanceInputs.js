@@ -102,7 +102,7 @@ export const maintenanceInputs = [
     data: {
       id: "typeId",
       type: "select",
-      label: "نوع المصروف",
+      label: "نوع الصياتة",
       name: "typeId",
     },
     autocomplete: true,
