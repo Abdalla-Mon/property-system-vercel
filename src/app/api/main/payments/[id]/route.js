@@ -13,3 +13,4 @@ const handler = createHandler({
 export const PUT = handler.PUT;
 
 export const POST = handler.POST;
+export const GET = handler.GET;

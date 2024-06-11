@@ -11,6 +11,9 @@
     /*}*/
 }
 
+.rbc-btn-group:first-child {
+    display: none !important;
+}
 
 @media print {
     .no-print {

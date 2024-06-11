@@ -195,7 +195,7 @@ const RentWrapper = () => {
 
   const handleCancelConfirm = async () => {
     await submitRentAgreement(
-      { ...cancelData },
+      { ...cancelData, canceling: true },
       setSubmitLoading,
       "PUT",
       [
@@ -228,15 +228,10 @@ const RentWrapper = () => {
     handleCloseCancelModal();
   };
 
-  const [otherExpenses, setOtherExpenses] = useState([]);
   const { setLoading: setSubmitLoading } = useToastContext();
 
   const handleRenewSubmit = async (data) => {
-    if (handleEditBeforeSubmit) {
-      const continueCreation = handleEditBeforeSubmit();
-      if (!continueCreation) return;
-    }
-    const extraData = { otherExpenses };
+    const extraData = { otherExpenses: [] };
     data = { ...data, extraData };
     const returedData = await submitRentAgreement(
       { ...data },
@@ -261,7 +256,7 @@ const RentWrapper = () => {
         },
       ],
     );
-
+    if (!returedData) return;
     setData((old) =>
       [...old, returedData].map((item) => {
         if (item.id === renewData.id) {
@@ -375,19 +370,19 @@ const RentWrapper = () => {
       printable: false,
       renderCell: (params) => (
         <>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{
+              mt: 1,
+              mr: 1,
+            }}
+            onClick={() => handleOpenRenewModal(params.row)}
+          >
+            تجديد
+          </Button>
           {params.row.status === "ACTIVE" && (
             <>
-              <Button
-                variant="contained"
-                color="primary"
-                sx={{
-                  mt: 1,
-                  mr: 1,
-                }}
-                onClick={() => handleOpenRenewModal(params.row)}
-              >
-                تجديد
-              </Button>
               <Button
                 variant="contained"
                 color="secondary"
@@ -407,30 +402,6 @@ const RentWrapper = () => {
     },
   ];
 
-  const otherExpencesFields = [
-    {
-      id: "name",
-      type: "text",
-      label: "اسم مصروف",
-    },
-    {
-      id: "value",
-      type: "number",
-      label: "السعر",
-    },
-  ];
-  const {
-    isEditing,
-    setIsEditing,
-    snackbarOpen,
-    setSnackbarOpen,
-    snackbarMessage,
-    setSnackbarMessage,
-    handleEditBeforeSubmit,
-  } = useEditState([
-    { name: "otherExpenses", message: "جميع المصاريف الاخري" },
-  ]);
-
   async function submit(data) {
     return await submitRentAgreement(data, setSubmitLoading);
   }
@@ -447,7 +418,7 @@ const RentWrapper = () => {
         setPage={setPage}
         limit={limit}
         setLimit={setLimit}
-        extraData={{ otherExpenses }}
+        extraData={{ otherExpenses: [] }}
         extraDataName={"otherExpenses"}
         id={id}
         loading={loading}
@@ -459,25 +430,7 @@ const RentWrapper = () => {
         reFetch={reFetch}
         submitFunction={submit}
         url={"main/rentAgreements"}
-        handleEditBeforeSubmit={handleEditBeforeSubmit}
-      >
-        <div className={"w-full"}>
-          <ExtraForm
-            setItems={setOtherExpenses}
-            items={otherExpenses}
-            fields={otherExpencesFields}
-            title={"مصاريف اخري"}
-            formTitle={"مصاريف اخري"}
-            name={"otherExpenses"}
-            setSnackbarMessage={setSnackbarMessage}
-            setSnackbarOpen={setSnackbarOpen}
-            snackbarMessage={snackbarMessage}
-            snackbarOpen={snackbarOpen}
-            isEditing={isEditing}
-            setIsEditing={setIsEditing}
-          />
-        </div>
-      </ViewComponent>
+      ></ViewComponent>
 
       <RenewRentModal
         open={renewModalOpen}
@@ -485,24 +438,7 @@ const RentWrapper = () => {
         initialData={renewData}
         inputs={dataInputs}
         onSubmit={handleRenewSubmit}
-      >
-        <div className={"w-full"}>
-          <ExtraForm
-            setItems={setOtherExpenses}
-            items={otherExpenses}
-            fields={otherExpencesFields}
-            title={"مصاريف اخري"}
-            formTitle={"مصاريف اخري"}
-            name={"otherExpenses"}
-            setSnackbarMessage={setSnackbarMessage}
-            setSnackbarOpen={setSnackbarOpen}
-            snackbarMessage={snackbarMessage}
-            snackbarOpen={snackbarOpen}
-            isEditing={isEditing}
-            setIsEditing={setIsEditing}
-          />
-        </div>
-      </RenewRentModal>
+      ></RenewRentModal>
 
       <CancelRentModal
         open={cancelModalOpen}

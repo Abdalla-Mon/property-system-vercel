@@ -62,7 +62,6 @@ const ViewWrapper = ({ urlId }) => {
     ...data,
     contractExpenses,
   };
-
   return (
     <Box ref={componentRef}>
       <GlobalStyles />
@@ -91,15 +90,6 @@ const ViewWrapper = ({ urlId }) => {
           description={"فاتورة رسوم العقد"}
           title={"فاتورة رسوم العقد"}
           heading={"رسوم العقد"}
-        />
-        <Payments
-          renter={data.renter}
-          rentData={data}
-          url={`main/rentAgreements/${urlId}/otherExpenses`}
-          description={"فاتورة مصروفات العقد الاخري"}
-          title={"فاتورة مصروفات العقد الاخري"}
-          heading={"مصروفات العقد الاخري"}
-          showName={true}
         />
       </TableFormProvider>
       {!isPrinting && <RentAgreementDescription data={data} />}

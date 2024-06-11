@@ -1,4 +1,14 @@
 import { handleRequestSubmit } from "@/helpers/functions/handleRequestSubmit";
+import { toast } from "react-toastify";
+import { Failed, Success } from "@/app/components/loading/ToastUpdate";
+
+const PayEveryMonths = {
+  TWO_MONTHS: 2,
+  THREE_MONTHS: 3,
+  FOUR_MONTHS: 4,
+  SIX_MONTHS: 6,
+  ONE_YEAR: 12,
+};
 
 export async function submitRentAgreement(
   data,
@@ -7,6 +17,27 @@ export async function submitRentAgreement(
   others,
   cancel,
 ) {
+  if (!data.canceling) {
+    const startDate = new Date(data.startDate);
+    const endDate = new Date(data.endDate);
+    console.log(startDate, endDate, data);
+    const monthDifference =
+      (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+      (endDate.getMonth() - startDate.getMonth());
+    const id = toast.loading("يتم مراجعة البيانات...");
+    if (
+      monthDifference % PayEveryMonths[data.rentCollectionType] !== 0 ||
+      monthDifference < 1
+    ) {
+      toast.update(
+        id,
+        Failed("الرجاء التأكد من تاريخ البداية والنهاية والتكرار المختار "),
+      );
+      return null;
+    } else {
+      toast.update(id, Success("تم مراجعة البيانات بنجاح"));
+    }
+  }
   if (method === "PUT") {
     {
       for (const req of others) {
@@ -21,6 +52,7 @@ export async function submitRentAgreement(
       }
     }
   }
+
   if (cancel) {
     return;
   }

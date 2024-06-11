@@ -270,7 +270,6 @@ async function getProperties() {
 }
 
 async function getUnits(searchParams) {
-  console.log(searchParams, "searchParams");
   const propertyId = searchParams.get("propertyId");
   let whereClause = {};
   if (propertyId) {

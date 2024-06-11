@@ -31,7 +31,9 @@ export async function getReports(page, limit, searchParams, params) {
           where: {
             date: {
               gte: new Date(startDate),
-              lte: new Date(endDate),
+              lte: new Date(
+                new Date(endDate).setDate(new Date(endDate).getDate() + 1),
+              ),
             },
           },
         },
@@ -39,7 +41,9 @@ export async function getReports(page, limit, searchParams, params) {
           where: {
             date: {
               gte: new Date(startDate),
-              lte: new Date(endDate),
+              lte: new Date(
+                new Date(endDate).setDate(new Date(endDate).getDate() + 1),
+              ),
             },
           },
         },
