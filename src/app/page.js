@@ -31,7 +31,9 @@ import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider
 import { getData } from "@/helpers/functions/getData";
 import { getEndingRentAgreements } from "@/services/client/getEndingRentAgreements";
 import Link from "next/link"; // Import the new service function
+import "moment/locale/ar"; // Import Arabic locale for moment
 
+moment.locale("ar"); // Set moment locale globally to Arabic
 const localizer = momentLocalizer(moment);
 
 const HomePage = () => {

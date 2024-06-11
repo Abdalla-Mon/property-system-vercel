@@ -723,6 +723,7 @@ export async function getEndingRentAgreements() {
   try {
     const rentAgreements = await prisma.rentAgreement.findMany({
       where: {
+        status: "ACTIVE",
         endDate: {
           gte: today,
           lte: endOfMonth,
@@ -748,7 +749,6 @@ export async function getEndingRentAgreements() {
         },
       },
     });
-    console.log(rentAgreements, "rentAgreements");
     return {
       data: rentAgreements,
     };

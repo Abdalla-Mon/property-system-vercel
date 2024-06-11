@@ -451,7 +451,6 @@ const RentWrapper = ({ propperty }) => {
     setSearch(event.target.value);
   }
 
-  console.log(search, "search");
   return (
     <>
       <Box
