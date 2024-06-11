@@ -101,7 +101,6 @@ export async function getRentPaymentsForCurrentMonth(
         },
       },
     });
-    console.log(payments, "payments realy?");
     return {
       data: payments,
     };

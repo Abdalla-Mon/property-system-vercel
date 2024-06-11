@@ -60,7 +60,7 @@ const PropertyExpenseTypeWrapper = () => {
     },
     {
       field: "name",
-      headerName: "اسم نوع المصروف",
+      headerName: "اسم نوع الصيانة",
       width: 200,
       printable: true,
       cardWidth: 48,

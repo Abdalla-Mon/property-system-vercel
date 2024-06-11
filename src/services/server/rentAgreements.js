@@ -11,12 +11,21 @@ const RentCollectionType = {
   ONE_YEAR: 12,
 };
 
-export async function getRentAgreements(page, limit) {
+export async function getRentAgreements(page, limit, searchParams, params) {
   const offset = (page - 1) * limit;
+  const whereClause = {};
+  const propertyId = searchParams.get("propertyId");
+  if (propertyId && propertyId !== "all") {
+    whereClause.unit = {
+      propertyId: +propertyId,
+    };
+  }
 
   const rentAgreements = await prisma.rentAgreement.findMany({
     skip: offset,
     take: limit,
+    where: whereClause,
+
     include: {
       contractExpenses: true,
       renter: {
@@ -699,6 +708,48 @@ export async function updateRentAgreementDescription(data, params) {
     };
   } catch (error) {
     console.error("Error updating rent agreement description:", error);
+    throw error;
+  }
+}
+
+export async function getEndingRentAgreements() {
+  const today = new Date();
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  try {
+    const rentAgreements = await prisma.rentAgreement.findMany({
+      where: {
+        endDate: {
+          gte: today,
+          lte: endOfMonth,
+        },
+      },
+      include: {
+        unit: {
+          select: {
+            unitId: true,
+            property: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            client: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    console.log(rentAgreements, "rentAgreements");
+    return {
+      data: rentAgreements,
+    };
+  } catch (error) {
+    console.error("Error fetching rent agreements:", error);
     throw error;
   }
 }

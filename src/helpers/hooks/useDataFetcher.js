@@ -15,6 +15,7 @@ export function useDataFetcher(url, noArr, initialFilters = {}) {
   const [sort, setSort] = useState({});
   const [printMode, setPrintMode] = useState(false);
   const [render, setRender] = useState(false);
+  const [others, setOthers] = useState(""); //add this line
 
   useEffect(() => {
     async function fetchData() {
@@ -27,6 +28,7 @@ export function useDataFetcher(url, noArr, initialFilters = {}) {
         filters,
         search,
         sort,
+        others,
       });
       setData(res.data);
       setTotalPages(res.totalPages);
@@ -34,7 +36,7 @@ export function useDataFetcher(url, noArr, initialFilters = {}) {
     }
 
     fetchData();
-  }, [page, limit, filters, search, sort, render]);
+  }, [page, limit, filters, search, sort, render, others]);
 
   return {
     data,
@@ -53,5 +55,7 @@ export function useDataFetcher(url, noArr, initialFilters = {}) {
     setPrintMode,
     setTotalPages,
     setRender,
+    setOthers,
+    others,
   };
 }

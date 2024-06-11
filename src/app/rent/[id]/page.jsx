@@ -17,7 +17,6 @@ import {
   TableRow,
   Paper,
   TableFooter,
-  useTheme,
 } from "@mui/material";
 
 import dayjs from "dayjs";
@@ -30,6 +29,11 @@ import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider
 import { useReactToPrint } from "react-to-print";
 import TinyMCEEditor from "@/app/components/WordComponent/Tiny";
 import { handleRequestSubmit } from "@/helpers/functions/handleRequestSubmit";
+import { CancelRentModal } from "@/app/UiComponents/Modals/CancelRentModal";
+import { RenewRentModal } from "@/app/UiComponents/Modals/RenewRent";
+import { rentAgreementInputs } from "@/app/rent/rentInputs";
+import { useRouter } from "next/navigation";
+import { submitRentAgreement } from "@/services/client/createRentAgreement";
 
 export default function PropertyPage({ params }) {
   const id = params.id;
@@ -37,7 +41,9 @@ export default function PropertyPage({ params }) {
 }
 
 const ViewWrapper = ({ urlId }) => {
-  const { data, loading } = useDataFetcher("main/rentAgreements/" + urlId);
+  const { data, loading, setData } = useDataFetcher(
+    "main/rentAgreements/" + urlId,
+  );
   const [contractExpenses, setContractExpenses] = useState(null);
   const [wait, setWait] = useState(true);
   const [isPrinting, setIsPrinting] = useState(false);
@@ -57,7 +63,6 @@ const ViewWrapper = ({ urlId }) => {
   });
   const componentRef = useRef();
   if (loading || typeof data !== "object" || wait) return <div>loading...</div>;
-
   const fullData = {
     ...data,
     contractExpenses,
@@ -75,6 +80,18 @@ const ViewWrapper = ({ urlId }) => {
           "&"
         }
       >
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            py: 2,
+          }}
+        >
+          <RenewRent data={data} setData={setData} />
+          {data?.status === "active" && (
+            <CancelRent data={data} setData={setData} />
+          )}
+        </Box>
         <Payments
           renter={data.renter}
           rentData={data}
@@ -512,6 +529,234 @@ function RentAgreementDescription({ data }) {
     </Box>
   );
 }
+
+const CancelRent = ({ data, setData }) => {
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelData, setCancelData] = useState(null);
+  const { setLoading: setSubmitLoading } = useToastContext();
+
+  const handleOpenCancelModal = (rentData) => {
+    setCancelData(rentData);
+    setCancelModalOpen(true);
+  };
+
+  const handleCloseCancelModal = () => {
+    setCancelModalOpen(false);
+    setCancelData(null);
+  };
+
+  const handleCancelConfirm = async () => {
+    await submitRentAgreement(
+      { ...cancelData, canceling: true },
+      setSubmitLoading,
+      "PUT",
+      [
+        {
+          route: `/${cancelData.id}?installments=true`,
+          message: "جاري البحث عن اي دفعات لم يتم استلامها...",
+        },
+        {
+          route: `/${cancelData.id}?feeInvoices=true`,
+          message: "جاري البحث عن اي رسوم لم يتم دفعها...",
+        },
+        {
+          route: `/${cancelData.id}?otherExpenses=true`,
+          message: "جاري البحث عن اي مصاريف اخري لم يتم دفعها...",
+        },
+        {
+          route: `/${cancelData.id}?cancel=true`,
+          message: "جاري تحديث حالة العقد القديم...",
+        },
+      ],
+      true,
+    );
+    router.push("/rent/");
+    handleCloseCancelModal();
+  };
+
+  return (
+    <>
+      <Button
+        variant="contained"
+        color="error"
+        onClick={() => handleOpenCancelModal(data)}
+      >
+        إلغاء العقد
+      </Button>
+      <CancelRentModal
+        open={cancelModalOpen}
+        handleClose={handleCloseCancelModal}
+        handleConfirm={handleCancelConfirm}
+      />
+    </>
+  );
+};
+
+const RenewRent = ({ data, setData }) => {
+  const [renewModalOpen, setRenewModalOpen] = useState(false);
+  const [renewData, setRenewData] = useState(null);
+  const { setLoading: setSubmitLoading } = useToastContext();
+  const router = useRouter();
+
+  const handleOpenRenewModal = (rentData) => {
+    setRenewData(rentData);
+    setRenewModalOpen(true);
+  };
+
+  const handleCloseRenewModal = () => {
+    setRenewModalOpen(false);
+    setRenewData(null);
+  };
+
+  async function getRenters() {
+    const res = await fetch("/api/fast-handler?id=renter");
+    const data = await res.json();
+
+    return { data };
+  }
+
+  async function getRentTypes() {
+    const res = await fetch("/api/fast-handler?id=rentType");
+    const data = await res.json();
+    const dataWithLabel = data.map((item) => {
+      return {
+        ...item,
+        name: item.title,
+      };
+    });
+    return { data: dataWithLabel };
+  }
+
+  async function getProperties() {
+    const res = await fetch("/api/fast-handler?id=properties");
+    const data = await res.json();
+    return { data };
+  }
+
+  function handlePropertyChange(value) {
+    setPropertyId(value);
+    setDisabled({
+      ...disabled,
+      unitId: false,
+    });
+    setRefetch({
+      ...reFetch,
+      unitId: true,
+    });
+  }
+
+  async function getUnits() {
+    const res = await fetch(
+      "/api/fast-handler?id=unit&propertyId=" + propertyId,
+    );
+    const data = await res.json();
+    const dataWithLabel = data.map((item) => {
+      return {
+        ...item,
+        name: item.unitId,
+        disabled: item.rentAgreements?.some((rent) => rent.status === "ACTIVE"),
+      };
+    });
+
+    return { data: dataWithLabel, id: propertyId };
+  }
+
+  async function getRentCollectionType() {
+    const data = [
+      { id: "TWO_MONTHS", name: "شهرين" },
+      { id: "THREE_MONTHS", name: "ثلاثة أشهر" },
+      { id: "FOUR_MONTHS", name: "أربعة أشهر" },
+      { id: "SIX_MONTHS", name: "ستة أشهر" },
+      { id: "ONE_YEAR", name: "سنة واحدة" },
+    ];
+    return { data };
+  }
+
+  const dataInputs = rentAgreementInputs.map((input) => {
+    switch (input.data.id) {
+      case "rentCollectionType":
+        return {
+          ...input,
+          extraId: false,
+          getData: getRentCollectionType,
+        };
+      case "renterId":
+        return {
+          ...input,
+          extraId: false,
+          getData: getRenters,
+        };
+      case "typeId":
+        return {
+          ...input,
+          extraId: false,
+          getData: getRentTypes,
+        };
+      case "propertyId":
+        return {
+          ...input,
+          getData: getProperties,
+          onChange: handlePropertyChange,
+        };
+      case "unitId":
+        return {
+          ...input,
+          getData: getUnits,
+        };
+      default:
+        return input;
+    }
+  });
+  const handleRenewSubmit = async (data) => {
+    const extraData = { otherExpenses: [] };
+    data = { ...data, extraData };
+    const returedData = await submitRentAgreement(
+      { ...data },
+      setSubmitLoading,
+      "PUT",
+      [
+        {
+          route: `/${renewData.id}?installments=true`,
+          message: "جاري البحث عن اي دفعات لم يتم استلامها...",
+        },
+        {
+          route: `/${renewData.id}?feeInvoices=true`,
+          message: "جاري البحث عن اي رسوم لم يتم دفعها...",
+        },
+        {
+          route: `/${renewData.id}?otherExpenses=true`,
+          message: "جاري البحث عن اي مصاريف اخري لم يتم دفعها...",
+        },
+        {
+          route: `/${renewData.id}?renew=true`,
+          message: "جاري تحديث حالة العقد القديم...",
+        },
+      ],
+    );
+    if (!returedData) return;
+    router.push("/rent/" + returedData.id);
+    handleCloseRenewModal();
+  };
+
+  return (
+    <>
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={() => handleOpenRenewModal(data)}
+      >
+        تجديد العقد
+      </Button>
+      <RenewRentModal
+        open={renewModalOpen}
+        handleClose={handleCloseRenewModal}
+        initialData={renewData}
+        inputs={dataInputs}
+        onSubmit={handleRenewSubmit}
+      />
+    </>
+  );
+};
 
 const printStyles = `
   @media print {

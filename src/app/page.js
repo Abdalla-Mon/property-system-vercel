@@ -29,6 +29,8 @@ import { PaymentModal } from "@/app/UiComponents/Modals/PaymentModal";
 import { updatePayment } from "@/services/client/updatePayment";
 import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
 import { getData } from "@/helpers/functions/getData";
+import { getEndingRentAgreements } from "@/services/client/getEndingRentAgreements";
+import Link from "next/link"; // Import the new service function
 
 const localizer = momentLocalizer(moment);
 
@@ -42,6 +44,25 @@ const HomePage = () => {
     useFetchPayments("RENTEXPENCES");
   const { payments: overdue, loading: overdueLoading } =
     useFetchPayments("OVERRUDE");
+
+  const [endingAgreements, setEndingAgreements] = useState([]);
+  const [endingAgreementsLoading, setEndingAgreementsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEndingAgreements = async () => {
+      setEndingAgreementsLoading(true);
+      try {
+        const { data } = await getEndingRentAgreements();
+        setEndingAgreements(data);
+      } catch (error) {
+        console.error("Error fetching endingRents rent agreements:", error);
+      } finally {
+        setEndingAgreementsLoading(false);
+      }
+    };
+
+    fetchEndingAgreements();
+  }, []);
 
   const handleDateChange = (event) => {
     setSelectedDate(event.start);
@@ -194,6 +215,16 @@ const HomePage = () => {
           overdue={true}
         />
       )}
+      {endingAgreementsLoading ? (
+        <Typography variant="h5" gutterBottom>
+          جاري تحميل اتفاقيات الايجار التي على وشك الانتهاء
+        </Typography>
+      ) : (
+        <EndingAgreementsSection
+          agreements={endingAgreements}
+          heading="اتفاقيات الايجار التي على وشك الانتهاء"
+        />
+      )}
     </TableFormProvider>
   );
 };
@@ -262,7 +293,12 @@ const PaymentSection = ({
       {loading ? (
         <div>loading...</div>
       ) : (
-        <TableContainer component={Paper}>
+        <TableContainer
+          component={Paper}
+          sx={{
+            maxHeight: "100vh",
+          }}
+        >
           <Table sx={{ minWidth: 650 }} aria-label="payment table">
             <TableHead>
               <TableRow>
@@ -566,4 +602,44 @@ const createInputs = [
     },
   },
 ];
+const EndingAgreementsSection = ({ agreements, heading }) => {
+  return (
+    <Box sx={{ mt: 5 }}>
+      <Typography variant="h5" gutterBottom>
+        {heading}
+      </Typography>
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }} aria-label="ending agreements table">
+          <TableHead>
+            <TableRow>
+              <TableCell>عقد الايجار</TableCell>
+              <TableCell>رقم الوحدة</TableCell>
+              <TableCell>اسم المستأجر</TableCell>
+              <TableCell>اسم العقار</TableCell>
+              <TableCell>تاريخ انتهاء العقد</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {agreements.map((agreement, index) => (
+              <TableRow key={agreement.id}>
+                <TableCell>
+                  <Link href={`/rent/${agreement.id}`}>
+                    <Button>{agreement.id}</Button>
+                  </Link>
+                </TableCell>
+                <TableCell>{agreement.unit.unitId}</TableCell>
+                <TableCell>{agreement.unit.client.name}</TableCell>
+                <TableCell>{agreement.unit.property.name}</TableCell>
+                <TableCell>
+                  {dayjs(agreement.endDate).format("DD/MM/YYYY")}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
+  );
+};
+
 export default HomePage;

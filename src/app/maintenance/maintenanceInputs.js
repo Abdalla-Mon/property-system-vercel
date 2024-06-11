@@ -109,7 +109,7 @@ export const maintenanceInputs = [
     pattern: {
       required: {
         value: true,
-        message: "يرجى إدخال نوع المصروف",
+        message: "يرجى إدخال نوع الصيانة",
       },
     },
     sx: {

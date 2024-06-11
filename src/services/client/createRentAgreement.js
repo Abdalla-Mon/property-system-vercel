@@ -20,7 +20,6 @@ export async function submitRentAgreement(
   if (!data.canceling) {
     const startDate = new Date(data.startDate);
     const endDate = new Date(data.endDate);
-    console.log(startDate, endDate, data);
     const monthDifference =
       (endDate.getFullYear() - startDate.getFullYear()) * 12 +
       (endDate.getMonth() - startDate.getMonth());

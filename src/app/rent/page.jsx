@@ -4,28 +4,29 @@ import TableFormProvider, {
 } from "@/app/context/TableFormProvider/TableFormProvider";
 import { useDataFetcher } from "@/helpers/hooks/useDataFetcher";
 import ViewComponent from "@/app/components/ViewComponent/ViewComponent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { rentAgreementInputs } from "./rentInputs";
 import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
 import { submitRentAgreement } from "@/services/client/createRentAgreement";
-import useEditState from "@/helpers/hooks/useEditState";
-import { ExtraForm } from "@/app/UiComponents/FormComponents/Forms/ExtraForms/ExtraForm";
 import { RenewRentModal } from "@/app/UiComponents/Modals/RenewRent"; // Import the RenewRentModal
 import { CancelRentModal } from "@/app/UiComponents/Modals/CancelRentModal";
 import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
-import { Button } from "@mui/material";
+import { Box, Button, Select, Typography } from "@mui/material";
 import Link from "next/link";
-import { StatusType } from "@/app/constants/Enums"; // Import the CancelRentModal
-export default function PropertyPage() {
+import { StatusType } from "@/app/constants/Enums";
+import MenuItem from "@mui/material/MenuItem";
+import { useRouter } from "next/navigation"; // Import the CancelRentModal
+export default function PropertyPage({ searchParams }) {
+  const propertyId = searchParams?.propertyId;
   return (
     <TableFormProvider url={"fast-handler"}>
-      <RentWrapper />
+      <RentWrapper propperty={propertyId} />
     </TableFormProvider>
   );
 }
 
-const RentWrapper = () => {
+const RentWrapper = ({ propperty }) => {
   const {
     data,
     loading,
@@ -38,9 +39,25 @@ const RentWrapper = () => {
     total,
     setTotal,
     setRender,
-  } = useDataFetcher("main/rentAgreements/");
+    others,
+    setOthers,
+  } = useDataFetcher(`main/rentAgreements`);
+  const router = useRouter();
   const { id, submitData } = useTableForm();
   const [propertyId, setPropertyId] = useState(null);
+  const [properties, setProperties] = useState([]);
+  const [loadingProperty, setLoadingProperty] = useState(true);
+  useEffect(() => {
+    async function getD() {
+      setLoadingProperty(true);
+      const properties = await getProperties();
+
+      setProperties(properties.data);
+      setLoadingProperty(false);
+    }
+
+    getD();
+  }, []);
   const [disabled, setDisabled] = useState({
     unitId: true,
   });
@@ -335,7 +352,15 @@ const RentWrapper = () => {
       width: 200,
       printable: true,
       cardWidth: 48,
-      renderCell: (params) => <>{StatusType[params.row.status]}</>,
+      renderCell: (params) => (
+        <Typography
+          sx={{
+            color: params.row.status === "ACTIVE" ? "green" : "red",
+          }}
+        >
+          {StatusType[params.row.status]}
+        </Typography>
+      ),
     },
     {
       field: "startDate",
@@ -406,13 +431,34 @@ const RentWrapper = () => {
     return await submitRentAgreement(data, setSubmitLoading);
   }
 
+  function handlePropertyFilterChange(event) {
+    setOthers("propertyId=" + event.target.value);
+  }
+
   return (
     <>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="h6">عقود الايجار لوحدة معينه</Typography>
+        <Select
+          value={others.split("=")[1] || "all"}
+          onChange={handlePropertyFilterChange}
+          displayEmpty
+          fullWidth
+          loading={loadingProperty}
+        >
+          <MenuItem value="all">حميع العقود </MenuItem>
+          {properties?.map((property) => (
+            <MenuItem value={property.id} key={property.id}>
+              {property.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </Box>
       <ViewComponent
         inputs={dataInputs}
         formTitle={"انشاء عقد ايجار "}
         totalPages={totalPages}
-        rows={data}
+        rows={data?.sort((a, b) => (a.status === "ACTIVE" ? 1 : -1))}
         columns={columns}
         page={page}
         setPage={setPage}

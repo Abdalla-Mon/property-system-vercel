@@ -3,13 +3,13 @@ export const propertyExpenseTypeInputs = [
     data: {
       id: "name",
       type: "text",
-      label: "اسم نوع المصروف",
+      label: "اسم نوع الصيانة",
       name: "name",
     },
     pattern: {
       required: {
         value: true,
-        message: "يرجى إدخال اسم نوع المصروف",
+        message: "يرجى إدخال اسم نوع الصيانة",
       },
     },
   },
