@@ -49,6 +49,7 @@ export function useDataFetcher(url, noArr, initialFilters = {}) {
     totalPages,
     setFilters,
     setSearch,
+    search,
     setSort,
     total,
     setTotal,

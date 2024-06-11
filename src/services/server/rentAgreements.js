@@ -15,10 +15,14 @@ export async function getRentAgreements(page, limit, searchParams, params) {
   const offset = (page - 1) * limit;
   const whereClause = {};
   const propertyId = searchParams.get("propertyId");
+  const search = searchParams.get("search");
   if (propertyId && propertyId !== "all") {
     whereClause.unit = {
       propertyId: +propertyId,
     };
+  }
+  if (search && search !== "" && search !== "all") {
+    whereClause.status = search;
   }
 
   const rentAgreements = await prisma.rentAgreement.findMany({

@@ -12,7 +12,7 @@ import { submitRentAgreement } from "@/services/client/createRentAgreement";
 import { RenewRentModal } from "@/app/UiComponents/Modals/RenewRent"; // Import the RenewRentModal
 import { CancelRentModal } from "@/app/UiComponents/Modals/CancelRentModal";
 import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
-import { Box, Button, Select, Typography } from "@mui/material";
+import { Box, Button, FormControl, Select, Typography } from "@mui/material";
 import Link from "next/link";
 import { StatusType } from "@/app/constants/Enums";
 import MenuItem from "@mui/material/MenuItem";
@@ -41,6 +41,8 @@ const RentWrapper = ({ propperty }) => {
     setRender,
     others,
     setOthers,
+    search,
+    setSearch,
   } = useDataFetcher(`main/rentAgreements`);
   const router = useRouter();
   const { id, submitData } = useTableForm();
@@ -435,24 +437,66 @@ const RentWrapper = ({ propperty }) => {
     setOthers("propertyId=" + event.target.value);
   }
 
+  const rentTypes = [
+    { id: "all", name: "جميع العقود" },
+    { id: "CANCELED", name: "ملغي" },
+    {
+      id: "EXPIRED",
+      name: "منتهي",
+    },
+    { id: "ACTIVE", name: "نشط" },
+  ];
+
+  function handleTypeChange(event) {
+    setSearch(event.target.value);
+  }
+
+  console.log(search, "search");
   return (
     <>
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="h6">عقود الايجار لوحدة معينه</Typography>
-        <Select
-          value={others.split("=")[1] || "all"}
-          onChange={handlePropertyFilterChange}
-          displayEmpty
-          fullWidth
-          loading={loadingProperty}
-        >
-          <MenuItem value="all">حميع العقود </MenuItem>
-          {properties?.map((property) => (
-            <MenuItem value={property.id} key={property.id}>
-              {property.name}
-            </MenuItem>
-          ))}
-        </Select>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          flexDirection: {
+            xs: "column",
+            sm: "row",
+          },
+          alignItems: "center",
+        }}
+      >
+        <FormControl sx={{ mb: 2, maxWidth: 300 }}>
+          <Typography variant="h6">عقود الايجار لوحدة معينه</Typography>
+          <Select
+            value={others.split("=")[1] || "all"}
+            onChange={handlePropertyFilterChange}
+            displayEmpty
+            fullWidth
+            loading={loadingProperty}
+          >
+            <MenuItem value="all">حميع العقود </MenuItem>
+            {properties?.map((property) => (
+              <MenuItem value={property.id} key={property.id}>
+                {property.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl sx={{ mb: 2, maxWidth: 250 }}>
+          <Typography variant="h6">نوع العقد</Typography>
+          <Select
+            value={search || "all"}
+            onChange={handleTypeChange}
+            displayEmpty
+            fullWidth
+          >
+            {rentTypes?.map((property) => (
+              <MenuItem value={property.id} key={property.id}>
+                {property.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
       <ViewComponent
         inputs={dataInputs}
