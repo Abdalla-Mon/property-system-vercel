@@ -53,7 +53,7 @@ const tabLinks = [
 
   { label: "اعدادات مصروفات العقود", href: "/settings/contract-expense-type" },
   {
-    label: "إعدادات  مصروفات العقار",
+    label: "إعدادات انواع الصيانة ",
     href: "/settings/property-expense-type",
   },
   {
