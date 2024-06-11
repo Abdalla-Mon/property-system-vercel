@@ -135,99 +135,101 @@ const HomePage = () => {
   };
 
   return (
-    <TableFormProvider url={"main/payments/"}>
-      <Box
-        sx={{
-          mt: 5,
-          display: "flex",
-          justifyContent: "space-between",
-          width: "100%",
-          overflow: "auto",
-        }}
-      >
-        <Box>
-          <IconButton onClick={() => handleNavigate("prev")}>
-            <NavigateBeforeIcon />
-          </IconButton>
-          <IconButton onClick={() => handleNavigate("next")}>
-            <NavigateNextIcon />
-          </IconButton>
+    <div className={"container mx-auto"}>
+      <TableFormProvider url={"main/payments/"}>
+        <Box
+          sx={{
+            mt: 5,
+            display: "flex",
+            justifyContent: "space-between",
+            width: "100%",
+            overflow: "auto",
+          }}
+        >
+          <Box>
+            <IconButton onClick={() => handleNavigate("prev")}>
+              <NavigateBeforeIcon />
+            </IconButton>
+            <IconButton onClick={() => handleNavigate("next")}>
+              <NavigateNextIcon />
+            </IconButton>
+          </Box>
+          <Calendar
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: 500, flex: 1 }}
+            onSelectEvent={handleDateChange}
+            view={view}
+            onView={handleViewChange}
+            views={[Views.MONTH, Views.WEEK, Views.DAY]}
+            date={selectedDate || new Date()}
+            eventPropGetter={eventPropGetter}
+          />
         </Box>
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: 500, flex: 1 }}
-          onSelectEvent={handleDateChange}
-          view={view}
-          onView={handleViewChange}
-          views={[Views.MONTH, Views.WEEK, Views.DAY]}
-          date={selectedDate || new Date()}
-          eventPropGetter={eventPropGetter}
-        />
-      </Box>
-      {rentLoading ? (
-        <Typography variant="h5" gutterBottom>
-          جاري تحميل دفعات عقد الايجار
-        </Typography>
-      ) : (
-        <PaymentSection
-          payments={sortedPayments(filterPaymentsByDate(rent))}
-          title="Rent Payments"
-          description="فاتورة دفعة ايجار"
-          heading="الدفعات"
-        />
-      )}
-      {maintenanceLoading ? (
-        <Typography variant="h5" gutterBottom>
-          جاري تحميل دفعات الصيانة
-        </Typography>
-      ) : (
-        <PaymentSection
-          payments={sortedPayments(filterPaymentsByDate(maintenance))}
-          title="Maintenance Payments"
-          description="فاتورة الصيانة"
-          heading="الصيانة"
-          maintenance={true}
-        />
-      )}
-      {otherLoading ? (
-        <Typography variant="h5" gutterBottom>
-          جاري تحميل الدفعات الأخرى
-        </Typography>
-      ) : (
-        <PaymentSection
-          payments={sortedPayments(filterPaymentsByDate(other))}
-          title="Other Payments"
-          description="فاتورة رسوم العقد"
-          heading="رسوم العقد"
-        />
-      )}
-      {overdueLoading ? (
-        <Typography variant="h5" gutterBottom>
-          جاري تحميل الدفعات المتأخرة
-        </Typography>
-      ) : (
-        <PaymentSection
-          payments={sortedPayments(overdue)}
-          title="Overdue Payments"
-          description="الدفعات المتأخرة"
-          heading="الدفعات المتأخرة"
-          overdue={true}
-        />
-      )}
-      {endingAgreementsLoading ? (
-        <Typography variant="h5" gutterBottom>
-          جاري تحميل اتفاقيات الايجار التي على وشك الانتهاء
-        </Typography>
-      ) : (
-        <EndingAgreementsSection
-          agreements={endingAgreements}
-          heading="اتفاقيات الايجار التي على وشك الانتهاء"
-        />
-      )}
-    </TableFormProvider>
+        {rentLoading ? (
+          <Typography variant="h5" gutterBottom>
+            جاري تحميل دفعات عقد الايجار
+          </Typography>
+        ) : (
+          <PaymentSection
+            payments={sortedPayments(filterPaymentsByDate(rent))}
+            title="Rent Payments"
+            description="فاتورة دفعة ايجار"
+            heading="الدفعات"
+          />
+        )}
+        {maintenanceLoading ? (
+          <Typography variant="h5" gutterBottom>
+            جاري تحميل دفعات الصيانة
+          </Typography>
+        ) : (
+          <PaymentSection
+            payments={sortedPayments(filterPaymentsByDate(maintenance))}
+            title="Maintenance Payments"
+            description="فاتورة الصيانة"
+            heading="الصيانة"
+            maintenance={true}
+          />
+        )}
+        {otherLoading ? (
+          <Typography variant="h5" gutterBottom>
+            جاري تحميل الدفعات الأخرى
+          </Typography>
+        ) : (
+          <PaymentSection
+            payments={sortedPayments(filterPaymentsByDate(other))}
+            title="Other Payments"
+            description="فاتورة رسوم العقد"
+            heading="رسوم العقد"
+          />
+        )}
+        {overdueLoading ? (
+          <Typography variant="h5" gutterBottom>
+            جاري تحميل الدفعات المتأخرة
+          </Typography>
+        ) : (
+          <PaymentSection
+            payments={sortedPayments(overdue)}
+            title="Overdue Payments"
+            description="الدفعات المتأخرة"
+            heading="الدفعات المتأخرة"
+            overdue={true}
+          />
+        )}
+        {endingAgreementsLoading ? (
+          <Typography variant="h5" gutterBottom>
+            جاري تحميل اتفاقيات الايجار التي على وشك الانتهاء
+          </Typography>
+        ) : (
+          <EndingAgreementsSection
+            agreements={endingAgreements}
+            heading="اتفاقيات الايجار التي على وشك الانتهاء"
+          />
+        )}
+      </TableFormProvider>
+    </div>
   );
 };
 
