@@ -26,6 +26,7 @@ import {
   getUnits,
   getContractExpenses,
   createContractExpense,
+  getExpenseTypes,
 } from "@/services/server/fastHandlers";
 
 const handlerObject = {
@@ -83,6 +84,9 @@ const handlerObject = {
   contractExpenses: {
     GET: getContractExpenses,
     POST: createContractExpense,
+  },
+  expenseTypes: {
+    GET: getExpenseTypes,
   },
 };
 

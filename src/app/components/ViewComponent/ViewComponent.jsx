@@ -36,6 +36,7 @@ export default function ViewComponent({
   noTabs,
   submitFunction,
   setIdEditing,
+  onModalOpen,
 }) {
   const [view, setView] = useState("table");
   const [showForm, setShowForm] = useState(directEdit);
@@ -52,7 +53,7 @@ export default function ViewComponent({
     const newData = submitFunction
       ? await submitFunction(data)
       : await submitData(data, null, null, "POST", null, "json", url);
-    if (rows.length < limit) {
+    if (rows.length < limit && newData) {
       setData((old) => [...old, newData]);
     } else {
       setTotal((old) => old + 1);
@@ -71,6 +72,7 @@ export default function ViewComponent({
       setIdEditing(null);
     }
     setCreateModalOpen(true);
+    onModalOpen && onModalOpen();
   };
   const handleCloseCreateModal = () => setCreateModalOpen(false);
 

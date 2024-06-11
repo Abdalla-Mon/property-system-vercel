@@ -146,6 +146,8 @@ model Unit {
   numKitchens      Int?       // عدد المطابخ
   numSaloons       Int?       // عدد الصالة
   unitId           String?    // معرف الوحده
+  maintenances      Maintenance[]
+  payments          Payment[]
   notes            String?
   typeId           Int?
   type             UnitType?  @relation(fields: [typeId], references: [id], onDelete: Restrict)
@@ -253,12 +255,14 @@ model MaintenanceInstallment {
   id            Int    @id @default(autoincrement())
   amount        Float
   date          DateTime
+  startDate     DateTime
+  endDate       DateTime
+  status        Boolean
   type          PaymentTypeMethod?
   bankId        Int?
   bank          Bank?  @relation(fields: [bankId], references: [id], onDelete: SetNull)
   maintenanceId Int
   maintenance   Maintenance @relation(fields: [maintenanceId], references: [id], onDelete: Cascade)
-  isPaid        Boolean
   invoices      Invoice[]
   payments      Payment[] // New relation to Payment
   createdAt     DateTime @default(now())
@@ -268,6 +272,7 @@ model MaintenanceInstallment {
 enum PaymentTypeMethod {
   CASH
   BANK
+  CHEQUE
 }
 
 model Maintenance {
@@ -277,16 +282,29 @@ model Maintenance {
   date           DateTime
   propertyId     Int
   property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  ownerId       Int?
+  client         Client? @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  unitId         Int?
+  unit           Unit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
   typeId         Int
   type           PropertyExpenseType @relation(fields: [typeId], references: [id], onDelete: Restrict)
   totalPrice     Float
-    payments      Payment[] // New relation to Payment
+  payments       Payment[] // New relation to Payment
   currentStatus  Float @default(0)
   installments   MaintenanceInstallment[]
   isPaid         Boolean
+  payEvery       PayEvery? // New field to handle the payment frequency
   invoices       Invoice[] // Only invoices related to this Maintenance task
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+enum PayEvery {
+  ONCE
+  TWO_MONTHS
+  FOUR_MONTHS
+  SIX_MONTHS
+  ONE_YEAR
 }
 
 
@@ -373,6 +391,7 @@ model Client {
   role                ClientRole
   properties       Property[]
   payments      Payment[]
+  maintenances    Maintenance[]
   rentAgreementsRenter RentAgreement[] @relation("Renter")
   units            Unit[]  // This now references units correctly
   bankAccounts     BankAccount[] // Optional relation to BankAccount
@@ -465,6 +484,8 @@ model Payment {
   property      Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   clientId      Int?
   client        Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  unitId        Int?
+  unit          Unit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
   invoices      Invoice[]
   maintenanceId Int?
   maintenance   Maintenance? @relation(fields: [maintenanceId], references: [id], onDelete: SetNull)
@@ -486,6 +507,7 @@ model Invoice {
   invoiceType PaymentType
   bankAccountId         Int?
   bankAccount       BankAccount? @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+  chequeNumber        String?
   propertyId        Int?
   property          Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
   renterId          Int?

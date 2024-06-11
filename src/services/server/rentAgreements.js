@@ -4,11 +4,11 @@ import { convertToISO } from "@/helpers/functions/convertDateToIso";
 import { generateUniqueId } from "@/helpers/functions/generateUniqueId";
 
 const RentCollectionType = {
-  TWO_MONTHS: 6,
-  THREE_MONTHS: 4,
-  FOUR_MONTHS: 3,
-  SIX_MONTHS: 2,
-  ONE_YEAR: 1,
+  TWO_MONTHS: 2,
+  THREE_MONTHS: 3,
+  FOUR_MONTHS: 4,
+  SIX_MONTHS: 6,
+  ONE_YEAR: 12,
 };
 
 export async function getRentAgreements(page, limit) {
@@ -266,7 +266,6 @@ export async function createRentAgreement(data) {
         id: +data.typeId,
       },
     });
-
     const newRentAgreement = await prisma.rentAgreement.create({
       data: {
         rentAgreementNumber: generateUniqueId(),
@@ -344,39 +343,117 @@ export async function createRentAgreement(data) {
   }
 }
 
+// export async function createInstallmentsAndPayments(rentAgreement) {
+//   try {
+//     const totalInstallments =
+//       RentCollectionType[rentAgreement.rentCollectionType];
+//     const installmentBaseAmount = rentAgreement.totalPrice / totalInstallments;
+//     let remainingAmount = rentAgreement.totalPrice;
+//     const installments = Array(totalInstallments)
+//       .fill()
+//       .map((_, i) => {
+//         const startDate = new Date(rentAgreement.startDate);
+//         let dueDate = new Date(startDate);
+//         if (i > 0) {
+//           dueDate.setMonth(startDate.getMonth() + i * (12 / totalInstallments));
+//           dueDate.setDate(dueDate.getDate() - i);
+//         }
+//
+//         const endDate = new Date(dueDate);
+//         endDate.setMonth(dueDate.getMonth() + 12 / totalInstallments);
+//
+//         let installmentAmount;
+//         if (i === totalInstallments - 1) {
+//           installmentAmount = remainingAmount; // Last installment gets the remaining amount
+//         } else {
+//           installmentAmount = Math.round(installmentBaseAmount / 50) * 50;
+//           remainingAmount -= installmentAmount;
+//         }
+//
+//         return {
+//           startDate: convertToISO(new Date(rentAgreement.startDate)),
+//           dueDate: convertToISO(dueDate),
+//           endDate: convertToISO(endDate),
+//           status: false,
+//           rentAgreementId: rentAgreement.id,
+//           amount: installmentAmount,
+//         };
+//       });
+//
+//     for (let i = 0; i < installments.length; i++) {
+//       const installment = installments[i];
+//       const dueDate = new Date(installment.dueDate);
+//       const amount = installment.amount;
+//       delete installment.dueDate;
+//       delete installment.amount;
+//
+//       const createdInstallment = await prisma.installment.create({
+//         data: installment,
+//       });
+//
+//       await prisma.payment.create({
+//         data: {
+//           amount: amount,
+//           dueDate: dueDate,
+//           status: "PENDING",
+//           clientId: rentAgreement.unit.property.client.id,
+//           propertyId: rentAgreement.unit.property.id,
+//           rentAgreementId: rentAgreement.id,
+//           installmentId: createdInstallment.id,
+//           paymentType: "RENT",
+//         },
+//       });
+//     }
+//     return {
+//       data: {},
+//       message: "تمت اضافه الدفعات بنجاح",
+//     };
+//   } catch (error) {
+//     console.error("Error creating installments and invoices:", error);
+//     throw error;
+//   }
+// }
+
 export async function createInstallmentsAndPayments(rentAgreement) {
   try {
-    const totalInstallments =
-      RentCollectionType[rentAgreement.rentCollectionType];
-    const installmentBaseAmount = rentAgreement.totalPrice / totalInstallments;
+    const { rentCollectionType, startDate, endDate } = rentAgreement;
 
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const monthDifference =
+      (end.getFullYear() - start.getFullYear()) * 12 +
+      end.getMonth() -
+      start.getMonth();
+
+    const totalInstallments = Math.ceil(
+      monthDifference / RentCollectionType[rentCollectionType],
+    );
+    const installmentBaseAmount = rentAgreement.totalPrice / totalInstallments;
     let remainingAmount = rentAgreement.totalPrice;
+
     const installments = Array(totalInstallments)
       .fill()
       .map((_, i) => {
-        const startDate = new Date(rentAgreement.startDate);
+        let dueDate = new Date(start);
+        dueDate.setMonth(
+          start.getMonth() + i * RentCollectionType[rentCollectionType],
+        );
 
-        // Calculate due date with the first installment today, then every interval minus one day
-        let dueDate = new Date(startDate);
-        if (i > 0) {
-          dueDate.setMonth(startDate.getMonth() + i * (12 / totalInstallments));
-          dueDate.setDate(dueDate.getDate() - i);
-        }
-
-        // Calculate end date
         const endDate = new Date(dueDate);
-        endDate.setMonth(dueDate.getMonth() + 12 / totalInstallments);
+        endDate.setMonth(
+          dueDate.getMonth() + RentCollectionType[rentCollectionType],
+        );
 
         let installmentAmount;
         if (i === totalInstallments - 1) {
-          installmentAmount = remainingAmount; // Last installment gets the remaining amount
+          installmentAmount = remainingAmount;
         } else {
           installmentAmount = Math.round(installmentBaseAmount / 50) * 50;
           remainingAmount -= installmentAmount;
         }
 
         return {
-          startDate: convertToISO(new Date(rentAgreement.startDate)),
+          startDate: convertToISO(start),
           dueDate: convertToISO(dueDate),
           endDate: convertToISO(endDate),
           status: false,
@@ -409,12 +486,13 @@ export async function createInstallmentsAndPayments(rentAgreement) {
         },
       });
     }
+
     return {
       data: {},
-      message: "تمت اضافه الدفعات بنجاح",
+      message: "تمت إضافة الدفعات بنجاح",
     };
   } catch (error) {
-    console.error("Error creating installments and invoices:", error);
+    console.error("Error creating installments and payments:", error);
     throw error;
   }
 }

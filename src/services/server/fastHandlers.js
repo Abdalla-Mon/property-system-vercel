@@ -255,6 +255,11 @@ async function getProperties() {
       select: {
         id: true,
         name: true,
+        client: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
     return properties;
@@ -400,6 +405,11 @@ async function getContractExpenses() {
   return contractExpenses;
 }
 
+async function getExpenseTypes() {
+  const expenseTypes = await prisma.propertyExpenseType.findMany();
+  return expenseTypes;
+}
+
 export {
   createState,
   getStates,
@@ -428,4 +438,5 @@ export {
   createRentType,
   getContractExpenses,
   createContractExpense,
+  getExpenseTypes,
 };
