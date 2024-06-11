@@ -311,7 +311,6 @@ const PaymentRow = ({
   setModalInputs,
   setId,
   index,
-  showName,
   maintenance,
   overdue,
 }) => {
@@ -438,10 +437,10 @@ const PaymentRow = ({
         </Typography>
       </TableCell>
       <TableCell>
-        {maintenance ? item.unit.unitId : item.rentAgreement?.unit.unitId}
+        {item.rentAgreement?.unit.unitId || item.unit?.unitId}
       </TableCell>
       <TableCell>
-        {maintenance ? item.client?.name : item.rentAgreement?.unit.client.name}
+        {item.rentAgreement?.unit.client.name || item.client?.name + "(مالك)"}
       </TableCell>
       <TableCell>
         {item.status !== "PAID" && (
