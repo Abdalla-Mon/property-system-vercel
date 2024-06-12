@@ -1,5 +1,5 @@
 import "./globals.css";
-import DashboardNav from "@/app/components/Navbar/Navbar";
+import DashboardNav from "@/app/UiComponents/Navigation/Navbar/Navbar";
 import { Rtl } from "@/app/components/Rtl/Rtl";
 import { SubmitLoaderProvider } from "@/app/context/SubmitLoaderProvider/SubmitLoaderProvider";
 import { DataLoaderProvider } from "@/app/context/DataLoaderProvider/DataLoaderProvider";

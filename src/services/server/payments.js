@@ -69,6 +69,7 @@ export async function getRentPaymentsForCurrentMonth(
         unit: {
           select: {
             unitId: true,
+            number: true,
           },
         },
         rentAgreement: {
@@ -78,6 +79,7 @@ export async function getRentPaymentsForCurrentMonth(
               select: {
                 id: true,
                 unitId: true,
+                number: true,
                 client: {
                   select: {
                     id: true,
@@ -139,7 +141,47 @@ export async function updatePayment(id, data) {
         status: "PENDING",
       },
       include: {
-        invoices: true,
+        installment: true,
+        property: {
+          select: {
+            name: true,
+          },
+        },
+        unit: {
+          select: {
+            unitId: true,
+            number: true,
+          },
+        },
+        rentAgreement: {
+          select: {
+            rentAgreementNumber: true,
+            unit: {
+              select: {
+                id: true,
+                unitId: true,
+                number: true,
+                client: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        client: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        invoices: {
+          include: {
+            bankAccount: true,
+          },
+        },
       },
     });
   } else {
@@ -150,7 +192,47 @@ export async function updatePayment(id, data) {
         status: "PAID",
       },
       include: {
-        invoices: true,
+        installment: true,
+        property: {
+          select: {
+            name: true,
+          },
+        },
+        unit: {
+          select: {
+            unitId: true,
+            number: true,
+          },
+        },
+        rentAgreement: {
+          select: {
+            rentAgreementNumber: true,
+            unit: {
+              select: {
+                id: true,
+                unitId: true,
+                number: true,
+                client: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        client: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        invoices: {
+          include: {
+            bankAccount: true,
+          },
+        },
       },
     });
     if (data.paymentType === "RENT") {

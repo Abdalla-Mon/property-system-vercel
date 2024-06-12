@@ -13,10 +13,11 @@ const PayEvery = {
 export async function createMaintenance(data) {
   const extraData = data.extraData;
   const ownerId = extraData.ownerId;
+  const description = data.description;
   try {
     const newMaintenance = await prisma.maintenance.create({
       data: {
-        description: "",
+        description: description,
         cost: +data.cost,
         date: convertToISO(data.date),
         isPaid: false,
@@ -115,6 +116,11 @@ export async function createMaintenenceInstallmentsAndPayments(data) {
               id: maintenance.unitId,
             },
           },
+          maintenance: {
+            connect: {
+              id: maintenance.id,
+            },
+          },
           maintenanceInstallment: {
             connect: {
               id: createdInstallment.id,
@@ -135,10 +141,7 @@ export async function createMaintenenceInstallmentsAndPayments(data) {
       (endDate.getFullYear() - startDate.getFullYear()) * 12 +
       endDate.getMonth() -
       startDate.getMonth();
-    console.log(data.startDate);
-    console.log("monthDifference", monthDifference);
     const totalInstallments = Math.ceil(monthDifference / PayEvery[payEvery]);
-    console.log("totalInstallments", totalInstallments);
     const installmentBaseAmount = maintenance.totalPrice / totalInstallments;
     let remainingAmount = maintenance.totalPrice;
 
@@ -191,6 +194,11 @@ export async function createMaintenenceInstallmentsAndPayments(data) {
           property: {
             connect: {
               id: maintenance.propertyId,
+            },
+          },
+          maintenance: {
+            connect: {
+              id: maintenance.id,
             },
           },
           maintenanceInstallment: {

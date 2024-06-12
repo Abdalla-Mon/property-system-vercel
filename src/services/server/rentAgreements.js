@@ -42,6 +42,8 @@ export async function getRentAgreements(page, limit, searchParams, params) {
         select: {
           id: true,
           unitId: true,
+          number: true,
+
           property: {
             select: {
               id: true,
@@ -245,6 +247,7 @@ export async function getRentAgreementById(page, limit, serachParams, params) {
           select: {
             id: true,
             unitId: true,
+            number: true,
             property: {
               select: {
                 id: true,
@@ -319,6 +322,7 @@ export async function createRentAgreement(data) {
           select: {
             id: true,
             unitId: true,
+            number: true,
             propertyId: true,
             property: {
               select: {
@@ -733,6 +737,7 @@ export async function getEndingRentAgreements() {
         unit: {
           select: {
             unitId: true,
+            number: true,
             property: {
               select: {
                 id: true,

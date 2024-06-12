@@ -60,7 +60,7 @@ const columnsPropertyDetails = [
 
 const columnsUnits = [
   { col: "رقم الوحدة", row: "id" },
-  { col: "الطابق", row: "number" },
+  { col: "الطابق", row: "floor" },
   { col: "الإيجار السنوي", row: "yearlyRentPrice" },
   { col: "عدد غرف النوم", row: "numBedrooms" },
   { col: "عدد الحمامات", row: "numBathrooms" },
@@ -69,18 +69,9 @@ const columnsUnits = [
   { col: "الحالة", row: "status" },
 ];
 
-const columnsRentAgreements = [
-  { col: "رقم التعريف", row: "id" },
-  { col: "رقم عقد الإيجار", row: "rentAgreementNumber" },
-  { col: "تاريخ البدء", row: "startDate" },
-  { col: "تاريخ الانتهاء", row: "endDate" },
-  { col: "إجمالي السعر", row: "totalPrice" },
-  { col: "الحالة", row: "status" },
-];
-
 const Reports = () => {
-  const [properties, setProperties] = useState([]);
-  const [selectedProperties, setSelectedProperties] = useState([]);
+  const [owners, setOwners] = useState([]);
+  const [selectedOwners, setSelectedOwners] = useState([]);
   const [startDate, setStartDate] = useState(dayjs());
   const [endDate, setEndDate] = useState(dayjs());
   const [reportData, setReportData] = useState(null);
@@ -93,9 +84,9 @@ const Reports = () => {
     async function fetchData() {
       setLoading(true);
       try {
-        const resProperties = await fetch("/api/fast-handler?id=properties");
-        const dataProperties = await resProperties.json();
-        setProperties(dataProperties);
+        const resOwners = await fetch("/api/fast-handler?id=owners");
+        const dataOwners = await resOwners.json();
+        setOwners(dataOwners);
       } catch (error) {
         console.error("Failed to fetch data", error);
       }
@@ -108,14 +99,14 @@ const Reports = () => {
   const handleGenerateReport = async () => {
     setSubmitLoading(true);
     const filters = {
-      propertyIds: selectedProperties,
+      ownerIds: selectedOwners,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
     };
 
     try {
       const res = await fetch(
-        `/api/main/reports?filters=${JSON.stringify(filters)}`,
+        `/api/main/reports/owners?filters=${JSON.stringify(filters)}`,
       );
       const data = await res.json();
       setReportData(data.data);
@@ -128,7 +119,7 @@ const Reports = () => {
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    documentTitle: "تقرير العقار",
+    documentTitle: "تقرير المالك",
   });
 
   const renderChart = (data, title, backgroundColor) => (
@@ -168,11 +159,7 @@ const Reports = () => {
           {data.map((row, index) => (
             <TableRow key={index}>
               {columns.map((col) => (
-                <TableCell key={col.row}>
-                  {col.row.includes("Date")
-                    ? new Date(row[col.row]).toLocaleDateString()
-                    : row[col.row]}
-                </TableCell>
+                <TableCell key={col.row}>{row[col.row]}</TableCell>
               ))}
             </TableRow>
           ))}
@@ -212,24 +199,61 @@ const Reports = () => {
     </Box>
   );
 
+  const calculateStatus = (rentAgreements) => {
+    return rentAgreements.some((agreement) => agreement.status === "ACTIVE")
+      ? "مؤجرة"
+      : "شاغرة";
+  };
+
+  const calculateTotal = (items) => {
+    return items.reduce((sum, item) => sum + item.amount, 0);
+  };
+
+  const renderTotalChart = (income, expenses) => (
+    <Box sx={{ width: 400, height: 400, mx: "auto", mt: 4 }}>
+      <Doughnut
+        data={{
+          labels: ["إجمالي الدخل", "إجمالي المصروفات"],
+          datasets: [
+            {
+              data: [calculateTotal(income), calculateTotal(expenses)],
+              backgroundColor: [
+                "rgba(75, 192, 192, 0.6)",
+                "rgba(255, 99, 132, 0.6)",
+              ],
+            },
+          ],
+        }}
+        options={{
+          responsive: true,
+          plugins: {
+            legend: {
+              position: "top",
+            },
+          },
+          cutout: "70%",
+        }}
+      />
+    </Box>
+  );
+
   if (loading) return <CircularProgress />;
-  console.log(reportData, "reportData");
   return (
     <Container>
       <Box sx={{ my: 4 }}>
         <Typography variant="h4" gutterBottom>
-          إنشاء التقارير
+          إنشاء تقارير الملاك
         </Typography>
         <FormControl fullWidth margin="normal">
-          <InputLabel>العقارات</InputLabel>
+          <InputLabel>الملاك</InputLabel>
           <Select
             multiple
-            value={selectedProperties}
-            onChange={(e) => setSelectedProperties(e.target.value)}
+            value={selectedOwners}
+            onChange={(e) => setSelectedOwners(e.target.value)}
           >
-            {properties.map((property) => (
-              <MenuItem key={property.id} value={property.id}>
-                {property.name}
+            {owners.map((owner) => (
+              <MenuItem key={owner.id} value={owner.id}>
+                {owner.name}
               </MenuItem>
             ))}
           </Select>
@@ -268,8 +292,8 @@ const Reports = () => {
             sx={{ mt: 4, p: 2, border: "1px solid #ddd" }}
             ref={componentRef}
           >
-            {reportData.map((property) => (
-              <Box key={property.id} sx={{ mb: 4 }}>
+            {reportData.map((owner) => (
+              <Box key={owner.id} sx={{ mb: 4 }}>
                 <Box sx={{ my: 2 }}>
                   <Typography variant="h6">
                     تقرير من المدة {startDate.format("DD/MM/YYYY")} إلى{" "}
@@ -295,60 +319,68 @@ const Reports = () => {
                       gap: "10px",
                     }}
                   >
-                    <strong>اسم المالك:</strong> {property.client?.name}
-                    <strong> هوية المالك:</strong> {property.client?.nationalId}
-                    <strong> ايميل المالك:</strong> {property.client?.email}
-                    <strong> رقمة هاتف المالك:</strong> {property.client?.phone}
+                    <strong>اسم المالك:</strong> {owner.name}
+                    <strong> هوية المالك:</strong> {owner.nationalId}
+                    <strong> ايميل المالك:</strong> {owner.email}
+                    <strong> رقمة هاتف المالك:</strong> {owner.phone}
                   </Typography>
                 </Box>
 
-                <Typography variant="h6">{property.name}</Typography>
-                <Typography variant="subtitle1" className={"mt-3"}>
-                  تفاصيل العقار
-                </Typography>
-                {renderTable([property], columnsPropertyDetails)}
-                <Typography variant="subtitle1" className={"mt-3"}>
-                  الوحدات
-                </Typography>
-                {renderTable(property.units, columnsUnits)}
-
-                <Typography variant="subtitle1" className={"mt-3"}>
-                  عقود الإيجار
-                </Typography>
-                {renderTable(
-                  property.units.flatMap((unit) => unit.rentAgreements),
-                  columnsRentAgreements,
-                )}
-
-                <Grid container spacing={2} sx={{ mt: 4 }}>
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle1">الدخل</Typography>
-                    {renderChart(
-                      property.income.map((income) => ({
-                        label: new Date(income.date).toLocaleDateString(),
-                        value: income.amount,
+                <Typography variant="h6">عقارات المالك</Typography>
+                {owner.properties.map((property) => (
+                  <Box key={property.id} sx={{ mb: 4 }}>
+                    <Typography variant="h6">{property.name}</Typography>
+                    <Typography variant="subtitle1" className={"mt-3"}>
+                      تفاصيل العقار
+                    </Typography>
+                    {renderTable([property], columnsPropertyDetails)}
+                    <Typography variant="subtitle1" className={"mt-3"}>
+                      الوحدات
+                    </Typography>
+                    {renderTable(
+                      property.units.map((unit) => ({
+                        ...unit,
+                        status: calculateStatus(unit.rentAgreements),
                       })),
-                      "الدخل",
-                      "rgba(75, 192, 192, 0.6)",
+                      columnsUnits,
                     )}
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle1">المصروفات</Typography>
-                    {renderChart(
-                      property.expenses.map((expense) => ({
-                        label: new Date(expense.date).toLocaleDateString(),
-                        value: expense.amount,
-                      })),
-                      "المصروفات",
-                      "rgba(255, 99, 132, 0.6)",
-                    )}
-                  </Grid>
-                </Grid>
 
-                <Typography variant="subtitle1" sx={{ mt: 4 }}>
-                  مقارنة بين الدخل والمصروفات
+                    <Grid container spacing={2} sx={{ mt: 4 }}>
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle1">الدخل</Typography>
+                        {renderChart(
+                          property.incomes.map((income) => ({
+                            label: new Date(income.date).toLocaleDateString(),
+                            value: income.amount,
+                          })),
+                          "الدخل",
+                          "rgba(75, 192, 192, 0.6)",
+                        )}
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle1">المصروفات</Typography>
+                        {renderChart(
+                          property.expenses.map((expense) => ({
+                            label: new Date(expense.date).toLocaleDateString(),
+                            value: expense.amount,
+                          })),
+                          "المصروفات",
+                          "rgba(255, 99, 132, 0.6)",
+                        )}
+                      </Grid>
+                    </Grid>
+
+                    <Typography variant="subtitle1" sx={{ mt: 4 }}>
+                      مقارنة بين الدخل والمصروفات
+                    </Typography>
+                    {renderComparisonChart(property.incomes, property.expenses)}
+                  </Box>
+                ))}
+
+                <Typography variant="h6" sx={{ mt: 4 }}>
+                  إجمالي الدخل والمصروفات للمالك
                 </Typography>
-                {renderComparisonChart(property.income, property.expenses)}
+                {renderTotalChart(owner.incomes, owner.expenses)}
               </Box>
             ))}
           </Box>

@@ -39,6 +39,8 @@ const MaintenanceWrapper = () => {
   const { id, submitData } = useTableForm();
   const [propertyId, setPropertyId] = useState(null);
   const [propertiesData, setPropertiesData] = useState(null);
+  const [unitData, setUnitData] = useState(null);
+  const [typesData, setTypesData] = useState(null);
   const [disabled, setDisabled] = useState({
     unitId: true,
   });
@@ -54,6 +56,7 @@ const MaintenanceWrapper = () => {
     if (currentProperty) {
       setExtraData({
         ownerId: currentProperty.client.id,
+        ownerName: currentProperty.client.name,
       });
     }
   }, [propertyId]);
@@ -87,6 +90,7 @@ const MaintenanceWrapper = () => {
     );
 
     const data = await res.json();
+    setUnitData(data);
     const dataWithLabel = data.map((item) => {
       return {
         ...item,
@@ -100,6 +104,7 @@ const MaintenanceWrapper = () => {
   async function getExpenseTypes() {
     const res = await fetch("/api/fast-handler?id=expenseTypes");
     const data = await res.json();
+    setTypesData(data);
     return { data };
   }
 
@@ -298,7 +303,12 @@ const MaintenanceWrapper = () => {
   ];
 
   async function submit(data) {
-    return await submitMaintenance({ ...data, extraData }, setSubmitLoading);
+    const currentType = typesData?.find((type) => type.id === +data.typeId);
+    const description = ` ${currentType.name}  `;
+    return await submitMaintenance(
+      { ...data, description, extraData },
+      setSubmitLoading,
+    );
   }
 
   if (loadingInput) {

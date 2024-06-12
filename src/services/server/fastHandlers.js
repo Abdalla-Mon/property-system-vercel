@@ -283,6 +283,7 @@ async function getUnits(searchParams) {
         id: true,
         unitId: true,
         rentAgreements: true,
+        number: true,
       },
     });
     console.log(units, "units");

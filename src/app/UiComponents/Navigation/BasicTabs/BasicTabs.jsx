@@ -65,8 +65,16 @@ const tabLinks = [
     href: "/settings/collectors",
   },
 ];
+const reportLink = [
+  { label: "تقارير شامل", href: "/reports/" },
+  { label: "تقارير الصيانة", href: "/reports/maintenance" },
+  { label: "تقارير الملاك", href: "/reports/owners" },
+  { label: "تقارير الضرائب", href: "/reports/taxes" },
+  { label: "تقارير عدادات الكهرباء  ", href: "/reports/electricity" },
+  { label: "تقارير العقود", href: "/reports/contracts" },
+];
 
-export function BasicTabs() {
+export function BasicTabs({ reports }) {
   const router = useRouter();
   const currentPath = usePathname();
 
@@ -83,7 +91,7 @@ export function BasicTabs() {
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
-    router.push(tabLinks[newValue].href);
+    router.push((reports ? reportLink : tabLinks)[newValue].href);
   };
 
   const getScrollButtonDirection = (direction) => {
@@ -112,7 +120,7 @@ export function BasicTabs() {
             />
           )}
         >
-          {tabLinks.map((tab, index) => (
+          {(reports ? reportLink : tabLinks).map((tab, index) => (
             <Tab key={tab.href} label={tab.label} {...a11yProps(index)} />
           ))}
         </Tabs>

@@ -13,6 +13,8 @@ const PayEveryMonths = {
 export async function submitMaintenance(data, setLoading) {
   const startDate = new Date(data.startDate);
   const endDate = new Date(data.endDate);
+  console.log(data);
+
   const monthDifference =
     (endDate.getFullYear() - startDate.getFullYear()) * 12 +
     (endDate.getMonth() - startDate.getMonth());
@@ -40,6 +42,7 @@ export async function submitMaintenance(data, setLoading) {
       "جاري إنشاء الصيانة...",
     );
     const installmentsData = {
+      maintenanceId: response.data.id,
       maintenance: {
         ...response.data,
         unitId: data.unitId,

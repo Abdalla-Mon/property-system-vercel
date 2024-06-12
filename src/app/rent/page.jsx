@@ -248,7 +248,6 @@ const RentWrapper = ({ propperty }) => {
   };
 
   const { setLoading: setSubmitLoading } = useToastContext();
-
   const handleRenewSubmit = async (data) => {
     const extraData = { otherExpenses: [] };
     data = { ...data, extraData };
@@ -314,7 +313,7 @@ const RentWrapper = ({ propperty }) => {
     },
     {
       field: "unit",
-      headerName: "معرف الوحده",
+      headerName: "رقم الوحده",
       width: 200,
       printable: true,
       cardWidth: 48,
@@ -327,7 +326,7 @@ const RentWrapper = ({ propperty }) => {
               overflow: "auto",
             }}
           >
-            {params.row.unit?.unitId}
+            {params.row.unit?.number}
           </Button>
         </Link>
       ),
