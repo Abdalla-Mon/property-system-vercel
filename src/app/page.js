@@ -171,6 +171,7 @@ const Dashboard = () => {
 
   const renderBarChart = (data, title, backgroundColor) => (
     <Bar
+      style={{ height: "100%", width: "100%" }}
       data={{
         labels: data.map((d) => d.label),
         datasets: [
@@ -235,6 +236,7 @@ const Dashboard = () => {
       sx={{
         minHeight: 350,
         minWidth: 250,
+        height: "100%",
         backgroundColor: backgroundColor || theme.palette.background.paper,
       }}
     >
@@ -257,15 +259,17 @@ const Dashboard = () => {
     <Container maxWidth="xl">
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" gutterBottom>
-          لوحة القيادة
+          لوحة الموقع
         </Typography>
 
         <Grid container spacing={3}>
-          <Grid item xs={12} md={4} lg={3}>
+          <Grid item xs={12} md={4} lg={4}>
             <Card
               sx={{
                 minHeight: 350,
                 minWidth: 250,
+                height: "100%",
+                width: "100%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
