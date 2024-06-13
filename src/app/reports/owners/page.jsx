@@ -84,7 +84,7 @@ const Reports = () => {
     async function fetchData() {
       setLoading(true);
       try {
-        const resOwners = await fetch("/api/fast-handler?id=owners");
+        const resOwners = await fetch("/api/fast-handler?id=owner");
         const dataOwners = await resOwners.json();
         setOwners(dataOwners);
       } catch (error) {
