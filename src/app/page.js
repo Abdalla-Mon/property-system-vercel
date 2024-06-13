@@ -59,7 +59,7 @@ const Dashboard = () => {
       try {
         const res = await fetch("/api/fast-handler?id=properties");
         const data = await res.json();
-        setProperties(data.data);
+        setProperties(data);
       } catch (error) {
         console.error("Failed to fetch properties", error);
       }
