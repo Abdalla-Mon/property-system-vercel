@@ -139,7 +139,7 @@ export async function getPayments(page, limit, searchParams, params) {
       },
     },
   });
-
+  console.log(payments, "dsad payments");
   return {
     data: payments,
   };
