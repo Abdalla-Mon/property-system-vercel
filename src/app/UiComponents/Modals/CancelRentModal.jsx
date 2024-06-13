@@ -29,10 +29,10 @@ export function CancelRentModal({ open, handleClose, handleConfirm }) {
           هل أنت متأكد أنك تريد إلغاء هذا العقد؟
         </Typography>
         <Box display="flex" justifyContent="space-between">
-          <Button variant="contained" color="secondary" onClick={handleConfirm}>
+          <Button variant="text" color="secondary" onClick={handleConfirm}>
             نعم
           </Button>
-          <Button variant="contained" onClick={handleClose}>
+          <Button variant="text" onClick={handleClose}>
             إلغاء
           </Button>
         </Box>

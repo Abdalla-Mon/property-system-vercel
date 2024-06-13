@@ -15,14 +15,16 @@ export async function getRentAgreements(page, limit, searchParams, params) {
   const offset = (page - 1) * limit;
   const whereClause = {};
   const propertyId = searchParams.get("propertyId");
-  const search = searchParams.get("search");
+  const rented = searchParams.get("rented");
+
   if (propertyId && propertyId !== "all") {
     whereClause.unit = {
       propertyId: +propertyId,
     };
   }
-  if (search && search !== "" && search !== "all") {
-    whereClause.status = search;
+
+  if (rented !== undefined) {
+    whereClause.status = rented === "true" ? "ACTIVE" : { not: "ACTIVE" };
   }
 
   const rentAgreements = await prisma.rentAgreement.findMany({
@@ -31,7 +33,6 @@ export async function getRentAgreements(page, limit, searchParams, params) {
     where: whereClause,
 
     include: {
-      contractExpenses: true,
       renter: {
         select: {
           id: true,
@@ -444,6 +445,7 @@ export async function createInstallmentsAndPayments(rentAgreement) {
 }
 
 export async function createFeePayments(rentAgreement) {
+  const unitId = rentAgreement.unitId;
   try {
     const feeInvoices = [
       {
@@ -482,6 +484,11 @@ export async function createFeePayments(rentAgreement) {
             property: {
               connect: {
                 id: rentAgreement.unit.property.id,
+              },
+            },
+            unit: {
+              connect: {
+                id: +unitId,
               },
             },
             rentAgreement: {

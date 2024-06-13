@@ -69,7 +69,7 @@ const reportLink = [
   { label: "تقارير شامل", href: "/reports/" },
   { label: "تقارير الصيانة", href: "/reports/maintenance" },
   { label: "تقارير الملاك", href: "/reports/owners" },
-  { label: "تقارير الضرائب", href: "/reports/taxes" },
+  { label: "تقارير رسوم العقد", href: "/reports/payments" },
   { label: "تقارير عدادات الكهرباء  ", href: "/reports/electricity" },
   { label: "تقارير العقود", href: "/reports/contracts" },
 ];

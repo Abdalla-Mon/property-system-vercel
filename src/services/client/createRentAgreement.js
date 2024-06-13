@@ -78,7 +78,10 @@ export async function submitRentAgreement(
     false,
     "جاري إنشاء الدفعات ...",
   );
-  const feeInvoicesData = { ...rentAgreementResponse.data };
+  const feeInvoicesData = {
+    ...rentAgreementResponse.data,
+    unitId: data.unitId,
+  };
   await handleRequestSubmit(
     feeInvoicesData,
     setLoading,

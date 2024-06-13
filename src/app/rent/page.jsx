@@ -43,7 +43,24 @@ const RentWrapper = ({ propperty }) => {
     setOthers,
     search,
     setSearch,
-  } = useDataFetcher(`main/rentAgreements`);
+  } = useDataFetcher(`main/rentAgreements?rented=true&`);
+  const {
+    data: nonRentedData,
+    loading: nonRentedLoading,
+    page: nonRentedPage,
+    setPage: setNonRentedPage,
+    limit: nonRentedLimit,
+    setLimit: setNonRentedLimit,
+    totalPages: nonRentedTotalPages,
+    setData: setNonRentedData,
+    total: nonRentedTotal,
+    setTotal: setNonRentedTotal,
+    setRender: setNonRentedRender,
+    others: nonRentedOthers,
+    setOthers: setNonRentedOthers,
+    search: nonRentedSearch,
+    setSearch: setNonRentedSearch,
+  } = useDataFetcher(`main/rentAgreements?rented=false&`);
   const router = useRouter();
   const { id, submitData } = useTableForm();
   const [propertyId, setPropertyId] = useState(null);
@@ -237,13 +254,12 @@ const RentWrapper = ({ propperty }) => {
       ],
       true,
     );
-    const newData = data.map((item) => {
-      if (item.id === cancelData.id) {
-        return { ...item, status: "CANCELED" };
-      }
-      return item;
+    const newData = data.filter((item) => {
+      return item.id !== cancelData.id;
     });
     setData(newData);
+    cancelData.status = "CANCELED";
+    setNonRentedData((old) => [...old, cancelData]);
     handleCloseCancelModal();
   };
 
@@ -434,20 +450,7 @@ const RentWrapper = ({ propperty }) => {
 
   function handlePropertyFilterChange(event) {
     setOthers("propertyId=" + event.target.value);
-  }
-
-  const rentTypes = [
-    { id: "all", name: "جميع العقود" },
-    { id: "CANCELED", name: "ملغي" },
-    {
-      id: "EXPIRED",
-      name: "منتهي",
-    },
-    { id: "ACTIVE", name: "نشط" },
-  ];
-
-  function handleTypeChange(event) {
-    setSearch(event.target.value);
+    setNonRentedOthers("propertyId=" + event.target.value);
   }
 
   return (
@@ -480,27 +483,12 @@ const RentWrapper = ({ propperty }) => {
             ))}
           </Select>
         </FormControl>
-        <FormControl sx={{ mb: 2, maxWidth: 250 }}>
-          <Typography variant="h6">نوع العقد</Typography>
-          <Select
-            value={search || "all"}
-            onChange={handleTypeChange}
-            displayEmpty
-            fullWidth
-          >
-            {rentTypes?.map((property) => (
-              <MenuItem value={property.id} key={property.id}>
-                {property.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
       </Box>
       <ViewComponent
         inputs={dataInputs}
         formTitle={"انشاء عقد ايجار "}
         totalPages={totalPages}
-        rows={data?.sort((a, b) => (a.status === "ACTIVE" ? 1 : -1))}
+        rows={data}
         columns={columns}
         page={page}
         setPage={setPage}
@@ -519,7 +507,28 @@ const RentWrapper = ({ propperty }) => {
         submitFunction={submit}
         url={"main/rentAgreements"}
       ></ViewComponent>
-
+      <ViewComponent
+        inputs={dataInputs}
+        formTitle={"انشاء عقد ايجار "}
+        totalPages={nonRentedTotalPages}
+        rows={nonRentedData}
+        columns={columns}
+        page={nonRentedPage}
+        setPage={setNonRentedPage}
+        limit={nonRentedLimit}
+        setLimit={setNonRentedLimit}
+        id={id}
+        loading={nonRentedLoading}
+        setData={setNonRentedData}
+        setTotal={setNonRentedTotal}
+        total={nonRentedTotal}
+        noModal={true}
+        disabled={disabled}
+        reFetch={reFetch}
+        submitFunction={submit}
+        noTabs={true}
+        url={"main/rentAgreements"}
+      />
       <RenewRentModal
         open={renewModalOpen}
         handleClose={handleCloseRenewModal}

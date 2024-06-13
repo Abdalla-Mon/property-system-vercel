@@ -302,3 +302,61 @@ export async function getOwnersReport(page, limit, searchParams, params) {
     console.error("Error fetching owners' report data", error);
   }
 }
+
+export async function getPaymentsReport(page, limit, searchParams, params) {
+  const filters = searchParams.get("filters")
+    ? JSON.parse(searchParams.get("filters"))
+    : {};
+  const { unitIds, paymentTypes, paymentStatus } = filters;
+
+  try {
+    let whereCondition = {
+      unitId: { in: unitIds.map((id) => parseInt(id, 10)) },
+    };
+
+    if (paymentTypes && paymentTypes.length > 0) {
+      whereCondition.paymentType = { in: paymentTypes };
+    }
+
+    if (paymentStatus !== "ALL") {
+      whereCondition.status = paymentStatus === "PAID" ? "PAID" : "PENDING";
+    }
+
+    const payments = await prisma.payment.findMany({
+      where: whereCondition,
+      select: {
+        id: true,
+        paymentType: true,
+        amount: true,
+        paidAmount: true,
+        status: true,
+        unit: {
+          select: {
+            number: true,
+          },
+        },
+        rentAgreement: {
+          select: {
+            rentAgreementNumber: true,
+          },
+        },
+      },
+    });
+
+    console.log("Payments found:", payments);
+
+    const formattedPayments = payments.map((payment) => ({
+      paymentType: payment.paymentType,
+      isFullPaid: payment.amount === payment.paidAmount ? "نعم" : "لا",
+      paidAmount: payment.paidAmount,
+      amount: payment.amount,
+      unitNumber: payment.unit?.number,
+      rentAgreementNumber: payment.rentAgreement?.rentAgreementNumber,
+    }));
+
+    return { data: formattedPayments };
+  } catch (error) {
+    console.error("Error fetching payments report data", error);
+    return { data: [] }; // Ensure a consistent return format
+  }
+}
