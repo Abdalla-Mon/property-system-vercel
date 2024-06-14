@@ -235,7 +235,12 @@ const Payments = ({
           </Table>
         </TableContainer>
       )}
-      <PaymentModal id={id} modalInputs={modalInputs} submit={submit} />
+      <PaymentModal
+        id={id}
+        modalInputs={modalInputs}
+        submit={submit}
+        setId={setId}
+      />
     </Box>
   );
 };
