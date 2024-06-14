@@ -370,6 +370,7 @@ const PropertyComponent = ({ clientId, noTabs }) => {
               snackbarOpen={snackbarOpen}
               isEditing={isEditing}
               setIsEditing={setIsEditing}
+              resetNames={["units", "meters"]}
             />
             <ExtraForm
               setItems={setUnits}
@@ -384,6 +385,7 @@ const PropertyComponent = ({ clientId, noTabs }) => {
               snackbarOpen={snackbarOpen}
               isEditing={isEditing}
               setIsEditing={setIsEditing}
+              resetNames={["units", "meters"]}
             />
           </>
         )}

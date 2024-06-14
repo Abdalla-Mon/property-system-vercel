@@ -16,6 +16,8 @@ export async function getRentAgreements(page, limit, searchParams, params) {
   const whereClause = {};
   const propertyId = searchParams.get("propertyId");
   const rented = searchParams.get("rented");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   if (propertyId && propertyId !== "all") {
     whereClause.unit = {
@@ -24,9 +26,21 @@ export async function getRentAgreements(page, limit, searchParams, params) {
   }
 
   if (rented !== undefined) {
-    whereClause.status = rented === "true" ? "ACTIVE" : { not: "ACTIVE" };
+    if (rented === "true") {
+      whereClause.status = "ACTIVE";
+      whereClause.endDate = {
+        gt: today,
+      };
+    } else if (rented === "false") {
+      whereClause.status = { not: "ACTIVE" };
+    } else {
+      whereClause.status = "ACTIVE";
+      whereClause.endDate = {
+        lte: today,
+      };
+    }
   }
-
+  console.log(whereClause, "whereClause");
   const rentAgreements = await prisma.rentAgreement.findMany({
     skip: offset,
     take: limit,

@@ -307,7 +307,7 @@ const PaymentSection = ({
           </TableHead>
           <TableBody>
             {data?.map((item, index) => (
-              <React.Fragment key={item.id}>
+              <>
                 <PaymentRow
                   maintenance={maintenance}
                   item={item}
@@ -316,16 +316,23 @@ const PaymentSection = ({
                   showName
                   index={index + 1}
                   overdue={overdue}
+                  setOpenModal={setOpenModal}
+                  key={item.id}
                 />
                 {item.invoices && item.invoices.length > 0 && (
                   <InvoiceRows invoices={item.invoices} index={index + 1} />
                 )}
-              </React.Fragment>
+              </>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-      <PaymentModal id={id} modalInputs={modalInputs} submit={submit} />
+      <PaymentModal
+        id={id}
+        modalInputs={modalInputs}
+        submit={submit}
+        setId={setId}
+      />
     </Box>
   );
 };
@@ -337,8 +344,8 @@ const PaymentRow = ({
   index,
   maintenance,
   overdue,
+  setOpenModal,
 }) => {
-  const { setOpenModal } = useTableForm();
   const [paymentType, setPaymentType] = useState("CASH");
 
   async function getOwnerAccountData() {
@@ -477,7 +484,7 @@ const PaymentRow = ({
               setModalInputs(modalInputs);
               setTimeout(() => {
                 setOpenModal(true);
-              }, 50);
+              }, 100);
             }}
           >
             دفع

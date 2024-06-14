@@ -321,7 +321,7 @@ export async function getPaymentsReport(page, limit, searchParams, params) {
     if (paymentStatus !== "ALL") {
       whereCondition.status = paymentStatus === "PAID" ? "PAID" : "PENDING";
     }
-
+    console.log(whereCondition, "where");
     const payments = await prisma.payment.findMany({
       where: whereCondition,
       select: {

@@ -28,6 +28,7 @@ export const ExtraForm = ({
   formTitle,
   editPage = false,
   route,
+  resetNames = [],
 }) => {
   const { openModal } = useTableForm();
   useEffect(() => {
@@ -39,8 +40,20 @@ export const ExtraForm = ({
         ...isEditing,
         [name]: items.map((item) => false),
       });
+      setItems(items);
     }
   }, [openModal]);
+  useEffect(() => {
+    if (!items || items.length < 1) {
+      if (resetNames.length > 0) {
+        resetNames.forEach((name) => {
+          setIsEditing({ ...isEditing, [name]: [] });
+        });
+      } else {
+        setIsEditing({ ...isEditing, [name]: [] });
+      }
+    }
+  }, [items]);
   const handleAddItem = () => {
     const defaultValues = fields.reduce((acc, field) => {
       acc[field.id] = "";
@@ -51,7 +64,8 @@ export const ExtraForm = ({
 
     setIsEditing({ ...isEditing, [name]: [...isEditing[name], true] });
   };
-
+  console.log(isEditing, "isEditing");
+  console.log(items, "items");
   const handleRemoveItem = (index) => {
     const newItems = items.filter((_, i) => i !== index);
     setItems(newItems);

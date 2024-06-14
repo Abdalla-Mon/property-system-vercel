@@ -94,7 +94,7 @@ const MaintenanceWrapper = () => {
     const dataWithLabel = data.map((item) => {
       return {
         ...item,
-        name: item.unitId,
+        name: item.number,
       };
     });
 
@@ -222,16 +222,11 @@ const MaintenanceWrapper = () => {
 
   const columns = [
     {
-      field: "maintenanceNumber",
-      headerName: "رقم الصيانة",
+      field: "id",
+      headerName: "id ",
       width: 200,
       printable: true,
       cardWidth: 48,
-      renderCell: (params) => (
-        <Link href={"maintenance/" + params.row.id}>
-          <Button variant={"text"}>{params.row.maintenanceNumber}</Button>
-        </Link>
-      ),
     },
     {
       field: "propertyId",

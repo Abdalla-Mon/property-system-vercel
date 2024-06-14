@@ -61,7 +61,23 @@ const RentWrapper = ({ propperty }) => {
     search: nonRentedSearch,
     setSearch: setNonRentedSearch,
   } = useDataFetcher(`main/rentAgreements?rented=false&`);
-  const router = useRouter();
+  const {
+    data: expiredData,
+    loading: expiredLoading,
+    page: expiredPage,
+    setPage: setExpiredPage,
+    limit: expiredLimit,
+    setLimit: setExpiredLimit,
+    totalPages: expiredTotalPages,
+    setData: setExpiredData,
+    total: expiredTotal,
+    setTotal: setExpiredTotal,
+    setRender: setExpiredRender,
+    others: expiredOthers,
+    setOthers: setExpiredOthers,
+    search: expiredSearch,
+    setSearch: setExpiredSearch,
+  } = useDataFetcher(`main/rentAgreements?rented=expired&`);
   const { id, submitData } = useTableForm();
   const [propertyId, setPropertyId] = useState(null);
   const [properties, setProperties] = useState([]);
@@ -133,7 +149,7 @@ const RentWrapper = ({ propperty }) => {
     const dataWithLabel = data.map((item) => {
       return {
         ...item,
-        name: item.unitId,
+        name: item.number,
         disabled: item.rentAgreements?.some((rent) => rent.status === "ACTIVE"),
       };
     });
@@ -369,15 +385,27 @@ const RentWrapper = ({ propperty }) => {
       width: 200,
       printable: true,
       cardWidth: 48,
-      renderCell: (params) => (
-        <Typography
-          sx={{
-            color: params.row.status === "ACTIVE" ? "green" : "red",
-          }}
-        >
-          {StatusType[params.row.status]}
-        </Typography>
-      ),
+      renderCell: (params) => {
+        const today = new Date();
+        const endDate = new Date(params.row.endDate);
+
+        return (
+          <Typography
+            sx={{
+              color:
+                params.row.status === "ACTIVE" && endDate < today
+                  ? "purple"
+                  : params.row.status === "ACTIVE"
+                    ? "green"
+                    : "red",
+            }}
+          >
+            {params.row.status === "ACTIVE" && endDate < today
+              ? "يجب الغاءه"
+              : StatusType[params.row.status]}
+          </Typography>
+        );
+      },
     },
     {
       field: "startDate",
@@ -451,6 +479,7 @@ const RentWrapper = ({ propperty }) => {
   function handlePropertyFilterChange(event) {
     setOthers("propertyId=" + event.target.value);
     setNonRentedOthers("propertyId=" + event.target.value);
+    setExpiredOthers("propertyId=" + event.target.value);
   }
 
   return (
@@ -507,6 +536,28 @@ const RentWrapper = ({ propperty }) => {
         submitFunction={submit}
         url={"main/rentAgreements"}
       ></ViewComponent>
+      <ViewComponent
+        inputs={dataInputs}
+        formTitle={"انشاء عقد ايجار "}
+        totalPages={expiredTotalPages}
+        rows={expiredData}
+        columns={columns}
+        page={expiredPage}
+        setPage={setExpiredPage}
+        limit={expiredLimit}
+        setLimit={setExpiredLimit}
+        id={id}
+        loading={expiredLoading}
+        setData={setExpiredData}
+        setTotal={setExpiredTotal}
+        total={expiredTotal}
+        noModal={true}
+        disabled={disabled}
+        reFetch={reFetch}
+        submitFunction={submit}
+        noTabs={true}
+        url={"main/expiredRentAgreements"}
+      />
       <ViewComponent
         inputs={dataInputs}
         formTitle={"انشاء عقد ايجار "}

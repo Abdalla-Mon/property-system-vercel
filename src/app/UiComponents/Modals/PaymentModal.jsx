@@ -23,19 +23,26 @@ const modalStyle = (fullWidth) => ({
   overflow: "auto",
 });
 
-export function PaymentModal({ modalInputs, id, submit }) {
+export function PaymentModal({ modalInputs, id, submit, setId }) {
   const { openModal, setOpenModal } = useTableForm();
   const modelStyle = modalStyle(false);
   if (!id || !modalInputs) return;
   return (
     <>
-      <Modal open={openModal} onClose={() => setOpenModal(false)}>
+      <Modal
+        open={openModal}
+        onClose={() => {
+          setOpenModal(false);
+          if (setId) setId(null);
+        }}
+      >
         <Box sx={modelStyle}>
           <Form
             formTitle={"انشاء"}
             inputs={modalInputs}
             onSubmit={async (data) => {
               await submit(data);
+              if (setId) setId(null);
             }}
             variant={"outlined"}
             btnText={"انشاء"}
