@@ -1,4 +1,7 @@
 import prisma from "@/lib/prisma";
+import { PaymentStatus, PaymentType } from "@/app/constants/Enums";
+import { endOfDay, startOfDay } from "@/helpers/functions/dates";
+import { isBefore, isAfter, addMonths } from "date-fns"; // Make sure to import these functions
 
 export async function getReports(page, limit, searchParams, params) {
   const filters = searchParams.get("filters")
@@ -12,7 +15,8 @@ export async function getReports(page, limit, searchParams, params) {
     EXPIRED: "منتهي ",
     CANCELED: "ملغاة",
   };
-
+  const start = startOfDay(startDate);
+  const end = endOfDay(endDate);
   try {
     const properties = await prisma.property.findMany({
       where: { id: { in: propertyIds } },
@@ -53,11 +57,43 @@ export async function getReports(page, limit, searchParams, params) {
             },
           },
         },
+        maintenances: {
+          where: {
+            date: {
+              gte: start,
+              lte: end,
+            },
+          },
+          select: {
+            id: true,
+            description: true,
+            date: true,
+            unit: {
+              select: {
+                number: true,
+              },
+            },
+            payments: {
+              where: {
+                dueDate: {
+                  gte: start,
+                  lte: end,
+                },
+              },
+              select: {
+                amount: true,
+                paidAmount: true,
+                dueDate: true,
+                status: true,
+              },
+            },
+          },
+        },
         incomes: {
           where: {
             date: {
-              gte: new Date(startDate),
-              lte: new Date(endDate),
+              gte: start,
+              lte: end,
             },
           },
           select: {
@@ -69,8 +105,8 @@ export async function getReports(page, limit, searchParams, params) {
         expenses: {
           where: {
             date: {
-              gte: new Date(startDate),
-              lte: new Date(endDate),
+              gte: start,
+              lte: end,
             },
           },
           select: {
@@ -114,6 +150,18 @@ export async function getReports(page, limit, searchParams, params) {
             status: statusTranslations[agreement.status] || agreement.status,
           })),
         })),
+        maintenances: property.maintenances.map((maintenance) => ({
+          id: maintenance.id,
+          description: maintenance.description,
+          date: maintenance.date,
+          unit: maintenance.unit,
+          payments: maintenance.payments.map((payment) => ({
+            amount: payment.amount,
+            paidAmount: payment.paidAmount,
+            dueDate: payment.dueDate,
+            status: PaymentStatus[payment.status],
+          })),
+        })),
         income: property.incomes.map((income) => ({
           date: income.date,
           amount: income.amount,
@@ -138,6 +186,9 @@ export async function getMaintenanceReports(page, limit, searchParams, params) {
     ? JSON.parse(searchParams.get("filters"))
     : {};
   const { propertyIds, startDate, endDate } = filters;
+  const start = startOfDay(startDate);
+
+  const end = endOfDay(endDate);
   try {
     const properties = await prisma.property.findMany({
       where: {
@@ -149,10 +200,8 @@ export async function getMaintenanceReports(page, limit, searchParams, params) {
         maintenances: {
           where: {
             date: {
-              gte: new Date(startDate),
-              lte: new Date(
-                new Date(endDate).setDate(new Date(endDate).getDate()),
-              ),
+              gte: start,
+              lte: end,
             },
           },
           select: {
@@ -167,10 +216,8 @@ export async function getMaintenanceReports(page, limit, searchParams, params) {
             payments: {
               where: {
                 dueDate: {
-                  gte: new Date(startDate),
-                  lte: new Date(
-                    new Date(endDate).setDate(new Date(endDate).getDate()),
-                  ),
+                  gte: start,
+                  lte: end,
                 },
               },
               select: {
@@ -197,7 +244,8 @@ export async function getOwnersReport(page, limit, searchParams, params) {
     ? JSON.parse(searchParams.get("filters"))
     : {};
   const { ownerIds, startDate, endDate } = filters;
-
+  const start = startOfDay(startDate);
+  const end = endOfDay(endDate);
   try {
     const owners = await prisma.client.findMany({
       where: {
@@ -239,10 +287,8 @@ export async function getOwnersReport(page, limit, searchParams, params) {
             incomes: {
               where: {
                 date: {
-                  gte: new Date(startDate),
-                  lte: new Date(
-                    new Date(endDate).setDate(new Date(endDate).getDate() + 1),
-                  ),
+                  gte: start,
+                  lte: end,
                 },
               },
               select: {
@@ -253,10 +299,8 @@ export async function getOwnersReport(page, limit, searchParams, params) {
             expenses: {
               where: {
                 date: {
-                  gte: new Date(startDate),
-                  lte: new Date(
-                    new Date(endDate).setDate(new Date(endDate).getDate() + 1),
-                  ),
+                  gte: start,
+                  lte: end,
                 },
               },
               select: {
@@ -269,10 +313,8 @@ export async function getOwnersReport(page, limit, searchParams, params) {
         incomes: {
           where: {
             date: {
-              gte: new Date(startDate),
-              lte: new Date(
-                new Date(endDate).setDate(new Date(endDate).getDate() + 1),
-              ),
+              gte: start,
+              lte: end,
             },
           },
           select: {
@@ -283,10 +325,8 @@ export async function getOwnersReport(page, limit, searchParams, params) {
         expenses: {
           where: {
             date: {
-              gte: new Date(startDate),
-              lte: new Date(
-                new Date(endDate).setDate(new Date(endDate).getDate() + 1),
-              ),
+              gte: start,
+              lte: end,
             },
           },
           select: {
@@ -321,7 +361,6 @@ export async function getPaymentsReport(page, limit, searchParams, params) {
     if (paymentStatus !== "ALL") {
       whereCondition.status = paymentStatus === "PAID" ? "PAID" : "PENDING";
     }
-    console.log(whereCondition, "where");
     const payments = await prisma.payment.findMany({
       where: whereCondition,
       select: {
@@ -343,10 +382,8 @@ export async function getPaymentsReport(page, limit, searchParams, params) {
       },
     });
 
-    console.log("Payments found:", payments);
-
     const formattedPayments = payments.map((payment) => ({
-      paymentType: payment.paymentType,
+      paymentType: PaymentType[payment.paymentType],
       isFullPaid: payment.amount === payment.paidAmount ? "نعم" : "لا",
       paidAmount: payment.paidAmount,
       amount: payment.amount,
@@ -358,5 +395,123 @@ export async function getPaymentsReport(page, limit, searchParams, params) {
   } catch (error) {
     console.error("Error fetching payments report data", error);
     return { data: [] }; // Ensure a consistent return format
+  }
+}
+
+export async function getElectricMetersReports(
+  page,
+  limit,
+  searchParams,
+  params,
+) {
+  const filters = searchParams.get("filters")
+    ? JSON.parse(searchParams.get("filters"))
+    : {};
+  const { propertyIds } = filters;
+  try {
+    const properties = await prisma.property.findMany({
+      where: {
+        id: { in: propertyIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        electricityMeters: {
+          select: {
+            id: true,
+            meterId: true,
+            name: true,
+          },
+        },
+        units: {
+          select: {
+            id: true,
+            number: true,
+            electricityMeter: true,
+          },
+        },
+      },
+    });
+
+    return { data: properties };
+  } catch (error) {
+    console.error("Error fetching electric meters report data", error);
+  }
+}
+
+export async function getRentAgreementsReports(
+  page,
+  limit,
+  searchParams,
+  params,
+) {
+  const filters = searchParams.get("filters")
+    ? JSON.parse(searchParams.get("filters"))
+    : {};
+  const { propertyIds } = filters;
+  const today = new Date();
+  const nextMonth = addMonths(today, 1);
+
+  try {
+    const properties = await prisma.property.findMany({
+      where: {
+        id: { in: propertyIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        units: {
+          select: {
+            id: true,
+            number: true,
+            rentAgreements: {
+              select: {
+                id: true,
+                rentAgreementNumber: true,
+                startDate: true,
+                endDate: true,
+                status: true,
+                payments: {
+                  select: {
+                    amount: true,
+                    paidAmount: true,
+                    status: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Process rent agreements to add custom status
+    properties.forEach((property) => {
+      property.units.forEach((unit) => {
+        unit.rentAgreements.forEach((agreement) => {
+          if (agreement.status === "ACTIVE") {
+            if (isAfter(agreement.endDate, nextMonth)) {
+              agreement.customStatus = "نشط";
+            } else if (
+              isAfter(agreement.endDate, today) &&
+              isBefore(agreement.endDate, nextMonth)
+            ) {
+              agreement.customStatus = "نشط (قارب علي الانتهاء)";
+            } else if (isBefore(agreement.endDate, today)) {
+              agreement.customStatus = "بحاجه الي الغاءه";
+            }
+          } else if (agreement.status === "EXPIRED") {
+            agreement.customStatus = "ملغي";
+          } else {
+            agreement.customStatus = "غير فعال";
+          }
+        });
+      });
+    });
+
+    return { data: properties };
+  } catch (error) {
+    console.error("Error fetching rent agreements report data", error);
+    return { data: [] };
   }
 }

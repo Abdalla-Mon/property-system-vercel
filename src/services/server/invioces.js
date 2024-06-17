@@ -1,4 +1,6 @@
-import prisma from "@/lib/prisma"; // Adjust the path to your Prisma instance
+import prisma from "@/lib/prisma";
+import { endOfDay, startOfDay } from "@/helpers/functions/dates";
+import { endOfMonth, startOfMonth } from "date-fns"; // Adjust the path to your Prisma instance
 export async function createInvoice(data) {
   const invoice = await prisma.invoice.create({
     data: {
@@ -69,6 +71,55 @@ export async function createIncomeOrExpenseFromInvoice(invoice) {
     return { message: "", status: 200 };
   } catch (error) {
     console.error("Error paying invoice:", error);
+    throw error;
+  }
+}
+
+export async function getInvioces(page, limit, searchParams) {
+  const filters = searchParams.get("filters")
+    ? JSON.parse(searchParams.get("filters"))
+    : {};
+  const { unitIds, startDate, endDate } = filters;
+
+  const start = startDate ? new Date(startDate) : new Date();
+  const end = endDate ? new Date(endDate) : new Date();
+
+  try {
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        rentAgreement: {
+          unitId: {
+            in: unitIds.map((id) => parseInt(id)),
+          },
+        },
+        createdAt: {
+          gte: start,
+          lte: end,
+        },
+      },
+      include: {
+        rentAgreement: {
+          include: {
+            unit: {
+              include: {
+                property: true,
+              },
+            },
+            renter: true,
+          },
+        },
+        property: true,
+        renter: true,
+        owner: true,
+        payment: true,
+      },
+    });
+    return {
+      data: invoices,
+      status: 200,
+    };
+  } catch (error) {
+    console.error("Error fetching invoices:", error);
     throw error;
   }
 }

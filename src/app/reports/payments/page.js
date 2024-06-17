@@ -56,7 +56,7 @@ const PaymentsReport = () => {
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  console.log(reportData, "reported");
+
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
@@ -98,7 +98,9 @@ const PaymentsReport = () => {
     setSubmitLoading(true);
     const filters = {
       propertyId: selectedProperty,
-      unitIds: selectedUnits,
+      unitIds: selectedUnits.includes("ALL")
+        ? units.map((unit) => unit.id)
+        : selectedUnits,
       paymentTypes: selectedPaymentTypes,
       paymentStatus: selectedPaymentStatus,
     };
@@ -122,7 +124,7 @@ const PaymentsReport = () => {
   });
 
   const renderTable = (data, columns) => (
-    <TableContainer component={Paper}>
+    <TableContainer component={Paper} sx={{ mb: 4 }}>
       <Table>
         <TableHead>
           <TableRow>
@@ -146,7 +148,14 @@ const PaymentsReport = () => {
 
   if (loading) return <CircularProgress />;
   return (
-    <Container>
+    <Container
+      sx={{
+        p: {
+          xs: 0,
+          md: 1,
+        },
+      }}
+    >
       <Box sx={{ my: 4 }}>
         <Typography variant="h4" gutterBottom>
           إنشاء تقرير المدفوعات
@@ -171,6 +180,7 @@ const PaymentsReport = () => {
                 value={selectedUnits}
                 onChange={(e) => setSelectedUnits(e.target.value)}
               >
+                <MenuItem value="ALL">جميع الوحدات</MenuItem>
                 {units.map((unit) => (
                   <MenuItem key={unit.id} value={unit.id}>
                     {unit.label}
@@ -224,7 +234,25 @@ const PaymentsReport = () => {
             sx={{ mt: 4, p: 2, border: "1px solid #ddd" }}
             ref={componentRef}
           >
-            {renderTable(reportData, columnsPayments)}
+            {units
+              .filter(
+                (unit) =>
+                  selectedUnits.includes("ALL") ||
+                  selectedUnits.includes(unit.id),
+              )
+              .map((unit) => {
+                const unitPayments = reportData.filter(
+                  (payment) => payment.unitNumber === unit.number,
+                );
+                return (
+                  <div key={unit.id}>
+                    <Typography variant="h6" gutterBottom>
+                      الوحدة رقم: {unit.label}
+                    </Typography>
+                    {renderTable(unitPayments, columnsPayments)}
+                  </div>
+                );
+              })}
           </Box>
         )}
 

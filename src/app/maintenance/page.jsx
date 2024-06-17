@@ -11,7 +11,7 @@ import { submitMaintenance } from "@/services/client/maintenance";
 import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 import { Button } from "@mui/material";
 import Link from "next/link";
-import { StatusType } from "@/app/constants/Enums";
+import { PaymentStatus, StatusType } from "@/app/constants/Enums";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function MaintenancePage() {
@@ -218,6 +218,7 @@ const MaintenanceWrapper = () => {
     }
   }
 
+  console.log(data, "data");
   const { setLoading: setSubmitLoading } = useToastContext();
 
   const columns = [
@@ -266,7 +267,16 @@ const MaintenanceWrapper = () => {
       width: 200,
       printable: true,
       cardWidth: 48,
-      renderCell: (params) => <>{StatusType[params.row.status]}</>,
+      renderCell: (params) => {
+        const hasPendingPayment = params.row.payments?.some(
+          (payment) => payment.status === "PENDING",
+        );
+        return hasPendingPayment ? (
+          <span className={"text-red-600"}>{PaymentStatus.PENDING}</span>
+        ) : (
+          <span className="text-green-700">{PaymentStatus.PAID}</span>
+        );
+      },
     },
     {
       field: "date",

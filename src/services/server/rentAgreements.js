@@ -289,7 +289,7 @@ export async function getRentAgreementById(page, limit, serachParams, params) {
   }
 }
 
-// rent creation with invioces
+// rent creation with invoices
 export async function createRentAgreement(data) {
   try {
     const rentAgreementType = await prisma.RentAgreementType.findUnique({

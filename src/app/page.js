@@ -237,6 +237,11 @@ const Dashboard = () => {
         minHeight: 350,
         minWidth: 250,
         height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
         backgroundColor: backgroundColor || theme.palette.background.paper,
       }}
     >
@@ -247,17 +252,36 @@ const Dashboard = () => {
           </Typography>
         }
         sx={{
+          width: "100%",
           backgroundColor: theme.palette.primary.main,
           color: theme.palette.common.white,
+          textAlign: "center",
         }}
       />
-      <CardContent>{content}</CardContent>
+      <CardContent
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          height: "100%",
+        }}
+      >
+        {content}
+      </CardContent>
     </Card>
   );
 
   return (
-    <Container maxWidth="xl">
-      <Box sx={{ p: 3 }}>
+    <>
+      <Box
+        sx={{
+          p: {
+            xs: 1,
+            md: 3,
+          },
+        }}
+      >
         <Typography variant="h4" gutterBottom>
           لوحة الموقع
         </Typography>
@@ -415,7 +439,7 @@ const Dashboard = () => {
           </Grid>
         </Grid>
       </Box>
-    </Container>
+    </>
   );
 };
 

@@ -152,7 +152,7 @@ const MaintenanceReports = () => {
     };
 
     return (
-      <Box sx={{ width: "400px", height: "400px", margin: "auto" }}>
+      <Box sx={{ width: "100%", height: "400px", margin: "auto" }}>
         <Bar
           data={data}
           options={{
@@ -175,7 +175,14 @@ const MaintenanceReports = () => {
 
   if (loading) return <CircularProgress />;
   return (
-    <Container>
+    <Container
+      sx={{
+        p: {
+          xs: 0,
+          md: 1,
+        },
+      }}
+    >
       <Box sx={{ my: 4 }} ref={componentRef}>
         <Typography variant="h4" gutterBottom>
           إنشاء تقارير الصيانة

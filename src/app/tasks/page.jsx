@@ -58,7 +58,7 @@ const initialTasks = [
   },
   {
     title: "مدفوع كام وباقي كام لم يتم دفعه",
-    done: false,
+    done: true,
   },
   {
     title: "العقار ثم الوحدة ثم معرف الوحدة في جدول الوحدات ",

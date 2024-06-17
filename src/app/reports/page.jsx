@@ -78,6 +78,16 @@ const columnsRentAgreements = [
   { col: "الحالة", row: "status" },
 ];
 
+const columnsMaintenance = [
+  { col: "صيانة", row: "description" },
+  { col: "رقم الوحدة", row: "unitNumber" },
+  { col: "تاريخ الصيانة", row: "date" },
+  { col: "الحالة", row: "status" },
+  { col: "المبلغ", row: "amount" },
+  { col: "المبلغ المدفوع", row: "paidAmount" },
+  { col: "ميعاد الدفع", row: "dueDate" },
+];
+
 const Reports = () => {
   const [properties, setProperties] = useState([]);
   const [selectedProperties, setSelectedProperties] = useState([]);
@@ -182,7 +192,7 @@ const Reports = () => {
   );
 
   const renderComparisonChart = (income, expenses) => (
-    <Box sx={{ width: 400, height: 400, mx: "auto" }}>
+    <Box sx={{ width: "100%", height: 400, mx: "auto" }}>
       <Doughnut
         data={{
           labels: ["الدخل", "المصروفات"],
@@ -213,9 +223,15 @@ const Reports = () => {
   );
 
   if (loading) return <CircularProgress />;
-  console.log(reportData, "reportData");
   return (
-    <Container>
+    <Container
+      sx={{
+        p: {
+          xs: 0,
+          md: 1,
+        },
+      }}
+    >
       <Box sx={{ my: 4 }}>
         <Typography variant="h4" gutterBottom>
           إنشاء التقارير
@@ -318,6 +334,24 @@ const Reports = () => {
                 {renderTable(
                   property.units.flatMap((unit) => unit.rentAgreements),
                   columnsRentAgreements,
+                )}
+
+                <Typography variant="subtitle1" className={"mt-3"}>
+                  صيانة
+                </Typography>
+                {renderTable(
+                  property.maintenances.flatMap((maintenance) =>
+                    maintenance.payments.map((payment) => ({
+                      description: maintenance.description,
+                      date: maintenance.date,
+                      amount: payment.amount,
+                      paidAmount: payment.paidAmount,
+                      dueDate: payment.dueDate,
+                      status: payment.status,
+                      unitNumber: maintenance.unit.number,
+                    })),
+                  ),
+                  columnsMaintenance,
                 )}
 
                 <Grid container spacing={2} sx={{ mt: 4 }}>

@@ -169,7 +169,7 @@ const Reports = () => {
   );
 
   const renderComparisonChart = (income, expenses) => (
-    <Box sx={{ width: 400, height: 400, mx: "auto" }}>
+    <Box sx={{ width: "100%", height: 400, mx: "auto" }}>
       <Doughnut
         data={{
           labels: ["الدخل", "المصروفات"],
@@ -210,7 +210,7 @@ const Reports = () => {
   };
 
   const renderTotalChart = (income, expenses) => (
-    <Box sx={{ width: 400, height: 400, mx: "auto", mt: 4 }}>
+    <Box sx={{ width: "100%", height: 400, mx: "auto", mt: 4 }}>
       <Doughnut
         data={{
           labels: ["إجمالي الدخل", "إجمالي المصروفات"],
@@ -239,7 +239,14 @@ const Reports = () => {
 
   if (loading) return <CircularProgress />;
   return (
-    <Container>
+    <Container
+      sx={{
+        p: {
+          xs: 0,
+          md: 1,
+        },
+      }}
+    >
       <Box sx={{ my: 4 }}>
         <Typography variant="h4" gutterBottom>
           إنشاء تقارير الملاك
