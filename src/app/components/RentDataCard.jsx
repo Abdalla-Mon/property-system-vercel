@@ -53,10 +53,10 @@ export const DataCard = ({ data }) => {
           spacing={2}
         >
           <GridRow
-            label="الوحدة"
+            label="رقم الوحدة"
             value={
               <Button variant="text" color="primary">
-                <Link href={`/units/${data.unit.id}`}>{data.unit.unitId}</Link>
+                <Link href={`/units/${data.unit.id}`}>{data.unit.number}</Link>
               </Button>
             }
           />

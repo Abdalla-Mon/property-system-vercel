@@ -156,5 +156,6 @@ const InvoicePrint = forwardRef(({ invoice }, ref) => {
     </div>
   );
 });
+InvoicePrint.displayName = "InvoicePrint";
 
 export default InvoicePrint;

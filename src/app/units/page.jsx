@@ -103,13 +103,7 @@ const PropertyWrapper = () => {
         </Link>
       ),
     },
-    {
-      field: "unitId",
-      headerName: "معرف الوحده",
-      width: 200,
-      printable: true,
-      cardWidth: 48,
-    },
+
     {
       field: "property",
       headerName: "العقار",

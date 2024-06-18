@@ -329,15 +329,15 @@ const PropertyWrapper = ({ urlId }) => {
     },
 
     {
-      field: "unitId",
-      headerName: "معرف الوحده",
+      field: "number",
+      headerName: "رقم الوحدة",
       width: 200,
       printable: true,
       cardWidth: 48,
     },
     {
-      field: "number",
-      headerName: "رقم الوحدة",
+      field: "unitId",
+      headerName: "معرف الوحده",
       width: 200,
       printable: true,
       cardWidth: 48,
