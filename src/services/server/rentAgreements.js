@@ -783,3 +783,21 @@ export async function getEndingRentAgreements() {
     throw error;
   }
 }
+
+export async function updateRentAgreementInstallmentsPaymentsData(data) {
+  console.log(data, "data");
+  const payments = data;
+  const updatedPayments = [];
+  for (const payment of payments) {
+    const updatedPayment = await prisma.payment.update({
+      where: { id: payment.id },
+      data: { amount: payment.amount },
+    });
+    updatedPayments.push(updatedPayment);
+  }
+  return {
+    data: updatedPayments,
+    message: "تم تحديث الدفعات بنجاح",
+    status: 200,
+  };
+}

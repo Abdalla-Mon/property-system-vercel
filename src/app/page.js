@@ -329,7 +329,7 @@ const Dashboard = () => {
               ) : (
                 renderBarChart(
                   expenses?.map((expense) => ({
-                    label: new Date(expense.date).toLocaleDateString("ar-EG"),
+                    label: new Date(expense.date).toLocaleDateString("ar-AE"),
                     value: expense.amount,
                   })),
                   "المصاريف",
@@ -347,7 +347,7 @@ const Dashboard = () => {
               ) : (
                 renderBarChart(
                   income.map((inc) => ({
-                    label: new Date(inc.date).toLocaleDateString("ar-EG"),
+                    label: new Date(inc.date).toLocaleDateString("ar-AE"),
                     value: inc.amount,
                   })),
                   "الدخل",

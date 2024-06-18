@@ -17,6 +17,10 @@ import {
   TableRow,
   Paper,
   TableFooter,
+  Modal,
+  Snackbar,
+  Alert,
+  TextField,
 } from "@mui/material";
 
 import dayjs from "dayjs";
@@ -34,6 +38,7 @@ import { RenewRentModal } from "@/app/UiComponents/Modals/RenewRent";
 import { rentAgreementInputs } from "@/app/rent/rentInputs";
 import { useRouter } from "next/navigation";
 import { submitRentAgreement } from "@/services/client/createRentAgreement";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
 
 export default function PropertyPage({ params }) {
   const id = params.id;
@@ -136,7 +141,11 @@ const Payments = ({
   const [id, setId] = useState(null);
   const [modalInputs, setModalInputs] = useState([]);
   const { setOpenModal } = useTableForm();
-
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editPayments, setEditPayments] = useState([]);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const { setLoading: setEditLoading } = useToastContext();
   useEffect(() => {
     async function fetchData() {
       const data = await getData({ url: url, setLoading, others: "" });
@@ -145,6 +154,58 @@ const Payments = ({
 
     fetchData();
   }, []);
+
+  const handleEditOpen = () => {
+    setEditPayments(data);
+    setEditModalOpen(true);
+  };
+
+  const handleEditClose = () => {
+    setEditModalOpen(false);
+  };
+
+  const handleEditSave = async () => {
+    const totalAmount = rentData.totalPrice;
+    const editedTotal = editPayments.reduce(
+      (acc, payment) => acc + payment.amount,
+      0,
+    );
+
+    if (totalAmount !== editedTotal) {
+      setSnackbarMessage(
+        `المجموع المعدل ${editedTotal} لا يساوي إجمالي المبلغ ${totalAmount}`,
+      );
+      setSnackbarOpen(true);
+      return;
+    }
+
+    try {
+      const res = await handleRequestSubmit(
+        editPayments,
+        setEditLoading,
+        "main/rentAgreements/" + rentData.id + "/edit",
+        false,
+        "جاري تحديث الدفعات...",
+      );
+
+      if (res) {
+        setData(res.data);
+        setEditModalOpen(false);
+        setSnackbarMessage("تم تحديث الدفعات بنجاح!");
+        setSnackbarOpen(true);
+      } else {
+        console.error("Failed to update payments");
+      }
+    } catch (error) {
+      console.error("Failed to update payments", error);
+    }
+  };
+
+  const handleEditChange = (index, value) => {
+    const updatedPayments = [...editPayments];
+    updatedPayments[index].amount = parseFloat(value);
+    setEditPayments(updatedPayments);
+  };
 
   const { setLoading: setSubmitLoading } = useToastContext();
 
@@ -185,6 +246,11 @@ const Payments = ({
       <Typography variant="h5" gutterBottom>
         {heading}
       </Typography>
+      {heading === "الدفعات" && (
+        <Button variant="contained" color="primary" onClick={handleEditOpen}>
+          تعديل الدفعات
+        </Button>
+      )}
       {loading ? (
         <div>loading...</div>
       ) : (
@@ -225,9 +291,11 @@ const Payments = ({
                 <TableCell colSpan={9}>
                   <Typography variant="body2" align="center">
                     إجمالي المدفوعات:{" "}
-                    {data
-                      .reduce((acc, item) => acc + item.paidAmount, 0)
-                      .toFixed(2)}
+                    {formatCurrencyAED(
+                      data
+                        .reduce((acc, item) => acc + item.paidAmount, 0)
+                        .toFixed(2),
+                    )}
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -241,6 +309,64 @@ const Payments = ({
         submit={submit}
         setId={setId}
       />
+
+      <Modal
+        open={editModalOpen}
+        onClose={handleEditClose}
+        aria-labelledby="edit-payments-modal"
+        aria-describedby="edit-payments-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 600,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 1,
+          }}
+        >
+          <Typography id="edit-payments-modal" variant="h6" component="h2">
+            تعديل الدفعات
+          </Typography>
+          {editPayments.map((payment, index) => (
+            <Box key={payment.id} sx={{ my: 2 }}>
+              <TextField
+                label={`دفعة ${index + 1}`}
+                value={payment.amount}
+                onChange={(e) => handleEditChange(index, e.target.value)}
+                fullWidth
+                type="number"
+                InputProps={{
+                  inputProps: { min: 0 },
+                  readOnly: payment.status === "PAID", // Disable the input if the payment is fully paid
+                }}
+              />
+            </Box>
+          ))}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleEditSave}
+            sx={{ mt: 2 }}
+          >
+            حفظ
+          </Button>
+        </Box>
+      </Modal>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="error">
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
@@ -348,9 +474,11 @@ const PaymentRow = ({ item, setModalInputs, setId, index, showName }) => {
       <TableCell>{index}</TableCell>
       <TableCell>{dayjs(item.dueDate).format("DD/MM/YYYY")}</TableCell>
       {showName && <TableCell>{item.title}</TableCell>}
-      <TableCell>{item.amount.toFixed(2)}</TableCell>
-      <TableCell>{item.paidAmount.toFixed(2)}</TableCell>
-      <TableCell>{(item.amount - item.paidAmount).toFixed(2)}</TableCell>
+      <TableCell>{formatCurrencyAED(item.amount.toFixed(2))}</TableCell>
+      <TableCell>{formatCurrencyAED(item.paidAmount.toFixed(2))}</TableCell>
+      <TableCell>
+        {formatCurrencyAED((item.amount - item.paidAmount).toFixed(2))}
+      </TableCell>
       <TableCell>{PaymentType[item.paymentType]}</TableCell>
       <TableCell>
         <Typography
@@ -404,7 +532,6 @@ const InvoiceRows = ({ invoices, index }) => {
           }}
         >
           <Typography variant="h6"> {index}</Typography>
-          {/*<Typography variant="body2">رقم الفاتورة {invoice.id}</Typography>*/}
           <Typography variant="body2">
             تاريخ الدفع: {dayjs(invoice.createdAt).format("DD/MM/YYYY")}
           </Typography>
@@ -539,7 +666,7 @@ const CancelRent = ({ data, setData }) => {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelData, setCancelData] = useState(null);
   const { setLoading: setSubmitLoading } = useToastContext();
-
+  const router = useRouter();
   const handleOpenCancelModal = (rentData) => {
     setCancelData(rentData);
     setCancelModalOpen(true);
@@ -601,6 +728,14 @@ const RenewRent = ({ data, setData }) => {
   const [renewModalOpen, setRenewModalOpen] = useState(false);
   const [renewData, setRenewData] = useState(null);
   const { setLoading: setSubmitLoading } = useToastContext();
+  const [propertyId, setPropertyId] = useState(data.unit.property.id);
+  const [disabled, setDisabled] = useState({
+    unitId: false,
+  });
+  const [reFetch, setRefetch] = useState({
+    unitId: false,
+  });
+
   const router = useRouter();
 
   const handleOpenRenewModal = (rentData) => {

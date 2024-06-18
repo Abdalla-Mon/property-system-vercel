@@ -1,6 +1,7 @@
 // services/maintenanceService.js
 import prisma from "@/lib/prisma";
 import { convertToISO } from "@/helpers/functions/convertDateToIso";
+import { startOfDay, endOfDay } from "@/helpers/functions/dates";
 
 const PayEvery = {
   ONCE: 1,
@@ -225,12 +226,36 @@ export async function createMaintenenceInstallmentsAndPayments(data) {
   }
 }
 
-export async function getMaintenances(page, limit) {
+export async function getMaintenances(page, limit, searchParams) {
   const offset = (page - 1) * limit;
+  const filters = searchParams.get("filters")
+    ? JSON.parse(searchParams.get("filters"))
+    : {};
+  const { propertyId, startDate, endDate } = filters;
+  console.log(propertyId, "propertyId");
+  const where = {};
+  if (propertyId) {
+    where.propertyId = parseInt(propertyId);
+  }
+  if (startDate && endDate) {
+    where.date = {
+      gte: new Date(startDate),
+      lte: new Date(endDate),
+    };
+  } else if (startDate) {
+    where.date = {
+      gte: new Date(startDate),
+    };
+  } else if (endDate) {
+    where.date = {
+      lte: new Date(endDate),
+    };
+  }
 
   const maintenances = await prisma.maintenance.findMany({
     skip: offset,
     take: limit,
+    where,
     include: {
       property: true,
       unit: true,
@@ -239,7 +264,9 @@ export async function getMaintenances(page, limit) {
       installments: true,
     },
   });
-  const total = await prisma.maintenance.count();
+
+  const total = await prisma.maintenance.count({ where });
+
   return {
     data: maintenances,
     page,

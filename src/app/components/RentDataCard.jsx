@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import dayjs from "dayjs";
 import { RentCollectionType, StatusType } from "@/app/constants/Enums";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
 
 export const DataCard = ({ data }) => {
   const componentRef = useRef();
@@ -95,20 +96,29 @@ export const DataCard = ({ data }) => {
           />
           <GridRow
             label={"سعر عقد الايجار سنويا  قبل الخصم"}
-            value={data.totalContractPrice}
+            value={formatCurrencyAED(data.totalContractPrice)}
           />
           <GridRow
             label="الخصم"
-            value={data.totalContractPrice - data.totalPrice}
+            value={formatCurrencyAED(data.totalContractPrice - data.totalPrice)}
           />
-          <GridRow label="سعر عقد الايجار سنويا " value={data.totalPrice} />
-          <GridRow label="الضريبة" value={data.tax} />
+          <GridRow
+            label="سعر عقد الايجار سنويا "
+            value={formatCurrencyAED(data.totalPrice)}
+          />
+          <GridRow label="الضريبة" value={data.tax + "%"} />
           <GridRow
             label="قمية الضريبه"
-            value={(data.tax * data.totalPrice) / 100}
+            value={formatCurrencyAED((data.tax * data.totalPrice) / 100)}
           />
-          <GridRow label="التأمين" value={data.insuranceFees} />
-          <GridRow label="رسوم التسجيل" value={data.registrationFees} />
+          <GridRow
+            label="التأمين"
+            value={formatCurrencyAED(data.insuranceFees)}
+          />
+          <GridRow
+            label="رسوم التسجيل"
+            value={formatCurrencyAED(data.registrationFees)}
+          />
           <GridRow label="الحالة" value={StatusType[data.status]} />
           <GridRow />
           <GridRow
@@ -137,13 +147,13 @@ export const DataCard = ({ data }) => {
 
           <GridRow
             label="المبلغ الكلي"
-            value={
+            value={formatCurrencyAED(
               data.totalPrice +
-              (data.tax * data.totalPrice) / 100 +
-              data.insuranceFees +
-              data.registrationFees +
-              contractExpensesTotalPrice(data.contractExpenses)
-            }
+                (data.tax * data.totalPrice) / 100 +
+                data.insuranceFees +
+                data.registrationFees +
+                contractExpensesTotalPrice(data.contractExpenses),
+            )}
           />
         </Box>
 

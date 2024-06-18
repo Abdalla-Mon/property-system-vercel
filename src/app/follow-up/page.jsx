@@ -32,6 +32,8 @@ import Link from "next/link"; // Import the new service function
 import "moment/locale/ar";
 import { TableLoading } from "@/app/UiComponents/loaders/TableLoading"; // Import Arabic locale for moment
 
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
+
 moment.locale("ar"); // Set moment locale globally to Arabic
 const localizer = momentLocalizer(moment);
 
@@ -115,7 +117,9 @@ const HomePage = () => {
 
   const events = [...rent, ...maintenance, ...other, ...overdue].map(
     (payment) => ({
-      title: `دفعة ${PaymentType[payment.paymentType]} خاصة بالوحدة رقم ${payment.rentAgreement?.unit.number || payment.unit?.number} للعقار ${payment.property?.name}`,
+      title: `دفعة ${PaymentType[payment.paymentType]} خاصة بالوحدة رقم ${
+        payment.rentAgreement?.unit.number || payment.unit?.number
+      } للعقار ${payment.property?.name}`,
       start: new Date(payment.dueDate),
       end: new Date(payment.dueDate),
       allDay: true,
@@ -374,7 +378,9 @@ const PaymentRow = ({
         },
         max: {
           value: item.amount - item.paidAmount,
-          message: `القيمة المراد دفعها يجب أن تكون أقل من ${item.amount - item.paidAmount} والتي هي القيمة المتبقية لهذه الدفعة`,
+          message: `القيمة المراد دفعها يجب أن تكون أقل من ${
+            item.amount - item.paidAmount
+          } والتي هي القيمة المتبقية لهذه الدفعة`,
         },
       },
     },
@@ -446,9 +452,11 @@ const PaymentRow = ({
     <TableRow hover sx={{ backgroundColor: "inherit" }}>
       <TableCell>{index}</TableCell>
       <TableCell>{dayjs(item.dueDate).format("DD/MM/YYYY")}</TableCell>
-      <TableCell>{item.amount}</TableCell>
-      <TableCell>{item.paidAmount.toFixed(2)}</TableCell>
-      <TableCell>{(item.amount - item.paidAmount).toFixed(2)}</TableCell>
+      <TableCell>{formatCurrencyAED(item.amount)}</TableCell>
+      <TableCell>{formatCurrencyAED(item.paidAmount.toFixed(2))}</TableCell>
+      <TableCell>
+        {formatCurrencyAED((item.amount - item.paidAmount).toFixed(2))}
+      </TableCell>
       <TableCell>{PaymentType[item.paymentType]}</TableCell>
       <TableCell>
         <Typography
@@ -513,7 +521,9 @@ const InvoiceRows = ({ invoices, index }) => {
           <Typography variant="body2">
             تاريخ الدفع: {dayjs(invoice.createdAt).format("DD/MM/YYYY")}
           </Typography>
-          <Typography variant="body2">القيمة: {invoice.amount}</Typography>
+          <Typography variant="body2">
+            القيمة: {formatCurrencyAED(invoice.amount)}
+          </Typography>
           <Typography variant="body2">
             طريقة الدفع:{" "}
             {invoice.paymentTypeMethod === "CASH" ? "كاش" : "تحويل بنكي"}
@@ -598,6 +608,7 @@ const createInputs = [
     },
   },
 ];
+
 const EndingAgreementsSection = ({
   agreements,
   heading,

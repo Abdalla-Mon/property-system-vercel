@@ -8,16 +8,6 @@ import { useEffect, useRef } from "react";
 export function MuiDatePicker({ control, input, errors, watch, setValue }) {
   const inputData = input.data;
   dayjs.locale("en-gb");
-  // const watchedDate = watch(input.watchData);
-
-  // useEffect(() => {
-  //   if (watchedDate) {
-  //     if (input.handleWatch) {
-  //       input.handleWatch(watchedDate, setValue);
-  //     }
-  //   }
-  // }, [watchedDate]);
-
   return (
     <FormControl
       fullWidth
@@ -47,7 +37,7 @@ export function MuiDatePicker({ control, input, errors, watch, setValue }) {
                 error: !!error,
                 helperText: error ? input.pattern.message : "",
                 inputProps: {
-                  placeholder: "DD/MM/YYYY", // Placeholder format
+                  placeholder: "DD/MM/YYYY",
                 },
               },
             }}

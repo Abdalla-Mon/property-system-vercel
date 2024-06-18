@@ -10,6 +10,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { unitInputs } from "@/app/units/unitInputs";
 import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
 
 export default function PropertyPage() {
   return (
@@ -142,6 +143,9 @@ const PropertyWrapper = () => {
       width: 200,
       printable: true,
       cardWidth: 48,
+      renderCell: (params) => (
+        <>{formatCurrencyAED(params.row.yearlyRentPrice)}</>
+      ),
     },
     {
       field: "electricityMeter",

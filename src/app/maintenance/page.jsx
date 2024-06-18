@@ -9,10 +9,25 @@ import { maintenanceInputs } from "./maintenanceInputs";
 import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
 import { submitMaintenance } from "@/services/client/maintenance";
 import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
-import { Button } from "@mui/material";
+import {
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
 import Link from "next/link";
 import { PaymentStatus, StatusType } from "@/app/constants/Enums";
 import { useRouter, useSearchParams } from "next/navigation";
+import Box from "@mui/material/Box";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import "dayjs/locale/ar";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic"; // Import Arabic locale for dayjs
+dayjs.locale("ar"); // Set dayjs to use Arabic locale
 
 export default function MaintenancePage() {
   return (
@@ -35,12 +50,17 @@ const MaintenanceWrapper = () => {
     total,
     setTotal,
     setRender,
+    setFilters,
   } = useDataFetcher("main/maintenance");
   const { id, submitData } = useTableForm();
   const [propertyId, setPropertyId] = useState(null);
   const [propertiesData, setPropertiesData] = useState(null);
+  const [selectProperties, setSelectProperties] = useState([]);
   const [unitData, setUnitData] = useState(null);
+  const [startDate, setStartDate] = useState(dayjs().startOf("month"));
+  const [endDate, setEndDate] = useState(dayjs().endOf("month"));
   const [typesData, setTypesData] = useState(null);
+  const [selectProperty, setSelectProperty] = useState(null);
   const [disabled, setDisabled] = useState({
     unitId: true,
   });
@@ -49,6 +69,15 @@ const MaintenanceWrapper = () => {
   });
   const router = useRouter();
   const [extraData, setExtraData] = useState({});
+
+  useEffect(() => {
+    async function get() {
+      const properties = await getProperties();
+      setSelectProperties(properties.data);
+    }
+
+    get();
+  }, []);
   useEffect(() => {
     const currentProperty = propertiesData?.find(
       (property) => property.id === +propertyId,
@@ -60,6 +89,24 @@ const MaintenanceWrapper = () => {
       });
     }
   }, [propertyId]);
+  const handleDateChange = (type, date) => {
+    if (type === "start") {
+      setStartDate(date);
+    } else {
+      setEndDate(date);
+    }
+  };
+  const handlePropertySelectChange = (e) => {
+    setSelectProperty(e.target.value);
+  };
+  const handleFilter = async () => {
+    const filters = {
+      propertyId: selectProperty,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    };
+    setFilters(filters);
+  };
 
   async function getProperties() {
     const res = await fetch("/api/fast-handler?id=properties");
@@ -218,7 +265,6 @@ const MaintenanceWrapper = () => {
     }
   }
 
-  console.log(data, "data");
   const { setLoading: setSubmitLoading } = useToastContext();
 
   const columns = [
@@ -294,6 +340,7 @@ const MaintenanceWrapper = () => {
       width: 200,
       printable: true,
       cardWidth: 48,
+      renderCell: (params) => <>{formatCurrencyAED(params.row.totalPrice)}</>,
     },
     {
       field: "actions",
@@ -321,6 +368,40 @@ const MaintenanceWrapper = () => {
   }
   return (
     <>
+      <Box sx={{ display: "flex", gap: 2, mb: 4 }}>
+        <FormControl fullWidth>
+          <InputLabel>العقارات</InputLabel>
+          <Select value={selectProperty} onChange={handlePropertySelectChange}>
+            <MenuItem value="">
+              <em>جميع العقارات</em>
+            </MenuItem>
+            {selectProperties.map((property) => (
+              <MenuItem key={property.id} value={property.id}>
+                {property.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            label="تاريخ البدء"
+            value={startDate}
+            onChange={(date) => handleDateChange("start", date)}
+            renderInput={(params) => <TextField {...params} />}
+            format="DD/MM/YYYY"
+          />
+          <DatePicker
+            label="تاريخ الانتهاء"
+            value={endDate}
+            onChange={(date) => handleDateChange("end", date)}
+            renderInput={(params) => <TextField {...params} />}
+            format="DD/MM/YYYY"
+          />
+        </LocalizationProvider>
+        <Button variant="contained" color="primary" onClick={handleFilter}>
+          تطبيق الفلاتر
+        </Button>
+      </Box>
       <ViewComponent
         inputs={dataInputs}
         formTitle={"إنشاء صيانة"}

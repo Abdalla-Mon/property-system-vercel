@@ -179,7 +179,7 @@ const Reports = () => {
             <TableRow key={index}>
               {columns.map((col) => (
                 <TableCell key={col.row}>
-                  {col.row.includes("Date")
+                  {col.row.includes("date") || col.row.includes("Date")
                     ? new Date(row[col.row]).toLocaleDateString()
                     : row[col.row]}
                 </TableCell>

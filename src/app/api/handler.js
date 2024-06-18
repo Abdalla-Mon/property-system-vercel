@@ -37,7 +37,7 @@ export function createHandler({
           status: 200,
         });
       } catch (e) {
-        console.log(e);
+        console.log(e.message);
         return Response.json({
           status: 500,
           message: e.message,

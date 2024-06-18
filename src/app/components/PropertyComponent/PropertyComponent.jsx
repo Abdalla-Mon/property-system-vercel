@@ -11,6 +11,7 @@ import { submitRentAgreement } from "@/services/client/createRentAgreement";
 import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
 import { submitProperty } from "@/services/client/properties";
 import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
 
 const PropertyComponent = ({ clientId, noTabs }) => {
   const {
@@ -273,6 +274,9 @@ const PropertyComponent = ({ clientId, noTabs }) => {
       width: 200,
       printable: true,
       cardWidth: 48,
+      renderCell: (params) => (
+        <>{params.row.price ? formatCurrencyAED(params.row.price) : 0}</>
+      ),
     },
 
     {

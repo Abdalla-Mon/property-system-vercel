@@ -15,6 +15,7 @@ import { CreateModal } from "@/app/UiComponents/Modals/CreateModal";
 import useEditState from "@/helpers/hooks/useEditState";
 import { getChangedFields } from "@/helpers/functions/getChangedFields";
 import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
 
 export default function PropertyPage({ params }) {
   const id = params.id;
@@ -355,6 +356,9 @@ const PropertyWrapper = ({ urlId }) => {
       width: 200,
       printable: true,
       cardWidth: 48,
+      renderCell: (params) => (
+        <>{formatCurrencyAED(params.row.yearlyRentPrice)}</>
+      ),
     },
     {
       field: "client",

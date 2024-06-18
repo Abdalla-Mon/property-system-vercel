@@ -16,7 +16,8 @@ import { Box, Button, FormControl, Select, Typography } from "@mui/material";
 import Link from "next/link";
 import { StatusType } from "@/app/constants/Enums";
 import MenuItem from "@mui/material/MenuItem";
-import { useRouter } from "next/navigation"; // Import the CancelRentModal
+import { useRouter } from "next/navigation";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic"; // Import the CancelRentModal
 export default function PropertyPage({ searchParams }) {
   const propertyId = searchParams?.propertyId;
   return (
@@ -433,6 +434,7 @@ const RentWrapper = ({ propperty }) => {
       width: 200,
       printable: true,
       cardWidth: 48,
+      renderCell: (params) => <>{formatCurrencyAED(params.row.totalPrice)}</>,
     },
     {
       field: "actions",
@@ -496,7 +498,7 @@ const RentWrapper = ({ propperty }) => {
         }}
       >
         <FormControl sx={{ mb: 2, maxWidth: 300 }}>
-          <Typography variant="h6">عقود الايجار لوحدة معينه</Typography>
+          <Typography variant="h6">عقود الايجار لعقار معين</Typography>
           <Select
             value={others.split("=")[1] || "all"}
             onChange={handlePropertyFilterChange}

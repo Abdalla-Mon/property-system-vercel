@@ -123,3 +123,22 @@ export async function getInvioces(page, limit, searchParams) {
     throw error;
   }
 }
+
+export async function updateInvoice(id, data) {
+  const { title, description } = data;
+  try {
+    const invoice = await prisma.invoice.update({
+      where: {
+        id: +id,
+      },
+      data: {
+        title,
+        description,
+      },
+    });
+    return invoice;
+  } catch (error) {
+    console.error("Error updating invoice:", error);
+    throw error;
+  }
+}

@@ -97,7 +97,7 @@ export const propertyInputs = [
     data: {
       id: "stateId",
       type: "select",
-      label: "المحافظه",
+      label: "الاماره",
       name: "stateId",
     },
     createData: stateInputs,
@@ -180,7 +180,7 @@ export const propertyInputs = [
         data: {
           id: "name",
           type: "text",
-          label: "اسم المنطقه",
+          label: "اسم الحي",
           name: "name",
         },
       },
