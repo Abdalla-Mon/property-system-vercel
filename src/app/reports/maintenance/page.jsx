@@ -20,7 +20,6 @@ import {
   TableRow,
   Paper,
   TextField,
-  Grid,
 } from "@mui/material";
 import { Bar } from "react-chartjs-2";
 import {
@@ -183,7 +182,7 @@ const MaintenanceReports = () => {
         },
       }}
     >
-      <Box sx={{ my: 4 }} ref={componentRef}>
+      <Box sx={{ my: 4 }}>
         <Typography variant="h4" gutterBottom>
           إنشاء تقارير الصيانة
         </Typography>
@@ -228,7 +227,9 @@ const MaintenanceReports = () => {
         >
           {submitLoading ? <CircularProgress size={24} /> : "إنشاء التقرير"}
         </Button>
+      </Box>
 
+      <Box ref={componentRef}>
         {reportData && (
           <Box sx={{ mt: 4, p: 2, border: "1px solid #ddd" }}>
             {reportData.map((property) => {
@@ -273,20 +274,21 @@ const MaintenanceReports = () => {
             })}
           </Box>
         )}
-
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={() => setSnackbarOpen(false)}
-        >
-          <Alert onClose={() => setSnackbarOpen(false)} severity="success">
-            تم إنشاء التقرير بنجاح!
-          </Alert>
-        </Snackbar>
-        <Button variant="contained" color="secondary" onClick={handlePrint}>
-          طباعة التقرير
-        </Button>
       </Box>
+
+      <Button variant="contained" color="secondary" onClick={handlePrint}>
+        طباعة التقرير
+      </Button>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success">
+          تم إنشاء التقرير بنجاح!
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
