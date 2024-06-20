@@ -61,6 +61,12 @@ export async function getRentPaymentsForCurrentMonth(
       },
       include: {
         installment: true,
+        maintenance: {
+          select: {
+            description: true,
+            type: true,
+          },
+        },
         property: {
           select: {
             name: true,

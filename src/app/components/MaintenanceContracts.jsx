@@ -70,7 +70,7 @@ export const maintenanceContractInputs = [
     data: {
       id: "cost",
       type: "number",
-      label: "مبلغ كل الدفعه",
+      label: "مبلغ كل دفعه",
       name: "cost",
     },
     pattern: {
@@ -90,13 +90,13 @@ export const maintenanceContractInputs = [
     data: {
       id: "date",
       type: "date",
-      label: "تاريخ الصيانة",
+      label: "تاريخ تسجيل الصيانة",
       name: "date",
     },
     pattern: {
       required: {
         value: true,
-        message: "يرجى إدخال تاريخ الصيانة",
+        message: "يرجى إدخال تاريخ تسجيل الصيانة",
       },
     },
     sx: {

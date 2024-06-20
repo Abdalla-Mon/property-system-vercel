@@ -232,6 +232,7 @@ const PaymentSection = ({
   loadingMessage,
 }) => {
   const [data, setData] = useState([]);
+  console.log(data, "data");
   const [id, setId] = useState(null);
   const [modalInputs, setModalInputs] = useState([]);
   const { setOpenModal } = useTableForm();
@@ -474,7 +475,11 @@ const PaymentRow = ({
       <TableCell>
         {formatCurrencyAED((item.amount - item.paidAmount).toFixed(2))}
       </TableCell>
-      <TableCell>{PaymentType[item.paymentType]}</TableCell>
+      <TableCell>
+        {item.maintenance
+          ? item.maintenance.type.name
+          : PaymentType[item.paymentType]}
+      </TableCell>
       <TableCell>
         <Typography
           variant="body2"
