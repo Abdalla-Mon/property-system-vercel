@@ -141,16 +141,34 @@ const CreateUserForm = (props) => {
         الامتيازات
       </Typography>
       {Object.entries(PrivilegeArea).map(([area, label]) => (
-        <Grid container spacing={2} key={area}>
+        <Grid
+          container
+          spacing={2}
+          key={area}
+          sx={{
+            borderBottom: 1,
+            borderColor: "divider",
+            paddingBottom: 2,
+          }}
+        >
           <Grid item xs={12}>
-            <Typography variant="subtitle1">{label}</Typography>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={() => handleSelectAll(area)}
-            >
-              تحديد الكل
-            </Button>
+            <div className={"flex gap-3 items-center mt-5"}>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 600,
+                }}
+              >
+                {label}
+              </Typography>
+              <Button
+                variant="text"
+                color="secondary"
+                onClick={() => handleSelectAll(area)}
+              >
+                تحديد الكل
+              </Button>
+            </div>
           </Grid>
           <Grid item xs={3}>
             <FormControlLabel

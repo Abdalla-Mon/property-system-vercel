@@ -124,7 +124,6 @@ const Dashboard = () => {
           `/api/main/home/totalExpences?${propertyParam}`,
         );
         const data = await res.json();
-        console.log(data, "data of exp");
         setTotalExpenses(data.data);
       } catch (error) {
         console.error("Failed to fetch total expenses", error);
