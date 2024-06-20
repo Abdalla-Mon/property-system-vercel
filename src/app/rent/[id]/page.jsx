@@ -559,7 +559,6 @@ const PaymentRow = ({ item, setModalInputs, setId, index, showName }) => {
 };
 
 const InvoiceRows = ({ invoices, index }) => {
-  console.log(invoices, "inviociues");
   return invoices.map((invoice) => (
     <TableRow key={invoice.id} sx={{ backgroundColor: "#f9f9f9" }}>
       <TableCell colSpan={8}>
