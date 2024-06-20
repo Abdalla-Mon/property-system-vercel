@@ -314,10 +314,20 @@ const Reports = () => {
                       gap: "10px",
                     }}
                   >
-                    <strong>اسم المالك:</strong> {property.client?.name}
-                    <strong> هوية المالك:</strong> {property.client?.nationalId}
-                    <strong> ايميل المالك:</strong> {property.client?.email}
-                    <strong> رقمة هاتف المالك:</strong> {property.client?.phone}
+                    <div>
+                      <strong>اسم المالك:</strong> {property.client?.name}
+                    </div>
+                    <div>
+                      <strong> هوية المالك:</strong>{" "}
+                      {property.client?.nationalId}
+                    </div>
+                    <div>
+                      <strong> ايميل المالك:</strong> {property.client?.email}
+                    </div>
+                    <div>
+                      <strong> رقمة هاتف المالك:</strong>{" "}
+                      {property.client?.phone}
+                    </div>
                   </Typography>
                 </Box>
 

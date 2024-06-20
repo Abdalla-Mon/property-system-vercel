@@ -60,7 +60,10 @@ export default function AuthProvider({ children }) {
           "/renters": "RENTER",
           "/settings": "SETTING",
         };
-        pathName = pathName.split("/")[1];
+        console.log(pathName.split("/").length, 'pathName.split("/").length');
+        if (pathName.split("/").length > 2) {
+          pathName = "/" + pathName.split("/")[1];
+        }
         let area = Object.keys(pathMap).find((key) => pathName.includes(key))
           ? pathMap[Object.keys(pathMap).find((key) => pathName == key)]
           : null;

@@ -72,6 +72,7 @@ const reportLink = [
   { label: "تقارير رسوم العقد", href: "/reports/payments" },
   { label: "تقارير عدادات الكهرباء  ", href: "/reports/electricity" },
   { label: "تقارير العقود", href: "/reports/contracts" },
+  { label: "تقارير الضرائب", href: "/reports/tax" },
 ];
 
 export function BasicTabs({ reports }) {

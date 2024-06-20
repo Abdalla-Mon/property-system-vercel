@@ -467,6 +467,65 @@ export async function getPaymentsReport(page, limit, searchParams, params) {
   }
 }
 
+export const getTaxPaymentsReport = async (
+  page,
+  limit,
+  searchParams,
+  params,
+) => {
+  const filters = searchParams.get("filters")
+    ? JSON.parse(searchParams.get("filters"))
+    : {};
+  const { ownerId, startDate, endDate } = filters;
+  try {
+    const payments = await prisma.payment.findMany({
+      where: {
+        paymentType: "TAX",
+        clientId: parseInt(ownerId, 10),
+        dueDate: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+      },
+      select: {
+        id: true,
+        paymentType: true,
+        amount: true,
+        paidAmount: true,
+        dueDate: true,
+        unit: {
+          select: {
+            number: true,
+            property: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        client: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+    const formattedPayments = payments.map((payment) => ({
+      ownerName: payment.client.name,
+      propertyName: payment.unit.property.name,
+      unitNumber: payment.unit.number,
+      amount: payment.amount,
+      paidAmount: payment.paidAmount,
+      dueDate: payment.dueDate,
+    }));
+
+    return { data: formattedPayments };
+  } catch (error) {
+    console.error("Error fetching tax payments report data", error);
+    throw new Error("Internal server error");
+  }
+};
+
 export async function getElectricMetersReports(
   page,
   limit,
