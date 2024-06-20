@@ -40,7 +40,6 @@ const PropertyWrapper = ({ urlId }) => {
     setTotal,
     setRender,
   } = useDataFetcher("main/properties/" + urlId + "/units", true);
-
   const { submitData, openModal } = useTableForm();
   const [stateId, setStateId] = useState(null);
   const [cityId, setCityId] = useState(null);
@@ -48,16 +47,20 @@ const PropertyWrapper = ({ urlId }) => {
   const [renderedDefault, setRenderedDefault] = useState(false);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({});
+  const [ownerId, setOwnerId] = useState(null);
+
   const [disabled, setDisabled] = useState({
     cityId: true,
     districtId: true,
     neighbourId: true,
+    bankAccount: true,
   });
 
   const [reFetch, setRefetch] = useState({
     cityId: false,
     districtId: false,
     neighbourId: false,
+    bankAccount: false,
   });
   const [electricityMeters, setMeters] = useState(
     data?.electricityMeters || [],
@@ -97,6 +100,8 @@ const PropertyWrapper = ({ urlId }) => {
       setCityId(data.cityId);
       setDistrictId(data.districtId);
       setMeters(data.electricityMeters);
+      setOwnerId(data.clientId);
+
       setIsMetersEditing({
         meters: data.electricityMeters.map(() => false),
       });
@@ -104,6 +109,7 @@ const PropertyWrapper = ({ urlId }) => {
         cityId: data.stateId ? false : true,
         districtId: data.cityId ? false : true,
         neighbourId: data.districtId ? false : true,
+        bankAccount: data.bankId ? false : true,
       });
 
       window.setTimeout(() => setRenderedDefault(true), 100);
@@ -139,12 +145,6 @@ const PropertyWrapper = ({ urlId }) => {
     return { data, id: districtId };
   }
 
-  async function getBanksData() {
-    const res = await fetch("/api/fast-handler?id=bank");
-    const data = await res.json();
-    return { data };
-  }
-
   async function getOwners() {
     const res = await fetch("/api/fast-handler?id=owner");
     const data = await res.json();
@@ -161,6 +161,16 @@ const PropertyWrapper = ({ urlId }) => {
     const res = await fetch("/api/fast-handler?id=collector");
     const data = await res.json();
     return { data };
+  }
+
+  async function getOwnerAccountData() {
+    const res = await fetch("/api/clients/owner/" + ownerId);
+    const data = await res.json();
+    const bankAccounts = data?.bankAccounts.map((account) => ({
+      id: account.id,
+      name: account.accountNumber,
+    }));
+    return { data: bankAccounts };
   }
 
   const handleStateChange = (newValue) => {
@@ -199,7 +209,6 @@ const PropertyWrapper = ({ urlId }) => {
   const handleNeighbourChange = (newValue) => {
     setRefetch({ ...reFetch, neighbourId: false });
   };
-
   const dataInputs = propertyInputs.map((input) => {
     input = {
       ...input,
@@ -234,11 +243,12 @@ const PropertyWrapper = ({ urlId }) => {
           onChange: handleNeighbourChange,
           disabled: disabled.neighbourId,
         };
-      case "bankId":
+      case "bankAccount":
         return {
           ...input,
           extraId: false,
-          getData: getBanksData,
+          getData: getOwnerAccountData,
+          disabled: disabled.bankAccount,
         };
       case "collectorId":
         return {
@@ -251,6 +261,11 @@ const PropertyWrapper = ({ urlId }) => {
           ...input,
           extraId: false,
           getData: getOwners,
+          onChange: (newValue) => {
+            setOwnerId(newValue);
+            setRefetch({ ...reFetch, bankAccount: true });
+            setDisabled({ ...disabled, bankAccount: newValue === null });
+          },
         };
       case "typeId":
         return {
@@ -366,11 +381,6 @@ const PropertyWrapper = ({ urlId }) => {
       width: 200,
       printable: true,
       cardWidth: 48,
-      renderCell: (params) => (
-        <Link href={`/owners/${params.row.client?.id}`}>
-          <Button variant={"text"}>{params.row.client?.name}</Button>
-        </Link>
-      ),
     },
     {
       field: "rentAgreements",

@@ -5,6 +5,7 @@ import { SubmitLoaderProvider } from "@/app/context/SubmitLoaderProvider/SubmitL
 import { DataLoaderProvider } from "@/app/context/DataLoaderProvider/DataLoaderProvider";
 import ToastProvider from "@/app/context/ToastLoading/ToastLoadingProvider";
 import { Cairo } from "next/font/google";
+import AuthProvider from "@/app/context/AuthProvider/AuthProvider";
 
 export const metadata = {
   title: "",
@@ -17,13 +18,15 @@ export default function RootLayout({ children }) {
     <html lang="en" dir="rtl">
       <body className={font.className}>
         <ToastProvider>
-          <DataLoaderProvider>
-            <SubmitLoaderProvider>
-              <Rtl>
-                <DashboardNav>{children}</DashboardNav>
-              </Rtl>
-            </SubmitLoaderProvider>
-          </DataLoaderProvider>
+          <AuthProvider>
+            <DataLoaderProvider>
+              <SubmitLoaderProvider>
+                <Rtl>
+                  <DashboardNav>{children}</DashboardNav>
+                </Rtl>
+              </SubmitLoaderProvider>
+            </DataLoaderProvider>
+          </AuthProvider>
         </ToastProvider>
       </body>
     </html>

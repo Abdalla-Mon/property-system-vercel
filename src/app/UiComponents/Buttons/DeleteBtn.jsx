@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Box, Button, Modal, Typography } from "@mui/material";
+import { useAuth } from "@/app/context/AuthProvider/AuthProvider";
+import { usePathname } from "next/navigation";
+import { getCurrentPrivilege } from "@/helpers/functions/getUserPrivilege";
 
 const style = {
   position: "absolute",
@@ -16,11 +19,15 @@ export default function DeleteBtn({
   message = "في حالة حذف هذا العنصر سيتم حذف جميع العناصر المرتبطه به",
 }) {
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
+  const pathName = usePathname();
+  const currentPrivilege = getCurrentPrivilege(user, pathName);
 
   function handleClose() {
     setOpen(false);
   }
 
+  if (!currentPrivilege?.privilege.canDelete) return null;
   return (
     <>
       <Button

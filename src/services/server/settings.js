@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma"; // Adjust the path to your Prisma instance
+import bcrypt from "bcrypt";
 
 /// State creation and update functions
 export async function createState(data) {
@@ -10,7 +11,6 @@ export async function createState(data) {
       cities: {
         create: cities.map((city) => ({
           name: city.name,
-          location: city.location,
         })),
       },
     },
@@ -32,7 +32,6 @@ export async function updateState(id, data) {
         deleteMany: {},
         create: cities.map((city) => ({
           name: city.name,
-          location: city.location,
         })),
       },
     },
@@ -82,7 +81,6 @@ export async function createCity(data, params) {
       districts: {
         create: districts.map((district) => ({
           name: district.name,
-          location: district.location,
         })),
       },
     },
@@ -126,7 +124,6 @@ export async function updateCity(id, data, params) {
         deleteMany: {},
         create: districts.map((district) => ({
           name: district.name,
-          location: district.location,
         })),
       },
     },
@@ -159,7 +156,6 @@ export async function createDistrict(data, params) {
       neighbours: {
         create: neighbours.map((neighbour) => ({
           name: neighbour.name,
-          location: neighbour.location,
         })),
       },
     },
@@ -205,7 +201,6 @@ export async function updateDistrict(id, data, params) {
         deleteMany: {},
         create: neighbours.map((neighbour) => ({
           name: neighbour.name,
-          location: neighbour.location,
         })),
       },
     },
@@ -513,6 +508,131 @@ export async function updateRentAgreementType(id, data) {
 
 export async function deleteRentAgreementType(id) {
   return await prisma.rentAgreementType.delete({
+    where: { id },
+  });
+}
+
+// privilege
+
+// Create a new user with privileges
+export async function createUser(data) {
+  const extraData = data.extraData;
+  const { name, email, password, role, privileges } = extraData;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const privilegesData = Object.values(privileges);
+  const newUser = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      privileges: {
+        create: privilegesData.map((privilege) => ({
+          privilege: {
+            create: {
+              name: privilege.area,
+              canRead:
+                privilege.canRead !== undefined ? privilege.canRead : false,
+              canWrite:
+                privilege.canWrite !== undefined ? privilege.canWrite : false,
+              canEdit:
+                privilege.canEdit !== undefined ? privilege.canEdit : false,
+              canDelete:
+                privilege.canDelete !== undefined ? privilege.canDelete : false,
+            },
+          },
+          area: privilege.area,
+        })),
+      },
+    },
+    include: {
+      privileges: {
+        include: {
+          privilege: true,
+        },
+      },
+    },
+  });
+
+  return newUser;
+}
+
+// Fetch all privileges
+export async function getAllPrivileges() {
+  const priv = await prisma.privilege.findMany();
+  return {
+    data: priv,
+  };
+}
+
+// Fetch all users with pagination
+export async function getAllUsers(page = 1, limit = 10) {
+  const offset = (page - 1) * limit;
+
+  const [users, total] = await prisma.$transaction([
+    prisma.user.findMany({
+      skip: offset,
+      take: limit,
+      include: {
+        privileges: {
+          include: {
+            privilege: true,
+          },
+        },
+      },
+    }),
+    prisma.user.count(),
+  ]);
+
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    data: users,
+    total,
+    totalPages,
+  };
+}
+
+export async function updateUser(id, data) {
+  const extraData = data.extraData;
+  const { name, email, role, privileges } = extraData;
+  const privilegesData = Object.values(privileges);
+
+  const updatedUser = await prisma.user.update({
+    where: { id },
+    data: {
+      name,
+      email,
+      role,
+      privileges: {
+        deleteMany: {},
+        create: privilegesData.map((privilege) => ({
+          privilege: {
+            create: {
+              name: privilege.name,
+              canRead: privilege.canRead,
+              canWrite: privilege.canWrite,
+              canEdit: privilege.canEdit,
+              canDelete: privilege.canDelete,
+            },
+          },
+          area: privilege.name,
+        })),
+      },
+    },
+    include: {
+      privileges: {
+        include: {
+          privilege: true,
+        },
+      },
+    },
+  });
+  return updatedUser;
+}
+
+export async function deleteUser(id) {
+  return await prisma.user.delete({
     where: { id },
   });
 }

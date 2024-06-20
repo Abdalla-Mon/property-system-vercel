@@ -64,8 +64,7 @@ export const ExtraForm = ({
 
     setIsEditing({ ...isEditing, [name]: [...isEditing[name], true] });
   };
-  console.log(isEditing, "isEditing");
-  console.log(items, "items");
+
   const handleRemoveItem = (index) => {
     const newItems = items.filter((_, i) => i !== index);
     setItems(newItems);

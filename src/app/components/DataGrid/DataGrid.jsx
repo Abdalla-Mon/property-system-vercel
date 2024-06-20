@@ -55,7 +55,7 @@ export default function DataGrid({
       </Toolbar>
       <div
         ref={componentRef}
-        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+        className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3  gap-4"
       >
         {rows.map((row) => (
           <DataCard

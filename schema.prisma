@@ -10,7 +10,6 @@ datasource db {
 model State {
   id        Int      @id @default(autoincrement())
   name      String
-  location  String
   cities    City[]
   properties Property[]
   createdAt DateTime @default(now())
@@ -20,7 +19,6 @@ model State {
 model City {
   id        Int       @id @default(autoincrement())
   name      String
-  location  String
   stateId   Int
   state     State     @relation(fields: [stateId], references: [id], onDelete: Cascade)
   districts District[]
@@ -32,7 +30,6 @@ model City {
 model District {
   id        Int       @id @default(autoincrement())
   name      String
-  location  String
   cityId    Int
   city      City      @relation(fields: [cityId], references: [id], onDelete: Cascade)
   neighbours Neighbour[]
@@ -44,7 +41,6 @@ model District {
 model Neighbour {
   id        Int       @id @default(autoincrement())
   name      String
-  location  String
   districtId Int
   district  District  @relation(fields: [districtId], references: [id], onDelete: Cascade)
   properties Property[]
@@ -95,7 +91,7 @@ model Property {
   bankId              Int
   payments            Payment[]
   bank                Bank     @relation(fields: [bankId], references: [id], onDelete: Restrict, name: "PropertyBank") // Updated relation to Bank
-  bankAccountNumber   String   // رقم الحساب البنكي
+  bankAccount        BankAccount[]
   managementCommission Float   // عمولة اداره العقار
   plateNumber         String   // رقم اللوحة
   clientId            Int
@@ -126,9 +122,11 @@ model ElectricityMeter {
 
 model Attachment {
   id         Int      @id @default(autoincrement())
-  url        String
-  propertyId Int
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  url        String?
+  propertyId Int?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  rentAgreementId Int?
+  rentAgreement RentAgreement? @relation(fields: [rentAgreementId], references: [id], onDelete: SetNull)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -176,8 +174,8 @@ model RentAgreement {
   rentAgreementNumber    String
   startDate              DateTime
   endDate                DateTime
-  typeId                 Int
-  type                   RentAgreementType @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  typeId                 Int?
+    type                   RentAgreementType? @relation(fields: [typeId], references: [id], onDelete: SetNull)
   renterId               Int
   renter                 Client @relation("Renter", fields: [renterId], references: [id], onDelete: Cascade)
   tax                    Int?
@@ -191,6 +189,7 @@ model RentAgreement {
   installments           Installment[]
   status                 RentAgreementStatus @default(ACTIVE)
   invoices               Invoice[] // Only invoices related to this RentAgreement
+  attachments         Attachment[]
   customDescription      Json?
   contractExpenses ContractExpenseToRentAgreement[] @relation("ContractExpenseToRentAgreementToRentAgreement")
   payments            Payment[] // New relation to Payment
@@ -203,8 +202,6 @@ enum RentAgreementStatus {
   EXPIRED
   ACTIVE
 }
-
-
 
 model ContractExpenseToRentAgreement {
   id                Int             @id @default(autoincrement())
@@ -301,6 +298,7 @@ model Maintenance {
 
 enum PayEvery {
   ONCE
+  ONE_MONTH
   TWO_MONTHS
   FOUR_MONTHS
   SIX_MONTHS
@@ -332,9 +330,9 @@ model Bank {
 
 model User {
   id             Int       @id @default(autoincrement())
-  name           String
-  role           UserRole
-  phone          String
+  name           String?
+  role           UserRole?
+  phone          String?
   email          String @unique
   password       String
   token          String?
@@ -375,12 +373,17 @@ model UserPrivilege {
 }
 
 enum PrivilegeArea {
-  PROPERTY
-  UNIT
-  CLIENT
-  SETTING
-  RENT_AGREEMENT
-  BILLING
+    HOME
+    FOLLOW_UP
+    PROPERTY
+    UNIT
+    RENT
+    INVOICE
+    MAINTENANCE
+    REPORT
+    OWNER
+    RENTER
+    SETTING
 }
 model Client {
   id               Int      @id @default(autoincrement())
@@ -406,8 +409,10 @@ model BankAccount {
   id          Int      @id @default(autoincrement())
   bankId      Int
   bank        Bank     @relation(fields: [bankId], references: [id], onDelete: Cascade)
-  accountName String
-  accountNumber String
+  accountName String?
+  accountNumber String?
+  propertyId  Int?
+    property    Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
   clientId    Int
   client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   invoices    Invoice[]

@@ -13,9 +13,9 @@ import {
   CardContent,
   CardHeader,
   useTheme,
-  Container,
 } from "@mui/material";
 import { Bar, Doughnut } from "react-chartjs-2";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -26,6 +26,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
 
 ChartJS.register(
   CategoryScale,
@@ -35,6 +36,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
+  ChartDataLabels,
 );
 
 const Dashboard = () => {
@@ -44,12 +46,16 @@ const Dashboard = () => {
 
   const [expenses, setExpenses] = useState([]);
   const [income, setIncome] = useState([]);
+  const [totalExpenses, setTotalExpenses] = useState(0);
+  const [totalIncome, setTotalIncome] = useState(0);
   const [rentedUnits, setRentedUnits] = useState([]);
   const [nonRentedUnits, setNonRentedUnits] = useState([]);
   const [payments, setPayments] = useState([]);
 
   const [loadingExpenses, setLoadingExpenses] = useState(true);
   const [loadingIncome, setLoadingIncome] = useState(true);
+  const [loadingTotalExpenses, setLoadingTotalExpenses] = useState(true);
+  const [loadingTotalIncome, setLoadingTotalIncome] = useState(true);
   const [loadingRentedUnits, setLoadingRentedUnits] = useState(true);
   const [loadingNonRentedUnits, setLoadingNonRentedUnits] = useState(true);
   const [loadingPayments, setLoadingPayments] = useState(true);
@@ -169,72 +175,162 @@ const Dashboard = () => {
     setSelectedProperty(event.target.value);
   };
 
-  const renderBarChart = (data, title, backgroundColor) => (
-    <Bar
-      style={{ height: "100%", width: "100%" }}
-      data={{
-        labels: data.map((d) => d.label),
-        datasets: [
-          {
-            label: title,
-            data: data.map((d) => d.value),
-            backgroundColor: backgroundColor,
-          },
-        ],
-      }}
-      options={{
-        responsive: true,
-        plugins: {
-          legend: {
-            position: "top",
-          },
-        },
-      }}
-    />
-  );
+  const renderIncomeChart = () => {
+    const labels = income.map((inc) =>
+      new Date(inc.date).toLocaleDateString("ar-AE"),
+    );
 
-  const renderDoughnutChart = (data, title) => (
-    <Doughnut
-      data={{
-        labels: ["في الوقت", "متأخر", "غير مدفوع"],
-        datasets: [
-          {
-            label: title,
-            data: [
-              data
-                .filter((payment) => payment.status === "PAID")
-                .reduce((sum, payment) => sum + payment.amount, 0),
-              data
-                .filter((payment) => payment.status === "OVERDUE")
-                .reduce((sum, payment) => sum + payment.amount, 0),
-              data
-                .filter((payment) => payment.status === "PENDING")
-                .reduce((sum, payment) => sum + payment.amount, 0),
-            ],
-            backgroundColor: [
-              "rgba(75, 192, 192, 0.6)",
-              "rgba(255, 99, 132, 0.6)",
-              "rgba(255, 206, 86, 0.6)",
-            ],
+    const incomeData = income.map((inc) => inc.amount);
+
+    return (
+      <Bar
+        data={{
+          labels: labels,
+          datasets: [
+            {
+              label: "الدخل",
+              data: incomeData,
+              backgroundColor: "rgba(75, 192, 192, 0.6)",
+            },
+          ],
+        }}
+        options={{
+          responsive: true,
+          plugins: {
+            legend: {
+              position: "top",
+            },
+            datalabels: {
+              anchor: "end",
+              align: "end",
+              formatter: (value) => `${formatCurrencyAED(value)} `,
+            },
           },
-        ],
-      }}
-      options={{
-        responsive: true,
-        plugins: {
-          legend: {
-            position: "top",
+        }}
+      />
+    );
+  };
+
+  const renderExpenseChart = () => {
+    const labels = expenses.map((exp) =>
+      new Date(exp.date).toLocaleDateString("ar-AE"),
+    );
+
+    const expenseData = expenses.map((exp) => exp.amount);
+
+    return (
+      <Bar
+        data={{
+          labels: labels,
+          datasets: [
+            {
+              label: "المصاريف",
+              data: expenseData,
+              backgroundColor: "rgba(255, 99, 132, 0.6)",
+            },
+          ],
+        }}
+        options={{
+          responsive: true,
+          plugins: {
+            legend: {
+              position: "top",
+            },
+            datalabels: {
+              anchor: "end",
+              align: "end",
+              formatter: (value) => `${formatCurrencyAED(value)} `,
+            },
           },
-        },
-        cutout: "70%",
-      }}
-    />
-  );
+        }}
+      />
+    );
+  };
+
+  const renderCombinedBarChart = () => {
+    const totalIncome = income.reduce((sum, inc) => sum + inc.amount, 0);
+    const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+    return (
+      <Bar
+        data={{
+          labels: ["إجمالي الدخل", "إجمالي المصاريف"],
+          datasets: [
+            {
+              label: "المصاريف",
+              data: [0, totalExpenses],
+              backgroundColor: "rgba(255, 99, 132, 0.6)",
+            },
+            {
+              label: "الدخل",
+              data: [totalIncome, 0],
+              backgroundColor: "rgba(75, 192, 192, 0.6)",
+            },
+          ],
+        }}
+        options={{
+          responsive: true,
+          plugins: {
+            legend: {
+              position: "top",
+            },
+            datalabels: {
+              anchor: "end",
+              align: "end",
+              formatter: (value) => `${formatCurrencyAED(value)} `,
+            },
+          },
+        }}
+      />
+    );
+  };
+
+  const renderDoughnutChart = (data, title) => {
+    const onTimePayments = data.filter(
+      (payment) => payment.status === "PAID_ON_TIME",
+    );
+    const latePayments = data.filter(
+      (payment) => payment.status === "PAID_LATE",
+    );
+
+    return (
+      <Doughnut
+        data={{
+          labels: ["في الوقت", "متأخر"],
+          datasets: [
+            {
+              label: title,
+              data: [
+                onTimePayments.reduce(
+                  (sum, payment) => sum + payment.amount,
+                  0,
+                ),
+                latePayments.reduce((sum, payment) => sum + payment.amount, 0),
+              ],
+              backgroundColor: [
+                "rgba(75, 192, 192, 0.6)",
+                "rgba(255, 99, 132, 0.6)",
+              ],
+            },
+          ],
+        }}
+        options={{
+          responsive: true,
+          plugins: {
+            legend: {
+              position: "top",
+            },
+          },
+          cutout: "70%",
+        }}
+      />
+    );
+  };
 
   const renderCard = (title, content, backgroundColor) => (
     <Card
       sx={{
-        minHeight: 350,
+        minHeight: 200,
         minWidth: 250,
         height: "100%",
         width: "100%",
@@ -303,7 +399,7 @@ const Dashboard = () => {
                 <FormControl fullWidth>
                   <InputLabel>اختر العقار</InputLabel>
                   <Select
-                    value={selectedProperty}
+                    value={selectedProperty || ""}
                     onChange={handlePropertyChange}
                     displayEmpty
                   >
@@ -323,82 +419,64 @@ const Dashboard = () => {
 
           <Grid item xs={12} md={4} lg={4}>
             {renderCard(
-              "المصاريف",
-              loadingExpenses ? (
+              "إجمالي الدخل",
+              loadingIncome ? (
                 <CircularProgress />
               ) : (
-                renderBarChart(
-                  expenses?.map((expense) => ({
-                    label: new Date(expense.date).toLocaleDateString("ar-AE"),
-                    value: expense.amount,
-                  })),
-                  "المصاريف",
-                  "rgba(255, 99, 132, 0.6)",
-                )
+                <Typography variant="h5">{`${formatCurrencyAED(
+                  income.reduce((sum, inc) => sum + inc.amount, 0),
+                )} `}</Typography>
               ),
             )}
           </Grid>
 
           <Grid item xs={12} md={4} lg={4}>
             {renderCard(
-              "الدخل",
-              loadingIncome ? (
+              "إجمالي المصاريف",
+              loadingExpenses ? (
                 <CircularProgress />
               ) : (
-                renderBarChart(
-                  income.map((inc) => ({
-                    label: new Date(inc.date).toLocaleDateString("ar-AE"),
-                    value: inc.amount,
-                  })),
-                  "الدخل",
-                  "rgba(75, 192, 192, 0.6)",
-                )
+                <Typography variant="h5">{`${formatCurrencyAED(
+                  expenses.reduce((sum, exp) => sum + exp.amount, 0),
+                )} `}</Typography>
+              ),
+            )}
+          </Grid>
+
+          <Grid item xs={12} md={6} lg={6}>
+            {renderCard(
+              "الدخل الشهري",
+              loadingIncome ? <CircularProgress /> : renderIncomeChart(),
+            )}
+          </Grid>
+
+          <Grid item xs={12} md={6} lg={6}>
+            {renderCard(
+              "المصاريف الشهرية",
+              loadingExpenses ? <CircularProgress /> : renderExpenseChart(),
+            )}
+          </Grid>
+
+          <Grid item xs={12} md={8} lg={8}>
+            {renderCard(
+              "الدخل والمصاريف الإجمالية لهذا الشهر",
+              loadingIncome || loadingExpenses ? (
+                <CircularProgress />
+              ) : (
+                renderCombinedBarChart()
               ),
             )}
           </Grid>
 
           <Grid item xs={12} md={6} lg={4}>
             {renderCard(
-              "الوحدات المؤجرة والشاغرة",
-              loadingRentedUnits || loadingNonRentedUnits ? (
-                <CircularProgress />
-              ) : (
-                <Bar
-                  data={{
-                    labels: ["الوحدات المؤجرة", "الوحدات الشاغرة"],
-                    datasets: [
-                      {
-                        label: "الوحدات",
-                        data: [rentedUnits?.length, nonRentedUnits?.length],
-                        backgroundColor: [
-                          "rgba(75, 192, 192, 0.6)",
-                          "rgba(255, 99, 132, 0.6)",
-                        ],
-                      },
-                    ],
-                  }}
-                  options={{
-                    responsive: true,
-                    plugins: {
-                      legend: {
-                        position: "top",
-                      },
-                    },
-                  }}
-                />
-              ),
-            )}
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={4}>
-            {renderCard(
-              "مدفوعات الإيجار",
+              "دفعات الإيجار المدفوعة لهذا الشهر",
               loadingPayments ? (
                 <CircularProgress />
               ) : (
                 renderDoughnutChart(
                   payments?.filter((payment) => payment.paymentType === "RENT"),
-                  "مدفوعات الإيجار",
+                  "دفعات الإيجار",
                 )
               ),
             )}
@@ -406,7 +484,7 @@ const Dashboard = () => {
 
           <Grid item xs={12} md={6} lg={4}>
             {renderCard(
-              "مدفوعات الصيانة",
+              "دفعات الصيانة لهذا الشهر",
               loadingPayments ? (
                 <CircularProgress />
               ) : (
@@ -414,7 +492,7 @@ const Dashboard = () => {
                   payments?.filter(
                     (payment) => payment.paymentType === "MAINTENANCE",
                   ),
-                  "مدفوعات الصيانة",
+                  "دفعات الصيانة",
                 )
               ),
             )}

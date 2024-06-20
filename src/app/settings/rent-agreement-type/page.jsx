@@ -91,7 +91,7 @@ const RentAgreementTypeWrapper = () => {
     <>
       <ViewComponent
         inputs={rentAgreementTypeInputs}
-        formTitle={"تعديل"}
+        formTitle={"نوع عقد الايجار"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

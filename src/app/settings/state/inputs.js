@@ -13,18 +13,4 @@ export const stateInputs = [
       },
     },
   },
-  {
-    data: {
-      id: "location",
-      type: "text",
-      label: "الموقع",
-      name: "location",
-    },
-    pattern: {
-      required: {
-        value: true,
-        message: "يرجى إدخال الموقع",
-      },
-    },
-  },
 ];

@@ -2,6 +2,7 @@ import { Modal, Box } from "@mui/material";
 import { useTableForm } from "@/app/context/TableFormProvider/TableFormProvider";
 import { Form } from "@/app/UiComponents/FormComponents/Forms/Form";
 import { useEffect } from "react";
+import Typography from "@mui/material/Typography";
 
 const modalStyle = (fullWidth) => ({
   position: "absolute",
@@ -40,6 +41,7 @@ export function EditTableModal({
   extraData,
   fullWidth,
   handleEditBeforeSubmit,
+  canEdit,
 }) {
   const { openModal, setOpenModal, submitData } = useTableForm();
   const data = rows.find((row) => row.id === id);
@@ -59,28 +61,41 @@ export function EditTableModal({
   const modelStyle = modalStyle(fullWidth);
   return (
     <Modal open={openModal} onClose={() => setOpenModal(false)}>
-      <Box sx={modelStyle}>
-        <Form
-          formTitle={formTitle}
-          inputs={modalInputs}
-          onSubmit={async (data) => {
-            if (handleEditBeforeSubmit) {
-              const continueEditing = handleEditBeforeSubmit();
-              if (!continueEditing) return;
-            }
-            data = { ...data, extraData };
-            const newData = await submitData(data, setOpenModal, id);
-            const editedData = rows.map((row) => {
-              return row.id === newData.id ? newData : row;
-            });
-            setData(editedData);
-          }}
-          variant={"outlined"}
-          btnText={"تعديل"}
-        >
-          {children}
-        </Form>
-      </Box>
+      {canEdit() ? (
+        <Box sx={modelStyle}>
+          <Form
+            formTitle={formTitle}
+            inputs={modalInputs}
+            onSubmit={async (data) => {
+              if (handleEditBeforeSubmit) {
+                const continueEditing = handleEditBeforeSubmit();
+                if (!continueEditing) return;
+              }
+              data = { ...data, extraData };
+              const newData = await submitData(data, setOpenModal, id);
+              const editedData = rows.map((row) => {
+                return row.id === newData.id ? newData : row;
+              });
+              setData(editedData);
+            }}
+            variant={"outlined"}
+            btnText={"تعديل"}
+          >
+            {children}
+          </Form>
+        </Box>
+      ) : (
+        <Box sx={modelStyle}>
+          <Typography
+            variant={"h5"}
+            align={"center"}
+            color={"error"}
+            sx={{ fontWeight: "bold" }}
+          >
+            ليس لديك الصلاحية لتعديل هذا العنصر
+          </Typography>
+        </Box>
+      )}
     </Modal>
   );
 }

@@ -41,7 +41,8 @@ export function PaymentModal({ modalInputs, id, submit, setId }) {
             formTitle={"انشاء"}
             inputs={modalInputs}
             onSubmit={async (data) => {
-              await submit(data);
+              const submitData = await submit(data);
+              if (!submitData) return;
               if (setId) setId(null);
             }}
             variant={"outlined"}

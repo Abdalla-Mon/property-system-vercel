@@ -74,13 +74,6 @@ const DistrictWrapper = ({ cityId, stateId }) => {
       cardWidth: 48,
     },
     {
-      field: "location",
-      headerName: "الموقع",
-      width: 200,
-      printable: true,
-      cardWidth: 48,
-    },
-    {
       field: "neighbours",
       type: "size",
       headerName: "عدد الاحياء",
@@ -118,11 +111,6 @@ const DistrictWrapper = ({ cityId, stateId }) => {
       type: "text",
       label: "اسم الحي",
     },
-    {
-      id: "location",
-      type: "text",
-      label: "الموقع",
-    },
   ];
   const {
     isEditing: isNeighbourEditing,
@@ -150,7 +138,7 @@ const DistrictWrapper = ({ cityId, stateId }) => {
       </div>
       <ViewComponent
         inputs={districtInputs}
-        formTitle={"تعديل"}
+        formTitle={"منطقة"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

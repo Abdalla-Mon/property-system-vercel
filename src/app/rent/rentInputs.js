@@ -76,30 +76,6 @@ export const rentAgreementInputs = [
     },
   },
   {
-    id: "type",
-    data: {
-      id: "typeId",
-      type: "select",
-      label: "نوع العقد",
-      name: "typeId",
-    },
-    autocomplete: true,
-
-    pattern: {
-      required: {
-        value: true,
-        message: "يرجى إدخال نوع العقد",
-      },
-    },
-    sx: {
-      width: {
-        xs: "100%",
-        md: "48%",
-      },
-    },
-  },
-
-  {
     data: {
       id: "totalPrice",
       type: "number",
@@ -117,7 +93,6 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {
@@ -133,8 +108,32 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
+  {
+    id: "rentCollectionType",
+    data: {
+      id: "rentCollectionType",
+      type: "select",
+      label: "نوع التحصيل",
+      name: "rentCollectionType",
+    },
+    hasOptions: true,
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال نوع التحصيل",
+      },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+    },
+  },
+
   {
     data: {
       id: "startDate",
@@ -183,29 +182,6 @@ export const rentAgreementInputs = [
     },
   },
   {
-    id: "rentCollectionType",
-    data: {
-      id: "rentCollectionType",
-      type: "select",
-      label: "نوع التحصيل",
-      name: "rentCollectionType",
-    },
-    hasOptions: true,
-    pattern: {
-      required: {
-        value: true,
-        message: "يرجى إدخال نوع التحصيل",
-      },
-    },
-    sx: {
-      width: {
-        xs: "100%",
-        md: "48%",
-      },
-      mr: "auto",
-    },
-  },
-  {
     data: {
       id: "tax",
       type: "number",
@@ -224,6 +200,7 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -245,7 +222,6 @@ export const rentAgreementInputs = [
         xs: "100%",
         md: "48%",
       },
-      mr: "auto",
     },
   },
   {

@@ -89,7 +89,7 @@ const PropertyExpenseTypeWrapper = () => {
     <>
       <ViewComponent
         inputs={propertyExpenseTypeInputs}
-        formTitle={"تعديل"}
+        formTitle={"نوع مصاريف الصيانة"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

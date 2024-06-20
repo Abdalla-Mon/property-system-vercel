@@ -7,9 +7,8 @@ export async function createInvoice(data) {
       amount: +data.paidAmount || 0,
       description: data.description || "",
       title: data.title || "",
-      bankAccount: data.bankAccountId
-        ? { connect: { id: data.bankAccountId } }
-        : undefined,
+      bankAccount: data.bankId ? { connect: { id: data.bankId } } : undefined,
+      chequeNumber: data.chequeNumber || "",
       invoiceType: data.invoiceType || "",
       paymentTypeMethod: data.paymentTypeMethod || "",
       payment: data.paymentId ? { connect: { id: data.paymentId } } : undefined,
@@ -79,19 +78,48 @@ export async function getInvioces(page, limit, searchParams) {
   const filters = searchParams.get("filters")
     ? JSON.parse(searchParams.get("filters"))
     : {};
-  const { unitIds, startDate, endDate } = filters;
+  const { unitIds, startDate, endDate, propertyId } = filters;
 
   const start = startDate ? new Date(startDate) : new Date();
   const end = endDate ? new Date(endDate) : new Date();
 
+  // Check if "ALL" is included in unitIds
+  const isAll = !unitIds ? true : unitIds.includes("ALL");
+
   try {
-    const invoices = await prisma.invoice.findMany({
-      where: {
+    const conditions = [
+      {
         rentAgreement: {
           unitId: {
-            in: unitIds.map((id) => parseInt(id)),
+            in: !isAll ? unitIds.map((id) => parseInt(id)) : undefined,
           },
         },
+      },
+      {
+        propertyId: parseInt(propertyId),
+        invoiceType: "MAINTENANCE",
+        createdAt: {
+          gte: start,
+          lte: end,
+        },
+      },
+    ];
+
+    // If "ALL" is selected, include property-based filtering for rent agreements
+    if (isAll && propertyId) {
+      conditions.shift();
+      conditions.push({
+        rentAgreement: {
+          unit: {
+            propertyId: parseInt(propertyId),
+          },
+        },
+      });
+    }
+
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        OR: conditions,
         createdAt: {
           gte: start,
           lte: end,
@@ -99,21 +127,43 @@ export async function getInvioces(page, limit, searchParams) {
       },
       include: {
         rentAgreement: {
-          include: {
+          select: {
+            rentAgreementNumber: true,
             unit: {
-              include: {
-                property: true,
+              select: {
+                number: true,
               },
             },
-            renter: true,
           },
         },
-        property: true,
-        renter: true,
-        owner: true,
-        payment: true,
+
+        property: {
+          select: {
+            name: true,
+          },
+        },
+        renter: {
+          select: {
+            name: true,
+          },
+        },
+        owner: {
+          select: {
+            name: true,
+          },
+        },
+        payment: {
+          select: {
+            amount: true,
+            dueDate: true,
+            maintenance: true,
+          },
+        },
       },
     });
+
+    // Log the fetched invoices for debugging
+
     return {
       data: invoices,
       status: 200,

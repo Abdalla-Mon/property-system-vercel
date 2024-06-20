@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Container,
   FormControl,
@@ -12,30 +12,33 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
+  TextField,
   TableRow,
-  Paper,
+  TableCell,
 } from "@mui/material";
 import { useReactToPrint } from "react-to-print";
-import { useRef } from "react";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import "dayjs/locale/en-gb";
+import ReportTable from "@/app/components/Tables/ReportTable";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
 
 const columnsMeters = [
-  { col: "ID العداد", row: "meterId" },
-  { col: "اسم العداد", row: "name" },
+  { arabic: "اسم العداد", english: "name" },
+  { arabic: "رقم العداد", english: "meterId" },
 ];
 
 const columnsUnits = [
-  { col: "رقم الوحدة", row: "number" },
-  { col: "عداد الكهرباء", row: "electricityMeter" },
+  { arabic: "رقم الوحدة", english: "number" },
+  { arabic: "رقم عداد الكهرباء", english: "electricityMeter" },
 ];
 
 const ElectricMeterReport = () => {
   const [properties, setProperties] = useState([]);
   const [selectedProperties, setSelectedProperties] = useState([]);
+  const [startDate, setStartDate] = useState(dayjs().startOf("month"));
+  const [endDate, setEndDate] = useState(dayjs().endOf("month"));
   const [reportData, setReportData] = useState(null);
   const componentRef = useRef();
   const [loading, setLoading] = useState(true);
@@ -48,7 +51,6 @@ const ElectricMeterReport = () => {
       try {
         const resProperties = await fetch("/api/fast-handler?id=properties");
         const dataProperties = await resProperties.json();
-
         setProperties(dataProperties);
       } catch (error) {
         console.error("Failed to fetch data", error);
@@ -63,6 +65,8 @@ const ElectricMeterReport = () => {
     setSubmitLoading(true);
     const filters = {
       propertyIds: selectedProperties,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
     };
 
     try {
@@ -83,27 +87,39 @@ const ElectricMeterReport = () => {
     documentTitle: "تقرير عدادات الكهرباء",
   });
 
-  const renderTable = (data, columns) => (
-    <TableContainer component={Paper} sx={{ mb: 4 }}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            {columns.map((col) => (
-              <TableCell key={col.row}>{col.col}</TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row, index) => (
-            <TableRow key={index}>
-              {columns.map((col) => (
-                <TableCell key={col.row}>{row[col.row]}</TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+  const renderTableRows = (data, columns, colSpan) => (
+    <>
+      {data.map((row, index) => (
+        <TableRow key={index}>
+          {columns.map((col, colIndex) => {
+            let cellValue = col.english
+              .split(".")
+              .reduce((acc, part) => acc && acc[part], row);
+
+            if (col.english.includes("date") || col.english.includes("Date")) {
+              cellValue = new Date(cellValue).toLocaleDateString();
+            } else if (
+              col.english.includes("price") ||
+              col.english.includes("amount") ||
+              col.english.includes("totalPrice") ||
+              col.english.includes("paidAmount") ||
+              col.english.includes("yearlyRentPrice")
+            ) {
+              cellValue = formatCurrencyAED(cellValue);
+            }
+
+            return (
+              <TableCell
+                key={colIndex}
+                sx={{ backgroundColor: "#ffffff", padding: "8px" }}
+              >
+                {cellValue}
+              </TableCell>
+            );
+          })}
+        </TableRow>
+      ))}
+    </>
   );
 
   if (loading) return <CircularProgress />;
@@ -151,17 +167,52 @@ const ElectricMeterReport = () => {
           >
             {reportData.map((property) => (
               <div key={property.id}>
+                <Box
+                  sx={{
+                    mb: 4,
+                    p: 2,
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <Typography variant="h6" gutterBottom>
+                    تفاصيل المالك
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, 1fr)",
+                      gap: "10px",
+                    }}
+                  >
+                    <div>
+                      <strong>اسم المالك:</strong> {property.client?.name}
+                    </div>
+                    <div>
+                      <strong>هوية المالك:</strong>{" "}
+                      {property.client?.nationalId}
+                    </div>
+                    <div>
+                      <strong>ايميل المالك:</strong> {property.client?.email}
+                    </div>
+                    <div>
+                      <strong>رقم هاتف المالك:</strong> {property.client?.phone}
+                    </div>
+                  </Typography>
+                </Box>
+
                 <Typography variant="h6" gutterBottom>
                   {property.name}
                 </Typography>
-                <Typography variant="subtitle1" gutterBottom>
-                  عدادات الكهرباء
-                </Typography>
-                {renderTable(property.electricityMeters, columnsMeters)}
-                <Typography variant="subtitle1" gutterBottom>
-                  الوحدات
-                </Typography>
-                {renderTable(property.units, columnsUnits)}
+
+                <ReportTable headings={columnsMeters} title="عدادات الكهرباء">
+                  {renderTableRows(property.electricityMeters, columnsMeters)}
+                </ReportTable>
+
+                <ReportTable headings={columnsUnits} title="الوحدات">
+                  {renderTableRows(property.units, columnsUnits)}
+                </ReportTable>
               </div>
             ))}
           </Box>

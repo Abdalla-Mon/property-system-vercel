@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Container,
   FormControl,
@@ -12,16 +12,17 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
+  TextField,
   TableRow,
-  Paper,
+  TableCell,
 } from "@mui/material";
 import { useReactToPrint } from "react-to-print";
-import { useRef } from "react";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import "dayjs/locale/en-gb";
+import ReportTable from "@/app/components/Tables/ReportTable";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
 
 const paymentTypes = [
   { value: "TAX", label: "الضريبة" },
@@ -36,13 +37,27 @@ const paymentStatusOptions = [
 ];
 
 const columnsPayments = [
-  { col: "نوع الدفع", row: "paymentType" },
-  { col: "تم الدفع بالكامل", row: "isFullPaid" },
-  { col: "المبلغ المدفوع", row: "paidAmount" },
-  { col: "التكلفة", row: "amount" },
-  { col: "الوحدة", row: "unitNumber" },
-  { col: "رقم عقد الإيجار", row: "rentAgreementNumber" },
+  { arabic: "اسم العقار", english: "unit.property.name" },
+  { arabic: "الوحدة", english: "unit.number" },
+  { arabic: "نوع الدفع", english: "paymentType" },
+  { arabic: "تم الدفع بالكامل", english: "isFullPaid" },
+  { arabic: "التكلفة", english: "amount" },
+  { arabic: "المبلغ المدفوع", english: "paidAmount" },
+  { arabic: "رقم عقد الإيجار", english: "rentAgreement.rentAgreementNumber" },
 ];
+
+const translatePaymentType = (type) => {
+  switch (type) {
+    case "TAX":
+      return "الضريبة";
+    case "INSURANCE":
+      return "التأمين";
+    case "REGISTRATION":
+      return "التسجيل";
+    default:
+      return type;
+  }
+};
 
 const PaymentsReport = () => {
   const [properties, setProperties] = useState([]);
@@ -51,12 +66,14 @@ const PaymentsReport = () => {
   const [selectedUnits, setSelectedUnits] = useState([]);
   const [selectedPaymentTypes, setSelectedPaymentTypes] = useState([]);
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("ALL");
+  const [startDate, setStartDate] = useState(dayjs().startOf("month"));
+  const [endDate, setEndDate] = useState(dayjs().endOf("month"));
   const [reportData, setReportData] = useState(null);
   const componentRef = useRef();
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-
+  console.log(reportData, "reportData");
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
@@ -103,6 +120,8 @@ const PaymentsReport = () => {
         : selectedUnits,
       paymentTypes: selectedPaymentTypes,
       paymentStatus: selectedPaymentStatus,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
     };
 
     try {
@@ -123,28 +142,96 @@ const PaymentsReport = () => {
     documentTitle: "تقرير المدفوعات",
   });
 
-  const renderTable = (data, columns) => (
-    <TableContainer component={Paper} sx={{ mb: 4 }}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            {columns.map((col) => (
-              <TableCell key={col.row}>{col.col}</TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row, index) => (
+  const renderTableRows = (data, columns, colSpan) => {
+    let totalAmount = 0;
+    let totalPaidAmount = 0;
+
+    return (
+      <>
+        {data.map((row, index) => {
+          return (
             <TableRow key={index}>
-              {columns.map((col) => (
-                <TableCell key={col.row}>{row[col.row]}</TableCell>
-              ))}
+              {columns.map((col, colIndex) => {
+                let cellValue = col.english
+                  .split(".")
+                  .reduce((acc, part) => acc && acc[part], row);
+
+                if (
+                  col.english.includes("date") ||
+                  col.english.includes("Date")
+                ) {
+                  cellValue = new Date(cellValue).toLocaleDateString();
+                } else if (
+                  col.english.includes("price") ||
+                  col.english.includes("amount") ||
+                  col.english.includes("totalPrice") ||
+                  col.english.includes("paidAmount") ||
+                  col.english.includes("yearlyRentPrice")
+                ) {
+                  cellValue = formatCurrencyAED(cellValue);
+                }
+
+                if (col.english === "paymentType") {
+                  cellValue = translatePaymentType(cellValue);
+                }
+
+                if (col.english.includes("amount")) {
+                  totalAmount += row.amount;
+                }
+
+                if (col.english.includes("paidAmount")) {
+                  totalPaidAmount += row.paidAmount;
+                }
+
+                return (
+                  <TableCell
+                    key={colIndex}
+                    sx={{ backgroundColor: "#ffffff", padding: "8px" }}
+                  >
+                    {cellValue}
+                  </TableCell>
+                );
+              })}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+          );
+        })}
+        {columns.some((col) => col.english.includes("amount")) && (
+          <TableRow>
+            <TableCell
+              colSpan={colSpan ? colSpan : columns.length - 2}
+              sx={{
+                backgroundColor: "#f0f0f0",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              الاجمالي
+            </TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: "#ffffff",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              {formatCurrencyAED(totalAmount)}
+            </TableCell>
+            {totalPaidAmount > 0 && (
+              <TableCell
+                sx={{
+                  backgroundColor: "#ffffff",
+                  padding: "8px",
+                  fontWeight: "bold",
+                }}
+              >
+                {formatCurrencyAED(totalPaidAmount)}
+              </TableCell>
+            )}
+          </TableRow>
+        )}
+      </>
+    );
+  };
 
   if (loading) return <CircularProgress />;
   return (
@@ -217,6 +304,28 @@ const PaymentsReport = () => {
                 ))}
               </Select>
             </FormControl>
+
+            <LocalizationProvider
+              dateAdapter={AdapterDayjs}
+              adapterLocale="en-gb"
+            >
+              <FormControl fullWidth margin="normal">
+                <DatePicker
+                  label="تاريخ البدء"
+                  value={startDate}
+                  onChange={(date) => setStartDate(date)}
+                  renderInput={(params) => <TextField {...params} />}
+                />
+              </FormControl>
+              <FormControl fullWidth margin="normal">
+                <DatePicker
+                  label="تاريخ الانتهاء"
+                  value={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  renderInput={(params) => <TextField {...params} />}
+                />
+              </FormControl>
+            </LocalizationProvider>
           </>
         )}
 
@@ -234,22 +343,20 @@ const PaymentsReport = () => {
             sx={{ mt: 4, p: 2, border: "1px solid #ddd" }}
             ref={componentRef}
           >
-            {units
-              .filter(
-                (unit) =>
-                  selectedUnits.includes("ALL") ||
-                  selectedUnits.includes(unit.id),
-              )
-              .map((unit) => {
-                const unitPayments = reportData.filter(
-                  (payment) => payment.unitNumber === unit.number,
+            {paymentTypes
+              .filter((type) => selectedPaymentTypes.includes(type.value))
+              .map((type) => {
+                const typePayments = reportData.filter(
+                  (payment) => payment.paymentType === type.value,
                 );
                 return (
-                  <div key={unit.id}>
+                  <div key={type.value}>
                     <Typography variant="h6" gutterBottom>
-                      الوحدة رقم: {unit.label}
+                      {type.label}
                     </Typography>
-                    {renderTable(unitPayments, columnsPayments)}
+                    <ReportTable headings={columnsPayments} title={type.label}>
+                      {renderTableRows(typePayments, columnsPayments, 4)}
+                    </ReportTable>
                   </div>
                 );
               })}

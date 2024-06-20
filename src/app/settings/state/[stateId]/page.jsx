@@ -82,13 +82,6 @@ const CityWrapper = ({ stateId }) => {
       ),
     },
     {
-      field: "location",
-      headerName: "الموقع",
-      width: 200,
-      printable: true,
-      cardWidth: 48,
-    },
-    {
       field: "districts",
       type: "size",
       headerName: "عدد المناطق",
@@ -126,11 +119,6 @@ const CityWrapper = ({ stateId }) => {
       type: "text",
       label: "اسم المنطقه",
     },
-    {
-      id: "location",
-      type: "text",
-      label: "الموقع",
-    },
   ];
   const {
     isEditing: isDistrictEditing,
@@ -150,7 +138,7 @@ const CityWrapper = ({ stateId }) => {
       </Link>
       <ViewComponent
         inputs={cityInputs}
-        formTitle={"تعديل"}
+        formTitle={"مدينة"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

@@ -6,7 +6,10 @@ import CustomTable from "@/app/components/Tables/CustomTable";
 import { EditTableModal } from "@/app/UiComponents/Modals/EditTableModal";
 import { useTableForm } from "@/app/context/TableFormProvider/TableFormProvider";
 import { Button } from "@mui/material";
-import { CreateFormModal } from "@/app/UiComponents/Modals/CreateFormModal"; // Import the new modal component
+import { CreateFormModal } from "@/app/UiComponents/Modals/CreateFormModal";
+import { useAuth } from "@/app/context/AuthProvider/AuthProvider";
+import { usePathname } from "next/navigation";
+import { getCurrentPrivilege } from "@/helpers/functions/getUserPrivilege"; // Import the new modal component
 
 export default function ViewComponent({
   columns,
@@ -37,11 +40,25 @@ export default function ViewComponent({
   submitFunction,
   setIdEditing,
   onModalOpen,
+  formTitle,
+  title,
 }) {
   const [view, setView] = useState("table");
   const [showForm, setShowForm] = useState(directEdit);
   const { openModal, submitData } = useTableForm();
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const { user } = useAuth();
+  const pathName = usePathname();
+
+  function canEdit() {
+    const currentPrivilege = getCurrentPrivilege(user, pathName);
+    return currentPrivilege?.privilege.canEdit;
+  }
+
+  function canCreate() {
+    const currentPrivilege = getCurrentPrivilege(user, pathName);
+    return currentPrivilege?.privilege.canWrite;
+  }
 
   async function create(data) {
     if (handleEditBeforeSubmit) {
@@ -82,7 +99,7 @@ export default function ViewComponent({
         <EditTableModal
           fullWidth={fullWidth}
           inputs={inputs}
-          formTitle={"تعديل"}
+          formTitle={"تعديل " + formTitle}
           rows={rows}
           id={id}
           setData={setData}
@@ -90,19 +107,22 @@ export default function ViewComponent({
           setExtraData={setExtraData}
           extraData={extraData}
           handleEditBeforeSubmit={handleEditBeforeSubmit}
+          canEdit={canEdit}
         >
           {children}
         </EditTableModal>
       )}
       {!noTabs && (
         <div className="flex justify-end mb-4 gap-3">
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={handleOpenCreateModal} // Open the create form modal
-          >
-            {showForm ? "إخفاء النموذج" : " اتشاء"}
-          </Button>
+          {canCreate() && (
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleOpenCreateModal} // Open the create form modal
+            >
+              {showForm ? "إخفاء النموذج" : " اتشاء"}
+            </Button>
+          )}
           <Button
             variant="outlined"
             color="primary"
@@ -120,6 +140,7 @@ export default function ViewComponent({
           </Button>
         </div>
       )}
+      <h1 className="text-2xl font-bold mb-[-10px] mt-1">{title}</h1>
 
       {view === "table" && (
         <CustomTable
@@ -134,7 +155,6 @@ export default function ViewComponent({
           setTotal={setTotal}
         />
       )}
-
       {view === "dataGrid" && (
         <DataGrid
           columns={columns}
@@ -152,6 +172,7 @@ export default function ViewComponent({
         open={createModalOpen}
         handleClose={handleCloseCreateModal}
         inputs={inputs}
+        formTitle={formTitle}
         onSubmit={async (data) => {
           const submit = await create(data);
           if (submit) {

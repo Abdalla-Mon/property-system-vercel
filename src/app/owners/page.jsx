@@ -63,14 +63,6 @@ const OwnerWrapper = () => {
       width: 100,
       printable: true,
       cardWidth: 48,
-      renderCell: (params) => (
-        <Link
-          className={"text-blue-500 hover:text-blue-800"}
-          href={`/owners/${params.row.id}`}
-        >
-          {params.row.id}
-        </Link>
-      ),
     },
     {
       field: "name",
@@ -78,14 +70,6 @@ const OwnerWrapper = () => {
       width: 200,
       printable: true,
       cardWidth: 48,
-      renderCell: (params) => (
-        <Link
-          className={"text-blue-500 hover:text-blue-800"}
-          href={`/owners/${params.row.id}`}
-        >
-          {params.row.name}
-        </Link>
-      ),
     },
     {
       field: "phone",
@@ -177,7 +161,7 @@ const OwnerWrapper = () => {
     <>
       <ViewComponent
         inputs={ownerInputs}
-        formTitle={"تعديل"}
+        formTitle={"مالك"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

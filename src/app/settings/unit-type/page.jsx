@@ -92,7 +92,7 @@ const UnitTypeWrapper = () => {
     <>
       <ViewComponent
         inputs={unitTypeInputs}
-        formTitle={"تعديل"}
+        formTitle={"نوع الوحدة"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

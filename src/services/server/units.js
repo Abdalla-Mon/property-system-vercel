@@ -41,6 +41,12 @@ export async function createUnit(data) {
           name: true,
         },
       },
+      property: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       rentAgreements: true,
     },
   });

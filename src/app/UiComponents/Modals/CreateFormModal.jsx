@@ -10,6 +10,7 @@ export function CreateFormModal({
   createModalsData,
   reFetch,
   children,
+  formTitle,
 }) {
   return (
     <Modal open={open} onClose={handleClose}>
@@ -37,11 +38,8 @@ export function CreateFormModal({
           },
         }}
       >
-        <Typography variant="h6" component="h2">
-          إضافة
-        </Typography>
         <Form
-          formTitle={"إضافة"}
+          formTitle={"اضافة " + formTitle}
           inputs={inputs}
           onSubmit={onSubmit}
           variant={"outlined"}

@@ -5,6 +5,7 @@ import { startOfDay, endOfDay } from "@/helpers/functions/dates";
 
 const PayEvery = {
   ONCE: 1,
+  ONE_MONTH: 1,
   TWO_MONTHS: 2,
   FOUR_MONTHS: 4,
   SIX_MONTHS: 6,
@@ -32,7 +33,6 @@ export async function createMaintenance(data) {
             id: +ownerId,
           },
         },
-
         unit: data.unitId
           ? {
               connect: {
@@ -63,10 +63,17 @@ export async function createMaintenance(data) {
             name: true,
           },
         },
+        type: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         unit: {
           select: {
             id: true,
             unitId: true,
+            number: true,
           },
         },
       },
@@ -85,6 +92,9 @@ export async function createMaintenance(data) {
 
 export async function createMaintenenceInstallmentsAndPayments(data) {
   const { maintenance, payEvery } = data;
+  let installmentsArr = [];
+  let paymentsArr = [];
+
   try {
     if (payEvery === "ONCE") {
       const createdInstallment = await prisma.maintenanceInstallment.create({
@@ -97,7 +107,8 @@ export async function createMaintenenceInstallmentsAndPayments(data) {
           date: convertToISO(new Date(maintenance.date)),
         },
       });
-      await prisma.payment.create({
+
+      const payment = await prisma.payment.create({
         data: {
           amount: maintenance.totalPrice,
           dueDate: convertToISO(new Date(maintenance.date)),
@@ -112,11 +123,14 @@ export async function createMaintenenceInstallmentsAndPayments(data) {
               id: maintenance.propertyId,
             },
           },
-          unit: {
-            connect: {
-              id: maintenance.unitId,
-            },
-          },
+
+          unit: maintenance.unitId
+            ? {
+                connect: {
+                  id: maintenance.unitId,
+                },
+              }
+            : undefined,
           maintenance: {
             connect: {
               id: maintenance.id,
@@ -130,8 +144,13 @@ export async function createMaintenenceInstallmentsAndPayments(data) {
           paymentType: "MAINTENANCE",
         },
       });
+      installmentsArr.push(createdInstallment);
+      paymentsArr.push(payment);
       return {
-        data: {},
+        data: {
+          installments: installmentsArr,
+          payments: paymentsArr,
+        },
         message: "تمت إضافة الدفعات بنجاح",
       };
     }
@@ -156,10 +175,13 @@ export async function createMaintenenceInstallmentsAndPayments(data) {
 
         let installmentAmount;
         if (i === totalInstallments - 1) {
-          installmentAmount = remainingAmount;
+          // installmentAmount = remainingAmount;
+          installmentAmount = maintenance.totalPrice;
         } else {
-          installmentAmount = Math.round(installmentBaseAmount / 50) * 50;
-          remainingAmount -= installmentAmount;
+          installmentAmount = maintenance.totalPrice;
+
+          // installmentAmount = Math.round(installmentBaseAmount / 50) * 50;
+          // remainingAmount -= installmentAmount;
         }
 
         return {
@@ -182,7 +204,8 @@ export async function createMaintenenceInstallmentsAndPayments(data) {
         data: installment,
       });
 
-      await prisma.payment.create({
+      installmentsArr.push(createdInstallment);
+      const payment = await prisma.payment.create({
         data: {
           amount: amount,
           dueDate: dueDate,
@@ -207,17 +230,23 @@ export async function createMaintenenceInstallmentsAndPayments(data) {
               id: createdInstallment.id,
             },
           },
-          unit: {
-            connect: {
-              id: maintenance.unitId,
-            },
-          },
+          unit: maintenance.unitId
+            ? {
+                connect: {
+                  id: maintenance.unitId,
+                },
+              }
+            : undefined,
           paymentType: "MAINTENANCE",
         },
       });
+      paymentsArr.push(payment);
     }
     return {
-      data: {},
+      data: {
+        installments: installmentsArr,
+        payments: paymentsArr,
+      },
       message: "تمت إضافة الدفعات بنجاح",
     };
   } catch (error) {
@@ -226,14 +255,13 @@ export async function createMaintenenceInstallmentsAndPayments(data) {
   }
 }
 
-export async function getMaintenances(page, limit, searchParams) {
+export async function getMaintenanceContracts(page, limit, searchParams) {
   const offset = (page - 1) * limit;
   const filters = searchParams.get("filters")
     ? JSON.parse(searchParams.get("filters"))
     : {};
   const { propertyId, startDate, endDate } = filters;
-  console.log(propertyId, "propertyId");
-  const where = {};
+  const where = { payEvery: { not: "ONCE" } };
   if (propertyId) {
     where.propertyId = parseInt(propertyId);
   }
@@ -257,11 +285,103 @@ export async function getMaintenances(page, limit, searchParams) {
     take: limit,
     where,
     include: {
-      property: true,
+      property: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      type: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      payments: {
+        select: {
+          amount: true,
+          dueDate: true,
+          status: true,
+          paidAmount: true,
+        },
+      },
+      installments: {
+        select: {
+          startDate: true,
+          endDate: true,
+          amount: true,
+        },
+      },
+    },
+  });
+
+  const total = await prisma.maintenance.count({ where });
+
+  return {
+    data: maintenances,
+    page,
+    total,
+  };
+}
+
+export async function getMaintenances(page, limit, searchParams) {
+  const offset = (page - 1) * limit;
+  const filters = searchParams.get("filters")
+    ? JSON.parse(searchParams.get("filters"))
+    : {};
+  const { propertyId, startDate, endDate } = filters;
+  const where = { payEvery: "ONCE" };
+  if (propertyId) {
+    where.propertyId = parseInt(propertyId);
+  }
+  if (startDate && endDate) {
+    where.date = {
+      gte: new Date(startDate),
+      lte: new Date(endDate),
+    };
+  } else if (startDate) {
+    where.date = {
+      gte: new Date(startDate),
+    };
+  } else if (endDate) {
+    where.date = {
+      lte: new Date(endDate),
+    };
+  }
+
+  const maintenances = await prisma.maintenance.findMany({
+    skip: offset,
+    take: limit,
+    where,
+    include: {
+      property: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       unit: true,
-      type: true,
-      payments: true,
-      installments: true,
+      type: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      payments: {
+        select: {
+          amount: true,
+          dueDate: true,
+          status: true,
+          paidAmount: true,
+        },
+      },
+      installments: {
+        select: {
+          startDate: true,
+          endDate: true,
+          amount: true,
+        },
+      },
     },
   });
 

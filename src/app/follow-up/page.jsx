@@ -33,6 +33,7 @@ import "moment/locale/ar";
 import { TableLoading } from "@/app/UiComponents/loaders/TableLoading"; // Import Arabic locale for moment
 
 import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
+import { useSubmitLoader } from "@/app/context/SubmitLoaderProvider/SubmitLoaderProvider";
 
 moment.locale("ar"); // Set moment locale globally to Arabic
 const localizer = momentLocalizer(moment);
@@ -175,7 +176,7 @@ const HomePage = () => {
           payments={sortedPayments(filterPaymentsByDate(rent))}
           title="Rent Payments"
           description="فاتورة دفعة ايجار"
-          heading="الدفعات"
+          heading="دفعات الايجار"
           loading={rentLoading}
           loadingMessage="جاري تحميل دفعات عقد الايجار"
         />
@@ -234,6 +235,7 @@ const PaymentSection = ({
   const [id, setId] = useState(null);
   const [modalInputs, setModalInputs] = useState([]);
   const { setOpenModal } = useTableForm();
+  const { setMessage, setSeverity, setOpen } = useSubmitLoader();
 
   useEffect(() => {
     setData(payments);
@@ -243,6 +245,20 @@ const PaymentSection = ({
 
   async function submit(d) {
     const currentPayment = data.find((item) => item.id === id);
+
+    if (d.paymentTypeMethod !== "CASH") {
+      if (
+        !currentPayment.property.bankAccount ||
+        currentPayment.property.bankAccount.length === 0
+      ) {
+        setOpen(true);
+        setSeverity("error");
+        setMessage(
+          "لا يمكن اتمام هذه العمليه ليس هناك حساب بنكي مرتبط بهذا العقار",
+        );
+        return null;
+      }
+    }
     const submitData = {
       ...d,
       currentPaidAmount: +currentPayment.paidAmount,
@@ -256,26 +272,36 @@ const PaymentSection = ({
       title: title,
       description: description,
       invoiceType: currentPayment.paymentType,
+      bankId: currentPayment.property.bankAccount
+        ? currentPayment.property.bankAccount[0]?.id
+        : null,
+      bankAccount: currentPayment.property.bankAccount
+        ? currentPayment.property.bankAccount[0]?.accountNumber
+        : null,
     };
 
     const newData = await updatePayment(submitData, setSubmitLoading);
-    let updateData;
-    if (newData.payment.paidAmount < newData.payment.amount) {
-      updateData = data.map((item) => {
-        if (item.id === id) {
-          return {
-            ...newData.payment,
+    if (newData) {
+      let updateData;
+      if (newData.payment.paidAmount < newData.payment.amount) {
+        updateData = data.map((item) => {
+          if (item.id === id) {
+            return {
+              ...newData.payment,
 
-            invoices: [...item.invoices, newData.invoice],
-          };
-        }
-        return item;
-      });
-    } else {
-      updateData = data.filter((item) => item.id !== id);
+              invoices: [...item.invoices, newData.invoice],
+            };
+          }
+          return item;
+        });
+      } else {
+        updateData = data.filter((item) => item.id !== id);
+      }
+      if (updateData) {
+        setData(updateData);
+        setOpenModal(false);
+      }
     }
-    setData(updateData);
-    setOpenModal(false);
   }
 
   return (
@@ -316,6 +342,7 @@ const PaymentSection = ({
                   maintenance={maintenance}
                   item={item}
                   setId={setId}
+                  id={id}
                   setModalInputs={setModalInputs}
                   showName
                   index={index + 1}
@@ -346,21 +373,14 @@ const PaymentRow = ({
   setModalInputs,
   setId,
   index,
-  maintenance,
   overdue,
   setOpenModal,
 }) => {
+  const { openModal } = useTableForm();
   const [paymentType, setPaymentType] = useState("CASH");
-
-  async function getOwnerAccountData() {
-    const res = await fetch("/api/clients/owner/" + item.clientId);
-    const data = await res.json();
-    const bankAccounts = data.bankAccounts.map((account) => ({
-      id: account.id,
-      name: account.accountNumber,
-    }));
-    return { data: bankAccounts };
-  }
+  useEffect(() => {
+    setPaymentType("CASH");
+  }, [openModal]);
 
   const modalInputs = [
     {
@@ -395,6 +415,7 @@ const PaymentRow = ({
       options: [
         { label: "كاش", value: "CASH" },
         { label: "تحويل بنكي", value: "BANK" },
+        { label: "شيك", value: "CHEQUE" },
       ],
       onChange: (e) => {
         setPaymentType(e.target.value);
@@ -415,24 +436,20 @@ const PaymentRow = ({
   ];
 
   useEffect(() => {
-    if (paymentType === "BANK") {
+    if (paymentType === "CHEQUE") {
       setModalInputs([
         ...modalInputs,
         {
           data: {
-            id: "bankAccountId",
-            type: "select",
-            label: "رقم حساب المالك",
-            name: "bankAccountId",
+            id: "chequeNumber",
+            type: "text",
+            label: "رقم الشيك ",
+            name: "checkNumber",
           },
-          createData: createInputs,
-          autocomplete: true,
-          extraId: false,
-          getData: getOwnerAccountData,
           pattern: {
             required: {
               value: true,
-              message: "يرجى إدخال رقم حساب المالك",
+              message: "يرجى إدخال رقم الشيك",
             },
           },
           sx: {
@@ -526,12 +543,19 @@ const InvoiceRows = ({ invoices, index }) => {
           </Typography>
           <Typography variant="body2">
             طريقة الدفع:{" "}
-            {invoice.paymentTypeMethod === "CASH" ? "كاش" : "تحويل بنكي"}
+            {invoice.paymentTypeMethod === "CASH"
+              ? "كاش"
+              : invoice.paymentTypeMethod === "BANK"
+                ? "تحويل بنكي"
+                : "شيك"}{" "}
           </Typography>
           <Typography variant="body2">
             {invoice.bankAccount && (
               <>رقم حساب المالك: {invoice.bankAccount.accountNumber}</>
             )}
+          </Typography>
+          <Typography variant="body2">
+            {invoice.chequeNumber && <>رقم الشيك: {invoice.chequeNumber}</>}
           </Typography>
         </Box>
       </TableCell>

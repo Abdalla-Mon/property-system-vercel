@@ -124,11 +124,6 @@ export default function CustomTable({
               <PrintIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Save">
-            <IconButton>
-              <SaveAltIcon />
-            </IconButton>
-          </Tooltip>
         </div>
       </Toolbar>
       <TableContainer

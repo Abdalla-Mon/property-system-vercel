@@ -32,17 +32,20 @@ const PropertyComponent = ({ clientId, noTabs }) => {
 
   const [stateId, setStateId] = useState(null);
   const [cityId, setCityId] = useState(null);
+  const [ownerId, setOwnerId] = useState(null);
   const [districtId, setDistrictId] = useState(null);
   const [disabled, setDisabled] = useState({
     cityId: true,
     districtId: true,
     neighbourId: true,
+    bankAccount: true,
   });
 
   const [reFetch, setRefetch] = useState({
     cityId: false,
     districtId: false,
     neighbourId: false,
+    bankAccount: false,
   });
 
   async function getStatesData() {
@@ -74,12 +77,6 @@ const PropertyComponent = ({ clientId, noTabs }) => {
     return { data, id: districtId };
   }
 
-  async function getBanksData() {
-    const res = await fetch("/api/fast-handler?id=bank");
-    const data = await res.json();
-    return { data };
-  }
-
   async function getOwners() {
     const res = await fetch("/api/fast-handler?id=owner");
     const data = await res.json();
@@ -96,6 +93,16 @@ const PropertyComponent = ({ clientId, noTabs }) => {
     const res = await fetch("/api/fast-handler?id=collector");
     const data = await res.json();
     return { data };
+  }
+
+  async function getOwnerAccountData() {
+    const res = await fetch("/api/clients/owner/" + ownerId);
+    const data = await res.json();
+    const bankAccounts = data?.bankAccounts.map((account) => ({
+      id: account.id,
+      name: account.accountNumber,
+    }));
+    return { data: bankAccounts };
   }
 
   const handleStateChange = (newValue) => {
@@ -165,11 +172,12 @@ const PropertyComponent = ({ clientId, noTabs }) => {
           onChange: handleNeighbourChange,
           disabled: disabled.neighbourId,
         };
-      case "bankId":
+      case "bankAccount":
         return {
           ...input,
           extraId: false,
-          getData: getBanksData,
+          getData: getOwnerAccountData,
+          disabled: disabled.bankAccount,
         };
       case "collectorId":
         return {
@@ -182,6 +190,11 @@ const PropertyComponent = ({ clientId, noTabs }) => {
           ...input,
           extraId: false,
           getData: getOwners,
+          onChange: (newValue) => {
+            setOwnerId(newValue);
+            setRefetch({ ...reFetch, bankAccount: true });
+            setDisabled({ ...disabled, bankAccount: newValue === null });
+          },
         };
       case "typeId":
         return {
@@ -337,7 +350,7 @@ const PropertyComponent = ({ clientId, noTabs }) => {
     <>
       <ViewComponent
         inputs={dataInputs}
-        formTitle={""}
+        formTitle={"عقار"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

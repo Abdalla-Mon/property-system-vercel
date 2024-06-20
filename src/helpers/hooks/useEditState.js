@@ -39,10 +39,6 @@ const useEditState = (initialItems, rerender) => {
     return allChecksPassed;
   };
 
-  // Function to reset all states to their initial values
-  useEffect(() => {
-    console.log(isEditing, "isEditing");
-  }, [rerender]);
   const resetStates = () => {
     setIsEditing(initialEditingState);
     setSnackbarOpen(initialSnackbarState);

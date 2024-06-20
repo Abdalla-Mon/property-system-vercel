@@ -12,40 +12,33 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   TextField,
+  TableRow,
+  TableCell,
 } from "@mui/material";
-import { Bar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { useReactToPrint } from "react-to-print";
 import "dayjs/locale/en-gb";
+import ReportTable from "@/app/components/Tables/ReportTable";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
 
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-);
+const columnsMaintenance = [
+  { arabic: "صيانة", english: "description" },
+  { arabic: "رقم الوحدة", english: "unitNumber" },
+  { arabic: "تاريخ تسجيل الصيانة", english: "date" },
+  { arabic: "الحالة", english: "status" },
+  { arabic: "المبلغ", english: "amount" },
+  { arabic: "المبلغ المدفوع", english: "paidAmount" },
+  { arabic: "ميعاد الدفع", english: "dueDate" },
+];
+
+const translateStatus = (status, amount, paidAmount) => {
+  if (paidAmount === amount) return "مدفوع بالكامل";
+  if (paidAmount > 0) return "مدفوع جزئياً";
+  return "قيد الانتظار";
+};
 
 const MaintenanceReports = () => {
   const [properties, setProperties] = useState([]);
@@ -53,11 +46,11 @@ const MaintenanceReports = () => {
   const [startDate, setStartDate] = useState(dayjs());
   const [endDate, setEndDate] = useState(dayjs());
   const [reportData, setReportData] = useState(null);
+  const componentRef = useRef();
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const componentRef = useRef();
-
+  console.log(reportData, "reportData");
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
@@ -95,93 +88,114 @@ const MaintenanceReports = () => {
     setSubmitLoading(false);
   };
 
-  const renderTable = (data) => (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>صيانة</TableCell>
-            <TableCell>رقم الوحدة</TableCell>
-            <TableCell>تاريخ الصيانة</TableCell>
-            <TableCell>الحالة</TableCell>
-            <TableCell>المبلغ</TableCell>
-            <TableCell>المبلغ المدفوع</TableCell>
-            <TableCell>ميعاد الدفع</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row, index) => (
-            <TableRow key={index}>
-              <TableCell>{row.description}</TableCell>
-              <TableCell>{row.unitNumber}</TableCell>
-              <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>
-              <TableCell>
-                {row.paidAmount === row.amount
-                  ? "مدفوع بالكامل"
-                  : row.paidAmount > 0
-                    ? "مدفوع جزئيا"
-                    : "قيد الانتظار"}
-              </TableCell>
-              <TableCell>{row.amount}</TableCell>
-              <TableCell>{row.paidAmount}</TableCell>
-              <TableCell>
-                {new Date(row.dueDate).toLocaleDateString()}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: "تقرير الصيانة",
+  });
 
-  const renderChart = (totalAmount, totalPaid) => {
-    const data = {
-      labels: ["إجمالي المبلغ", "المبلغ المدفوع", "المبلغ المتبقي"],
-      datasets: [
-        {
-          label: "تكاليف الصيانة",
-          data: [totalAmount, totalPaid, totalAmount - totalPaid],
-          backgroundColor: [
-            "rgba(75, 192, 192, 0.6)",
-            "rgba(153, 102, 255, 0.6)",
-            "rgba(255, 159, 64, 0.6)",
-          ],
-        },
-      ],
-    };
+  const renderTableRows = (data, columns, colSpan) => {
+    let totalAmount = 0;
+    let totalPaidAmount = 0;
 
     return (
-      <Box sx={{ width: "100%", height: "400px", margin: "auto" }}>
-        <Bar
-          data={data}
-          options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                position: "top",
-              },
-            },
-          }}
-        />
-      </Box>
+      <>
+        {data.map((row, index) => (
+          <TableRow key={index}>
+            {columns.map((col, colIndex) => {
+              let cellValue = col.english
+                .split(".")
+                .reduce((acc, part) => acc && acc[part], row);
+
+              if (
+                col.english.includes("date") ||
+                col.english.includes("Date")
+              ) {
+                cellValue = new Date(cellValue).toLocaleDateString();
+              } else if (
+                col.english.includes("price") ||
+                col.english.includes("amount") ||
+                col.english.includes("totalPrice") ||
+                col.english.includes("paidAmount") ||
+                col.english.includes("yearlyRentPrice")
+              ) {
+                cellValue = formatCurrencyAED(cellValue);
+              }
+
+              if (col.english === "status") {
+                cellValue = translateStatus(
+                  row.status,
+                  row.amount,
+                  row.paidAmount,
+                );
+              }
+
+              if (col.english.includes("amount")) {
+                totalAmount += row.amount;
+              }
+
+              if (col.english.includes("paidAmount")) {
+                totalPaidAmount += row.paidAmount;
+              }
+
+              return (
+                <TableCell
+                  key={colIndex}
+                  sx={{ backgroundColor: "#ffffff", padding: "8px" }}
+                >
+                  {cellValue}
+                </TableCell>
+              );
+            })}
+          </TableRow>
+        ))}
+        {columns.some((col) => col.english.includes("amount")) && (
+          <TableRow>
+            <TableCell
+              colSpan={colSpan ? colSpan : columns.length - 2}
+              sx={{
+                backgroundColor: "#f0f0f0",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              الإجمالي
+            </TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: "#ffffff",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              {formatCurrencyAED(totalAmount)}
+            </TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: "#ffffff",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              {formatCurrencyAED(totalPaidAmount)}
+            </TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: "#ffffff",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              {formatCurrencyAED(totalAmount - totalPaidAmount)}
+            </TableCell>
+          </TableRow>
+        )}
+      </>
     );
   };
 
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-  });
-
   if (loading) return <CircularProgress />;
   return (
-    <Container
-      sx={{
-        p: {
-          xs: 0,
-          md: 1,
-        },
-      }}
-    >
+    <Container sx={{ p: { xs: 0, md: 1 } }}>
       <Box sx={{ my: 4 }}>
         <Typography variant="h4" gutterBottom>
           إنشاء تقارير الصيانة
@@ -254,21 +268,68 @@ const MaintenanceReports = () => {
 
               return (
                 <Box key={property.id} sx={{ mb: 4 }}>
+                  <Box
+                    sx={{
+                      mb: 4,
+                      p: 2,
+                      backgroundColor: "#f5f5f5",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <Typography variant="h6" gutterBottom>
+                      تفاصيل المالك
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, 1fr)",
+                        gap: "10px",
+                      }}
+                    >
+                      <div>
+                        <strong>اسم المالك:</strong> {property.client?.name}
+                      </div>
+                      <div>
+                        <strong> هوية المالك:</strong>{" "}
+                        {property.client?.nationalId}
+                      </div>
+                      <div>
+                        <strong> ايميل المالك:</strong> {property.client?.email}
+                      </div>
+                      <div>
+                        <strong> رقمة هاتف المالك:</strong>{" "}
+                        {property.client?.phone}
+                      </div>
+                    </Typography>
+                  </Box>
                   <Typography variant="h6">{property.name}</Typography>
-                  {renderTable(
-                    property.maintenances.flatMap((maintenance) =>
-                      maintenance.payments.map((payment) => ({
-                        description: maintenance.description,
-                        date: maintenance.date,
-                        amount: payment.amount,
-                        paidAmount: payment.paidAmount,
-                        dueDate: payment.dueDate,
-                        status: payment.status,
-                        unitNumber: maintenance.unit.number,
-                      })),
-                    ),
-                  )}
-                  {renderChart(totalAmount, totalPaid)}
+                  <ReportTable headings={columnsMaintenance} title="صيانة">
+                    {renderTableRows(
+                      property.maintenances.flatMap((maintenance) =>
+                        maintenance.payments.map((payment) => ({
+                          description: maintenance.description,
+                          date: maintenance.date,
+                          amount: payment.amount,
+                          paidAmount: payment.paidAmount,
+                          dueDate: payment.dueDate,
+                          status: payment.status,
+                          unitNumber: maintenance.unit?.number,
+                        })),
+                      ),
+                      columnsMaintenance,
+                      4,
+                    )}
+                  </ReportTable>
+                  <Typography variant="h6" sx={{ mt: 2 }}>
+                    الإجمالي: {formatCurrencyAED(totalAmount)}
+                  </Typography>
+                  <Typography variant="h6" sx={{ mt: 2 }}>
+                    المدفوع: {formatCurrencyAED(totalPaid)}
+                  </Typography>
+                  <Typography variant="h6" sx={{ mt: 2 }}>
+                    المتبقي: {formatCurrencyAED(totalAmount - totalPaid)}
+                  </Typography>
                 </Box>
               );
             })}

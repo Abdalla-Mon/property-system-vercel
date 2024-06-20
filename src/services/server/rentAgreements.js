@@ -241,12 +241,6 @@ export async function getRentAgreementById(page, limit, serachParams, params) {
     const rentAgreement = await prisma.rentAgreement.findUnique({
       where: { id: +id },
       include: {
-        type: {
-          select: {
-            id: true,
-            title: true,
-          },
-        },
         renter: {
           select: {
             id: true,
@@ -292,11 +286,6 @@ export async function getRentAgreementById(page, limit, serachParams, params) {
 // rent creation with invoices
 export async function createRentAgreement(data) {
   try {
-    const rentAgreementType = await prisma.RentAgreementType.findUnique({
-      where: {
-        id: +data.typeId,
-      },
-    });
     const newRentAgreement = await prisma.rentAgreement.create({
       data: {
         rentAgreementNumber: generateUniqueId(),
@@ -308,15 +297,9 @@ export async function createRentAgreement(data) {
         totalPrice: +data.totalPrice - data.discount,
         totalContractPrice: +data.totalPrice,
         rentCollectionType: data.rentCollectionType,
-        customDescription: rentAgreementType.description,
         renter: {
           connect: {
             id: +data.renterId,
-          },
-        },
-        type: {
-          connect: {
-            id: +data.typeId,
           },
         },
         unit: {
@@ -611,6 +594,19 @@ export async function getRentAgreementPaymentsForInstallments(
       },
       include: {
         installment: true,
+        property: {
+          select: {
+            name: true,
+            bankId: true,
+            bankAccount: {
+              select: {
+                accountNumber: true,
+                id: true,
+              },
+            },
+          },
+        },
+
         invoices: {
           include: {
             bankAccount: true,
@@ -643,6 +639,19 @@ export async function gentRentAgreementPaymentsForFees(
         },
       },
       include: {
+        property: {
+          select: {
+            name: true,
+            bankId: true,
+            bankAccount: {
+              select: {
+                accountNumber: true,
+                id: true,
+              },
+            },
+          },
+        },
+
         invoices: {
           include: {
             bankAccount: true,
@@ -703,6 +712,19 @@ export async function getRentAgreementPaymentForOthersExpences(
         paymentType: "OTHER_EXPENSE",
       },
       include: {
+        property: {
+          select: {
+            name: true,
+            bankId: true,
+            bankAccount: {
+              select: {
+                accountNumber: true,
+                id: true,
+              },
+            },
+          },
+        },
+
         invoices: {
           include: {
             bankAccount: true,
@@ -786,15 +808,38 @@ export async function getEndingRentAgreements() {
 
 export async function updateRentAgreementInstallmentsPaymentsData(data) {
   console.log(data, "data");
+
   const payments = data;
   const updatedPayments = [];
+
   for (const payment of payments) {
+    // Ensure dueDate is a Date object
+    const dueDate = new Date(payment.dueDate);
+
+    // Update the payment
     const updatedPayment = await prisma.payment.update({
       where: { id: payment.id },
-      data: { amount: payment.amount },
+      data: {
+        amount: payment.amount,
+        dueDate: dueDate.toISOString(),
+      },
     });
+
+    // Update the installment end date if necessary
+    if (payment.installment) {
+      const installmentEndDate = new Date(payment.installment.endDate);
+
+      await prisma.installment.update({
+        where: { id: payment.installment.id },
+        data: {
+          endDate: installmentEndDate.toISOString(),
+        },
+      });
+    }
+
     updatedPayments.push(updatedPayment);
   }
+
   return {
     data: updatedPayments,
     message: "تم تحديث الدفعات بنجاح",

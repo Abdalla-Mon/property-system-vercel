@@ -1,33 +1,35 @@
 import prisma from "@/lib/prisma";
 
-export async function getExpenses(page, limit, searchParams, params) {
+export async function getTotalExpenses(page, limit, searchParams) {
   const propertyId = searchParams.get("propertyId");
-  const currentMonthStart = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    1,
-  );
-  const currentMonthEnd = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth() + 1,
-    0,
-  );
 
-  const whereClause = {
-    date: {
-      gte: currentMonthStart,
-      lte: currentMonthEnd,
-    },
-  };
-  console.log(propertyId, "propertyId");
+  const whereClause = {};
   if (propertyId) {
     whereClause.propertyId = parseInt(propertyId, 10);
   }
 
   const expenses = await prisma.expense.findMany({ where: whereClause });
 
+  const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+
   return {
-    data: expenses,
+    total,
+  };
+}
+
+export async function getTotalIncome(page, limit, searchParams) {
+  const propertyId = searchParams.get("propertyId");
+
+  const whereClause = {};
+  if (propertyId) {
+    whereClause.propertyId = parseInt(propertyId, 10);
+  }
+
+  const income = await prisma.income.findMany({ where: whereClause });
+  const total = income.reduce((sum, inc) => sum + inc.amount, 0);
+
+  return {
+    total,
   };
 }
 
@@ -43,9 +45,8 @@ export async function getIncome(page, limit, searchParams, params) {
     new Date().getMonth() + 1,
     0,
   );
-
   const whereClause = {
-    date: {
+    createdAt: {
       gte: currentMonthStart,
       lte: currentMonthEnd,
     },
@@ -56,9 +57,38 @@ export async function getIncome(page, limit, searchParams, params) {
   }
 
   const income = await prisma.income.findMany({ where: whereClause });
-
   return {
     data: income,
+  };
+}
+
+export async function getExpenses(page, limit, searchParams, params) {
+  const propertyId = searchParams.get("propertyId");
+  const currentMonthStart = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1, // First day of the current month
+  );
+  const currentMonthEnd = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth() + 1,
+    0, // Last day of the current month
+  );
+
+  const whereClause = {
+    createdAt: {
+      gte: currentMonthStart,
+      lte: currentMonthEnd,
+    },
+  };
+  if (propertyId) {
+    whereClause.propertyId = parseInt(propertyId, 10);
+  }
+
+  const expenses = await prisma.expense.findMany({ where: whereClause });
+
+  return {
+    data: expenses,
   };
 }
 
@@ -103,24 +133,36 @@ export async function getPayments(page, limit, searchParams, params) {
     0,
   );
 
-  const whereClause = {
-    dueDate: {
+  const propertyId = searchParams.get("propertyId");
+  const invoiceWhereClause = {
+    createdAt: {
       gte: currentMonthStart,
       lte: currentMonthEnd,
     },
   };
-  const propertyId = searchParams.get("propertyId");
+
   if (propertyId) {
-    whereClause.propertyId = parseInt(propertyId, 10);
+    invoiceWhereClause.propertyId = parseInt(propertyId, 10);
   }
 
+  const invoices = await prisma.invoice.findMany({
+    where: invoiceWhereClause,
+    select: {
+      paymentId: true,
+      createdAt: true,
+    },
+  });
+
+  const paymentIds = invoices.map((invoice) => invoice.paymentId);
   const payments = await prisma.payment.findMany({
-    where: whereClause,
+    where: {
+      id: { in: paymentIds },
+    },
     select: {
       id: true,
       amount: true,
       paidAmount: true,
-      status: true,
+      dueDate: true,
       paymentType: true,
       property: {
         select: {
@@ -139,8 +181,27 @@ export async function getPayments(page, limit, searchParams, params) {
       },
     },
   });
-  console.log(payments, "dsad payments");
+
+  const categorizedPayments = payments.map((payment) => {
+    const invoice = invoices.find((inv) => inv.paymentId === payment.id);
+
+    const paymentDueDate = new Date(payment.dueDate);
+    const invoiceCreatedDate = new Date(invoice.createdAt);
+
+    const isSameDay =
+      paymentDueDate.getDate() === invoiceCreatedDate.getDate() &&
+      paymentDueDate.getMonth() === invoiceCreatedDate.getMonth() &&
+      paymentDueDate.getFullYear() === invoiceCreatedDate.getFullYear();
+
+    const paymentStatus = isSameDay ? "PAID_ON_TIME" : "PAID_LATE";
+
+    return {
+      ...payment,
+      status: paymentStatus,
+    };
+  });
+
   return {
-    data: payments,
+    data: categorizedPayments,
   };
 }

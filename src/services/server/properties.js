@@ -3,7 +3,18 @@ import { convertToISO } from "@/helpers/functions/convertDateToIso";
 
 export async function createProperty(data) {
   try {
-    // Create property
+    const bankAccount = await prisma.bankAccount.findFirst({
+      where: {
+        id: +data.bankAccount,
+      },
+      include: {
+        bank: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
     let createData = {
       name: data.name,
       buildingGuardName: data.buildingGuardName,
@@ -15,7 +26,6 @@ export async function createProperty(data) {
       plateNumber: data.plateNumber,
       price: +data.price,
       dateOfBuilt: convertToISO(data.dateOfBuilt),
-      bankAccountNumber: data.bankAccountNumber,
       managementCommission: +data.managementCommission,
       numElevators: +data.numElevators,
       numParkingSpaces: +data.numParkingSpaces,
@@ -38,7 +48,12 @@ export async function createProperty(data) {
       },
       bank: {
         connect: {
-          id: +data.bankId,
+          id: +bankAccount.bank.id,
+        },
+      },
+      bankAccount: {
+        connect: {
+          id: +data.bankAccount,
         },
       },
       client: {
@@ -188,6 +203,12 @@ export async function getProperties(page, limit, searchParams) {
           name: true,
         },
       },
+      bankAccount: {
+        select: {
+          id: true,
+          accountNumber: true,
+        },
+      },
       client: {
         select: {
           id: true,
@@ -228,9 +249,14 @@ export async function getPropertyById(page, limit, searchParams, params) {
     include: {
       electricityMeters: true,
       units: true,
+      bankAccount: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
-
+  property.bankAccount = property.bankAccount[0].id;
   return {
     data: property,
     total: property.units.length,
@@ -241,7 +267,34 @@ export async function updateProperty(id, data) {
   const { extraData } = data;
   const { electricityMeters, deletedMeters } = extraData;
   delete data.extraData;
+  const bankAccount = data.bankAccount;
+  if (data.bankAccount) {
+    // Find the property with its related bankAccount
+    const existingProperty = await prisma.property.findUnique({
+      where: { id: +id },
+      include: { bankAccount: true },
+    });
+    // Disconnect the existing bankAccount if it exists
+    if (existingProperty.bankAccount) {
+      existingProperty.bankAccount.forEach(async (bankAccount) => {
+        await prisma.property.update({
+          where: { id: +id },
+          data: {
+            bankAccount: {
+              disconnect: { id: bankAccount.id },
+            },
+          },
+        });
+      });
+    }
 
+    const bankAccount = await prisma.bankAccount.findFirst({
+      where: { id: +data.bankAccount },
+      include: { bank: { select: { id: true } } },
+    });
+    data.bank = { connect: { id: +bankAccount.bank.id } };
+    data.bankAccount = { connect: { id: +data.bankAccount } };
+  }
   const updateData = {};
   Object.keys(data).forEach((key) => {
     if (data[key] !== undefined) {
@@ -300,14 +353,14 @@ export async function updateProperty(id, data) {
     }
   }
 
-  const updatedProperty = await prisma.property.update({
+  let updatedProperty = await prisma.property.update({
     where: { id: +id },
     data: updateData,
     include: {
       electricityMeters: true,
     },
   });
-
+  updatedProperty.bankAccount = bankAccount;
   return updatedProperty;
 }
 

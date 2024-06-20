@@ -1,3 +1,4 @@
+// pages/Reports.js
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import {
@@ -12,81 +13,80 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   TextField,
-  Grid,
+  TableRow,
+  TableCell,
 } from "@mui/material";
-import { Bar, Doughnut } from "react-chartjs-2";
 import { useReactToPrint } from "react-to-print";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/en-gb";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-);
+import ReportTable from "@/app/components/Tables/ReportTable";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
+import { PaymentType } from "@/app/constants/Enums";
 
 const columnsPropertyDetails = [
-  { col: "رقم التعريف", row: "id" },
-  { col: "الاسم", row: "name" },
-  { col: "المساحة المبنية", row: "builtArea" },
-  { col: "السعر", row: "price" },
-  { col: "عدد المصاعد", row: "numElevators" },
-  { col: "عدد مواقف السيارات", row: "numParkingSpaces" },
+  { arabic: "رقم التعريف", english: "id" },
+  { arabic: "الاسم", english: "name" },
+  { arabic: "المساحة المبنية", english: "builtArea" },
+  { arabic: "السعر", english: "price" },
+  { arabic: "عدد المصاعد", english: "numElevators" },
+  { arabic: "عدد مواقف السيارات", english: "numParkingSpaces" },
 ];
 
 const columnsUnits = [
-  { col: "رقم الوحدة", row: "id" },
-  { col: "الطابق", row: "number" },
-  { col: "الإيجار السنوي", row: "yearlyRentPrice" },
-  { col: "عدد غرف النوم", row: "numBedrooms" },
-  { col: "عدد الحمامات", row: "numBathrooms" },
-  { col: "عدد أجهزة التكييف", row: "numACs" },
-  { col: "عدد غرف المعيشة", row: "numLivingRooms" },
-  { col: "الحالة", row: "status" },
+  { arabic: "رقم الوحدة", english: "number" },
+  { arabic: "الطابق", english: "floor" },
+  { arabic: "الإيجار السنوي", english: "yearlyRentPrice" },
+  { arabic: "عدد غرف النوم", english: "numBedrooms" },
+  { arabic: "عدد الحمامات", english: "numBathrooms" },
+  { arabic: "عدد أجهزة التكييف", english: "numACs" },
+  { arabic: "عدد غرف المعيشة", english: "numLivingRooms" },
+  { arabic: "الحالة", english: "status" },
 ];
 
 const columnsRentAgreements = [
-  { col: "رقم التعريف", row: "id" },
-  { col: "رقم عقد الإيجار", row: "rentAgreementNumber" },
-  { col: "تاريخ البدء", row: "startDate" },
-  { col: "تاريخ الانتهاء", row: "endDate" },
-  { col: "إجمالي السعر", row: "totalPrice" },
-  { col: "الحالة", row: "status" },
+  { arabic: "رقم التعريف", english: "id" },
+  { arabic: "رقم عقد الإيجار", english: "rentAgreementNumber" },
+  { arabic: "تاريخ البدء", english: "startDate" },
+  { arabic: "تاريخ الانتهاء", english: "endDate" },
+  { arabic: "إجمالي السعر", english: "totalPrice" },
+  { arabic: "الحالة", english: "status" },
 ];
 
 const columnsMaintenance = [
-  { col: "صيانة", row: "description" },
-  { col: "رقم الوحدة", row: "unitNumber" },
-  { col: "تاريخ الصيانة", row: "date" },
-  { col: "الحالة", row: "status" },
-  { col: "المبلغ", row: "amount" },
-  { col: "المبلغ المدفوع", row: "paidAmount" },
-  { col: "ميعاد الدفع", row: "dueDate" },
+  { arabic: "صيانة", english: "description" },
+  { arabic: "رقم الوحدة", english: "unitNumber" },
+  { arabic: "تاريخ تسجيل الصيانة", english: "date" },
+  { arabic: "الحالة", english: "status" },
+  { arabic: "المبلغ", english: "amount" },
+  { arabic: "المبلغ المدفوع", english: "paidAmount" },
+  { arabic: "ميعاد الدفع", english: "dueDate" },
 ];
+
+const columnsIncome = [
+  { arabic: "اسم العقار", english: "invoice.property.name" },
+  { arabic: "رقم الوحدة", english: "invoice.rentAgreement.unit.number" },
+  {
+    arabic: "رقم عقد الإيجار",
+    english: "invoice.rentAgreement.rentAgreementNumber",
+  },
+  { arabic: "تاريخ", english: "date" },
+  { arabic: "المبلغ", english: "amount" },
+  { arabic: "نوع الفاتورة", english: "invoice.invoiceType" },
+];
+
+const columnsExpenses = [
+  { arabic: "اسم العقار", english: "invoice.property.name" },
+  { arabic: "تاريخ", english: "date" },
+  { arabic: "المبلغ", english: "amount" },
+  { arabic: "نوع الفاتورة", english: "invoice.invoiceType" },
+];
+
+const translateInvoiceType = (type) => {
+  return PaymentType[type] || type;
+};
 
 const Reports = () => {
   const [properties, setProperties] = useState([]);
@@ -141,97 +141,100 @@ const Reports = () => {
     documentTitle: "تقرير العقار",
   });
 
-  const renderChart = (data, title, backgroundColor) => (
-    <Bar
-      data={{
-        labels: data.map((d) => d.label),
-        datasets: [
-          {
-            label: title,
-            data: data.map((d) => d.value),
-            backgroundColor: backgroundColor,
-          },
-        ],
-      }}
-      options={{
-        responsive: true,
-        plugins: {
-          legend: {
-            position: "top",
-          },
-        },
-      }}
-    />
-  );
+  const renderTableRows = (data, columns, colSpan) => {
+    let totalAmount = 0;
+    let totalPaidAmount = 0;
 
-  const renderTable = (data, columns) => (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            {columns.map((col) => (
-              <TableCell key={col.row}>{col.col}</TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row, index) => (
+    return (
+      <>
+        {data.map((row, index) => {
+          return (
             <TableRow key={index}>
-              {columns.map((col) => (
-                <TableCell key={col.row}>
-                  {col.row.includes("date") || col.row.includes("Date")
-                    ? new Date(row[col.row]).toLocaleDateString()
-                    : row[col.row]}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+              {columns.map((col, colIndex) => {
+                let cellValue = col.english
+                  .split(".")
+                  .reduce((acc, part) => acc && acc[part], row);
 
-  const renderComparisonChart = (income, expenses) => (
-    <Box sx={{ width: "100%", height: 400, mx: "auto" }}>
-      <Doughnut
-        data={{
-          labels: ["الدخل", "المصروفات"],
-          datasets: [
-            {
-              data: [
-                income.reduce((sum, i) => sum + i.amount, 0),
-                expenses.reduce((sum, e) => sum + e.amount, 0),
-              ],
-              backgroundColor: [
-                "rgba(75, 192, 192, 0.6)",
-                "rgba(255, 99, 132, 0.6)",
-              ],
-            },
-          ],
-        }}
-        options={{
-          responsive: true,
-          plugins: {
-            legend: {
-              position: "top",
-            },
-          },
-          cutout: "70%",
-        }}
-      />
-    </Box>
-  );
+                if (
+                  col.english.includes("date") ||
+                  col.english.includes("Date")
+                ) {
+                  cellValue = new Date(cellValue).toLocaleDateString();
+                } else if (
+                  col.english.includes("price") ||
+                  col.english.includes("amount") ||
+                  col.english.includes("totalPrice") ||
+                  col.english.includes("paidAmount") ||
+                  col.english.includes("yearlyRentPrice")
+                ) {
+                  cellValue = formatCurrencyAED(cellValue);
+                }
+
+                if (col.english === "invoice.invoiceType") {
+                  cellValue = translateInvoiceType(cellValue);
+                }
+
+                if (col.english.includes("amount")) {
+                  totalAmount += row.amount;
+                }
+
+                if (col.english.includes("paidAmount")) {
+                  totalPaidAmount += row.paidAmount;
+                }
+
+                return (
+                  <TableCell
+                    key={colIndex}
+                    sx={{ backgroundColor: "#ffffff", padding: "8px" }}
+                  >
+                    {cellValue}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          );
+        })}
+        {columns.some((col) => col.english.includes("amount")) && (
+          <TableRow>
+            <TableCell
+              colSpan={colSpan ? colSpan : columns.length - 2}
+              sx={{
+                backgroundColor: "#f0f0f0",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              الاجمالي
+            </TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: "#ffffff",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              {formatCurrencyAED(totalAmount)}
+            </TableCell>
+            {totalPaidAmount > 0 && (
+              <TableCell
+                sx={{
+                  backgroundColor: "#ffffff",
+                  padding: "8px",
+                  fontWeight: "bold",
+                }}
+              >
+                {formatCurrencyAED(totalPaidAmount)}
+              </TableCell>
+            )}
+          </TableRow>
+        )}
+      </>
+    );
+  };
 
   if (loading) return <CircularProgress />;
   return (
-    <Container
-      sx={{
-        p: {
-          xs: 0,
-          md: 1,
-        },
-      }}
-    >
+    <Container sx={{ p: { xs: 0, md: 1 } }}>
       <Box sx={{ my: 4 }}>
         <Typography variant="h4" gutterBottom>
           إنشاء التقارير
@@ -322,67 +325,66 @@ const Reports = () => {
                 <Typography variant="subtitle1" className={"mt-3"}>
                   تفاصيل العقار
                 </Typography>
-                {renderTable([property], columnsPropertyDetails)}
+                <ReportTable
+                  headings={columnsPropertyDetails}
+                  title="تفاصيل العقار"
+                >
+                  {renderTableRows([property], columnsPropertyDetails)}
+                </ReportTable>
                 <Typography variant="subtitle1" className={"mt-3"}>
                   الوحدات
                 </Typography>
-                {renderTable(property.units, columnsUnits)}
+                <ReportTable headings={columnsUnits} title="الوحدات">
+                  {renderTableRows(property.units, columnsUnits)}
+                </ReportTable>
 
                 <Typography variant="subtitle1" className={"mt-3"}>
                   عقود الإيجار
                 </Typography>
-                {renderTable(
-                  property.units.flatMap((unit) => unit.rentAgreements),
-                  columnsRentAgreements,
-                )}
+                <ReportTable
+                  headings={columnsRentAgreements}
+                  title="عقود الإيجار"
+                >
+                  {renderTableRows(
+                    property.units.flatMap((unit) => unit.rentAgreements),
+                    columnsRentAgreements,
+                  )}
+                </ReportTable>
 
                 <Typography variant="subtitle1" className={"mt-3"}>
                   صيانة
                 </Typography>
-                {renderTable(
-                  property.maintenances.flatMap((maintenance) =>
-                    maintenance.payments.map((payment) => ({
-                      description: maintenance.description,
-                      date: maintenance.date,
-                      amount: payment.amount,
-                      paidAmount: payment.paidAmount,
-                      dueDate: payment.dueDate,
-                      status: payment.status,
-                      unitNumber: maintenance.unit.number,
-                    })),
-                  ),
-                  columnsMaintenance,
-                )}
-
-                <Grid container spacing={2} sx={{ mt: 4 }}>
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle1">الدخل</Typography>
-                    {renderChart(
-                      property.income.map((income) => ({
-                        label: new Date(income.date).toLocaleDateString(),
-                        value: income.amount,
+                <ReportTable headings={columnsMaintenance} title="صيانة">
+                  {renderTableRows(
+                    property.maintenances.flatMap((maintenance) =>
+                      maintenance.payments.map((payment) => ({
+                        description: maintenance.description,
+                        date: maintenance.date,
+                        amount: payment.amount,
+                        paidAmount: payment.paidAmount,
+                        dueDate: payment.dueDate,
+                        status: payment.status,
+                        unitNumber: maintenance?.unit?.number,
                       })),
-                      "الدخل",
-                      "rgba(75, 192, 192, 0.6)",
-                    )}
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle1">المصروفات</Typography>
-                    {renderChart(
-                      property.expenses.map((expense) => ({
-                        label: new Date(expense.date).toLocaleDateString(),
-                        value: expense.amount,
-                      })),
-                      "المصروفات",
-                      "rgba(255, 99, 132, 0.6)",
-                    )}
-                  </Grid>
-                </Grid>
+                    ),
+                    columnsMaintenance,
+                    4,
+                  )}
+                </ReportTable>
 
                 <Typography variant="subtitle1" sx={{ mt: 4 }}>
-                  مقارنة بين الدخل والمصروفات
+                  الدخل
                 </Typography>
-                {renderComparisonChart(property.income, property.expenses)}
+                <ReportTable headings={columnsIncome} title="الدخل">
+                  {renderTableRows(property.income, columnsIncome)}
+                </ReportTable>
+
+                <Typography variant="subtitle1" sx={{ mt: 4 }}>
+                  المصروفات
+                </Typography>
+                <ReportTable headings={columnsExpenses} title="المصروفات">
+                  {renderTableRows(property.expenses, columnsExpenses)}
+                </ReportTable>
               </Box>
             ))}
           </Box>

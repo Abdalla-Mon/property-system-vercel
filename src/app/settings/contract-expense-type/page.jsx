@@ -97,7 +97,7 @@ const ContractExpenseWrapper = () => {
     <>
       <ViewComponent
         inputs={contractExpenseInputs}
-        formTitle={"تعديل"}
+        formTitle={"نوع مصاريف العقد"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

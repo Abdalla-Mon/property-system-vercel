@@ -64,6 +64,13 @@ export async function getRentPaymentsForCurrentMonth(
         property: {
           select: {
             name: true,
+            bankId: true,
+            bankAccount: {
+              select: {
+                accountNumber: true,
+                id: true,
+              },
+            },
           },
         },
         unit: {
@@ -145,8 +152,16 @@ export async function updatePayment(id, data) {
         property: {
           select: {
             name: true,
+            bankId: true,
+            bankAccount: {
+              select: {
+                accountNumber: true,
+                id: true,
+              },
+            },
           },
         },
+
         unit: {
           select: {
             unitId: true,

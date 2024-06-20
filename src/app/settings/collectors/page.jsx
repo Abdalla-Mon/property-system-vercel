@@ -88,7 +88,7 @@ const CollectorWrapper = () => {
     <>
       <ViewComponent
         inputs={collectorInputs}
-        formTitle={"تعديل"}
+        formTitle={"محصل"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

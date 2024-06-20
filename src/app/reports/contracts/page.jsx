@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Container,
   FormControl,
@@ -12,55 +12,39 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
+  TextField,
   TableRow,
-  Paper,
+  TableCell,
 } from "@mui/material";
-import { Bar } from "react-chartjs-2";
 import { useReactToPrint } from "react-to-print";
-import { useRef } from "react";
-
-// Import necessary components from Chart.js
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-
-// Register the components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-);
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import "dayjs/locale/en-gb";
+import ReportTable from "@/app/components/Tables/ReportTable";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
 
 const columnsRentAgreements = [
-  { col: "رقم عقد الإيجار", row: "rentAgreementNumber" },
-  { col: "تاريخ البدء", row: "startDate" },
-  { col: "تاريخ الانتهاء", row: "endDate" },
-  { col: "الحالة", row: "customStatus" },
+  { arabic: "رقم الوحدة", english: "unitNumber" },
+  { arabic: "رقم عقد الإيجار", english: "rentAgreementNumber" },
+  { arabic: "تاريخ البدء", english: "startDate" },
+  { arabic: "تاريخ الانتهاء", english: "endDate" },
+  { arabic: "إجمالي سعر العقد", english: "totalAmount" },
+  { arabic: "ما تم دفعه", english: "paidAmount" },
+  { arabic: "المتبقي", english: "remainingAmount" },
+  { arabic: "عمولة الإدارة", english: "managementCommission" },
 ];
 
 const RentAgreementsReport = () => {
   const [properties, setProperties] = useState([]);
   const [selectedProperties, setSelectedProperties] = useState([]);
+  const [startDate, setStartDate] = useState(dayjs().startOf("month"));
+  const [endDate, setEndDate] = useState(dayjs().endOf("month"));
   const [reportData, setReportData] = useState(null);
   const componentRef = useRef();
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
@@ -81,6 +65,8 @@ const RentAgreementsReport = () => {
     setSubmitLoading(true);
     const filters = {
       propertyIds: selectedProperties,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
     };
 
     try {
@@ -101,74 +87,132 @@ const RentAgreementsReport = () => {
     documentTitle: "تقرير عقود الإيجار",
   });
 
-  const renderTable = (data, columns) => (
-    <TableContainer component={Paper} sx={{ mb: 4 }}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            {columns.map((col) => (
-              <TableCell key={col.row}>{col.col}</TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row, index) => (
-            <TableRow key={index}>
-              {columns.map((col) => (
-                <TableCell key={col.row}>
-                  {col.row.includes("Date")
-                    ? new Date(row[col.row]).toLocaleDateString()
-                    : row[col.row]}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-
-  const renderComparisonChart = (rentAgreements) => {
-    const labels = ["المبلغ الكلي", "المدفوع", "المتبقي"];
-    const datasets = rentAgreements.map((agreement, index) => {
-      const totalAmount = agreement.payments.reduce(
-        (acc, payment) => acc + payment.amount,
-        0,
-      );
-      const paidAmount = agreement.payments.reduce(
-        (acc, payment) => acc + payment.paidAmount,
-        0,
-      );
-      const unpaidAmount = totalAmount - paidAmount;
-
-      const paymentData = [totalAmount, paidAmount, unpaidAmount];
-
-      return {
-        label: `عقد الإيجار ${agreement.rentAgreementNumber}`,
-        data: paymentData,
-        backgroundColor: [
-          `rgba(${75 + index * 40}, ${192 - index * 40}, ${192 - index * 40}, 0.6)`,
-          `rgba(${75 + index * 40}, ${192 - index * 40}, ${192 - index * 40}, 0.3)`,
-          `rgba(${75 + index * 40}, ${192 - index * 40}, ${192 - index * 40}, 0.1)`,
-        ],
-      };
-    });
+  const renderTableRows = (data, columns, colSpan) => {
+    let totalContractAmount = 0;
+    let totalPaidAmount = 0;
+    let totalRemainingAmount = 0;
+    let totalManagementCommission = 0;
 
     return (
-      <Bar
-        data={{
-          labels: labels,
-          datasets: datasets,
-        }}
-        options={{
-          responsive: true,
-          plugins: {
-            legend: {
-              position: "top",
-            },
-          },
-        }}
-      />
+      <>
+        {data.map((row, index) => {
+          const totalAmount = row.totalAmount;
+          const paidAmount = row.paidAmount;
+          const remainingAmount = row.remainingAmount;
+          const managementCommission = row.managementCommission;
+
+          totalContractAmount += totalAmount;
+          totalPaidAmount += paidAmount;
+          totalRemainingAmount += remainingAmount;
+          totalManagementCommission += managementCommission;
+
+          return (
+            <TableRow key={index}>
+              {columns.map((col, colIndex) => {
+                let cellValue = col.english
+                  .split(".")
+                  .reduce((acc, part) => acc && acc[part], row);
+
+                if (
+                  col.english.includes("date") ||
+                  col.english.includes("Date")
+                ) {
+                  cellValue = new Date(cellValue).toLocaleDateString();
+                } else if (
+                  col.english.includes("price") ||
+                  col.english.includes("amount") ||
+                  col.english.includes("totalPrice") ||
+                  col.english.includes("paidAmount") ||
+                  col.english.includes("yearlyRentPrice") ||
+                  col.english.includes("managementCommission")
+                ) {
+                  cellValue = formatCurrencyAED(cellValue);
+                }
+
+                if (col.english === "totalAmount") {
+                  cellValue = formatCurrencyAED(totalAmount);
+                }
+
+                if (col.english === "paidAmount") {
+                  cellValue = formatCurrencyAED(paidAmount);
+                }
+
+                if (col.english === "remainingAmount") {
+                  cellValue = formatCurrencyAED(remainingAmount);
+                }
+
+                if (col.english === "managementCommission") {
+                  cellValue = formatCurrencyAED(managementCommission);
+                }
+
+                return (
+                  <TableCell
+                    key={colIndex}
+                    sx={{ backgroundColor: "#ffffff", padding: "8px" }}
+                  >
+                    {cellValue}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          );
+        })}
+
+        {columns.some(
+          (col) =>
+            col.english.includes("amount") ||
+            col.english.includes("managementCommission"),
+        ) && (
+          <TableRow>
+            <TableCell
+              colSpan={colSpan ? colSpan : columns.length - 4}
+              sx={{
+                backgroundColor: "#f0f0f0",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              الإجمالي
+            </TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: "#ffffff",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              {formatCurrencyAED(totalContractAmount)}
+            </TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: "#ffffff",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              {formatCurrencyAED(totalPaidAmount)}
+            </TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: "#ffffff",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              {formatCurrencyAED(totalRemainingAmount)}
+            </TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: "#ffffff",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              {formatCurrencyAED(totalManagementCommission)}
+            </TableCell>
+          </TableRow>
+        )}
+      </>
     );
   };
 
@@ -201,6 +245,25 @@ const RentAgreementsReport = () => {
           </Select>
         </FormControl>
 
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
+          <FormControl fullWidth margin="normal">
+            <DatePicker
+              label="تاريخ البدء"
+              value={startDate}
+              onChange={(date) => setStartDate(date)}
+              renderInput={(params) => <TextField {...params} />}
+            />
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <DatePicker
+              label="تاريخ الانتهاء"
+              value={endDate}
+              onChange={(date) => setEndDate(date)}
+              renderInput={(params) => <TextField {...params} />}
+            />
+          </FormControl>
+        </LocalizationProvider>
+
         <Button
           variant="contained"
           color="primary"
@@ -217,24 +280,55 @@ const RentAgreementsReport = () => {
           >
             {reportData.map((property) => (
               <div key={property.id}>
+                <Box
+                  sx={{
+                    mb: 4,
+                    p: 2,
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <Typography variant="h6" gutterBottom>
+                    تفاصيل المالك
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, 1fr)",
+                      gap: "10px",
+                    }}
+                  >
+                    <div>
+                      <strong>اسم المالك:</strong> {property.client.name}
+                    </div>
+                    <div>
+                      <strong> هوية المالك:</strong>{" "}
+                      {property.client.nationalId}
+                    </div>
+                    <div>
+                      <strong> ايميل المالك:</strong> {property.client.email}
+                    </div>
+                    <div>
+                      <strong> رقمة هاتف المالك:</strong>{" "}
+                      {property.client.phone}
+                    </div>
+                  </Typography>
+                </Box>
+
                 <Typography variant="h6" gutterBottom>
                   {property.name}
                 </Typography>
                 <Typography variant="subtitle1" gutterBottom>
                   عقود الإيجار
                 </Typography>
-                {property.units.map((unit) => (
-                  <div key={unit.id}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      وحدة: {unit.number}
-                    </Typography>
-                    {renderTable(unit.rentAgreements, columnsRentAgreements)}
-                    <Typography variant="subtitle1" gutterBottom>
-                      إحصائيات المدفوعات
-                    </Typography>
-                    {renderComparisonChart(unit.rentAgreements)}
-                  </div>
-                ))}
+                <ReportTable headings={columnsRentAgreements} title=" ">
+                  {renderTableRows(
+                    property.rentAgreements,
+                    columnsRentAgreements,
+                    4,
+                  )}
+                </ReportTable>
               </div>
             ))}
           </Box>

@@ -80,13 +80,6 @@ const StateWrapper = () => {
       ),
     },
     {
-      field: "location",
-      headerName: "الموقع",
-      width: 200,
-      printable: true,
-      cardWidth: 48,
-    },
-    {
       field: "cities",
       type: "size",
       headerName: "عدد المدن",
@@ -123,11 +116,6 @@ const StateWrapper = () => {
       type: "text",
       label: "اسم المدينة",
     },
-    {
-      id: "location",
-      type: "text",
-      label: "الموقع",
-    },
   ];
   const {
     isEditing: isCityEditing,
@@ -143,7 +131,7 @@ const StateWrapper = () => {
     <>
       <ViewComponent
         inputs={stateInputs}
-        formTitle={"تعديل"}
+        formTitle={"اماره"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

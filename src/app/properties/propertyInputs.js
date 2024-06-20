@@ -6,6 +6,76 @@ import { ownerInputs } from "@/app/owners/ownerInputs";
 import { bankInputs } from "@/app/settings/bank/inputs";
 import { collectorInputs } from "@/app/settings/collectors/collectorInputs";
 
+async function getBanksData() {
+  const res = await fetch("/api/fast-handler?id=bank");
+  const data = await res.json();
+  return { data };
+}
+
+const createBankAccInputs = [
+  {
+    data: {
+      id: "accountName",
+      type: "text",
+      label: "اسم الحساب",
+    },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال اسم الحساب",
+      },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+      mr: "auto",
+    },
+  },
+  {
+    data: {
+      id: "accountNumber",
+      type: "text",
+      label: "رقم الحساب",
+    },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال رقم الحساب",
+      },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+    },
+  },
+  {
+    data: {
+      id: "bankId",
+      type: "select",
+      label: "اسم البنك",
+      name: "bankId",
+    },
+    autocomplete: true,
+    getData: getBanksData,
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال اسم البنك",
+      },
+    },
+    sx: {
+      width: {
+        xs: "100%",
+        md: "48%",
+      },
+    },
+  },
+];
+
 export const propertyInputs = [
   {
     data: {
@@ -318,26 +388,29 @@ export const propertyInputs = [
     },
   },
   {
-    id: "bank",
+    id: "bankAccount",
     data: {
-      id: "bankId",
+      id: "bankAccount",
       type: "select",
-      label: "اسم البنك",
-      name: "bankId",
+      label: "رقم حساب المالك",
+      name: "bankAccount",
     },
-    createData: bankInputs,
+    createData: createBankAccInputs,
     autocomplete: true,
-
-    pattern: {
-      required: {
-        value: true,
-        message: "يرجى إدخال اسم البنك",
-      },
-    },
+    extraId: true,
+    rerender: true,
     sx: {
       width: {
         xs: "100%",
-        md: "48%",
+        sm: "48%",
+        md: "47%",
+        lg: "48%",
+      },
+    },
+    pattern: {
+      required: {
+        value: true,
+        message: "يرجى إدخال رقم حساب المالك",
       },
     },
   },
@@ -363,26 +436,6 @@ export const propertyInputs = [
         md: "48%",
       },
       mr: "auto",
-    },
-  },
-  {
-    data: {
-      id: "bankAccountNumber",
-      type: "text",
-      label: "رقم الحساب البنكي",
-      name: "bankAccountNumber",
-    },
-    pattern: {
-      required: {
-        value: true,
-        message: "يرجى إدخال رقم الحساب البنكي",
-      },
-    },
-    sx: {
-      width: {
-        xs: "100%",
-        md: "48%",
-      },
     },
   },
   {
@@ -506,6 +559,7 @@ export const propertyInputs = [
         xs: "100%",
         md: "48%",
       },
+      mr: "auto",
     },
   },
   {
@@ -524,7 +578,7 @@ export const propertyInputs = [
     sx: {
       width: {
         xs: "100%",
-        md: "100%",
+        md: "48%",
       },
     },
   },

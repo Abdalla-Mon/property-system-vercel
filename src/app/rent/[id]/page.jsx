@@ -39,6 +39,11 @@ import { rentAgreementInputs } from "@/app/rent/rentInputs";
 import { useRouter } from "next/navigation";
 import { submitRentAgreement } from "@/services/client/createRentAgreement";
 import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { useSubmitLoader } from "@/app/context/SubmitLoaderProvider/SubmitLoaderProvider";
+import AttachmentUploader from "@/app/components/Attatchment";
 
 export default function PropertyPage({ params }) {
   const id = params.id;
@@ -51,7 +56,6 @@ const ViewWrapper = ({ urlId }) => {
   );
   const [contractExpenses, setContractExpenses] = useState(null);
   const [wait, setWait] = useState(true);
-  const [isPrinting, setIsPrinting] = useState(false);
   useEffect(() => {
     if (!loading && typeof data === "object") {
       setContractExpenses(
@@ -114,7 +118,8 @@ const ViewWrapper = ({ urlId }) => {
           heading={"رسوم العقد"}
         />
       </TableFormProvider>
-      {!isPrinting && <RentAgreementDescription data={data} />}
+      <AttachmentUploader rentAgreementId={urlId} />
+
       <Button
         variant="contained"
         color="primary"
@@ -201,16 +206,30 @@ const Payments = ({
     }
   };
 
-  const handleEditChange = (index, value) => {
+  const handleEditChange = (index, key, value) => {
     const updatedPayments = [...editPayments];
-    updatedPayments[index].amount = parseFloat(value);
+    updatedPayments[index][key] = key === "amount" ? parseFloat(value) : value;
     setEditPayments(updatedPayments);
   };
 
   const { setLoading: setSubmitLoading } = useToastContext();
+  const { setMessage, setSeverity, setOpen } = useSubmitLoader();
 
   async function submit(d) {
     const currentPayment = data.find((item) => item.id === id);
+    if (d.paymentTypeMethod !== "CASH") {
+      if (
+        !currentPayment.property.bankAccount ||
+        currentPayment.property.bankAccount.length === 0
+      ) {
+        setOpen(true);
+        setSeverity("error");
+        setMessage(
+          "لا يمكن اتمام هذه العمليه ليس هناك حساب بنكي مرتبط بهذا العقار",
+        );
+        return null;
+      }
+    }
     const submitData = {
       ...d,
       currentPaidAmount: +currentPayment.paidAmount,
@@ -224,21 +243,35 @@ const Payments = ({
       title: title,
       description: description,
       invoiceType: currentPayment.paymentType,
+      bankId: currentPayment.property.bankAccount
+        ? currentPayment.property.bankAccount[0]?.id
+        : null,
+      bankAccount: currentPayment.property.bankAccount
+        ? currentPayment.property.bankAccount[0]?.accountNumber
+        : null,
     };
 
     const newData = await updatePayment(submitData, setSubmitLoading);
-    const updateData = data.map((item) => {
-      if (item.id === id) {
-        return {
-          ...newData.payment,
-          invoices: [...item.invoices, newData.invoice],
-        };
+    if (newData) {
+      let updateData;
+      if (newData.payment.paidAmount < newData.payment.amount) {
+        updateData = data.map((item) => {
+          if (item.id === id) {
+            return {
+              ...newData.payment,
+              invoices: [...item.invoices, newData.invoice],
+            };
+          }
+          return item;
+        });
+      } else {
+        updateData = data.filter((item) => item.id !== id);
       }
-      return item;
-    });
-
-    setData(updateData);
-    setOpenModal(false);
+      if (updateData) {
+        setData(updateData);
+        setOpenModal(false);
+      }
+    }
   }
 
   return (
@@ -309,7 +342,6 @@ const Payments = ({
         submit={submit}
         setId={setId}
       />
-
       <Modal
         open={editModalOpen}
         onClose={handleEditClose}
@@ -333,18 +365,37 @@ const Payments = ({
             تعديل الدفعات
           </Typography>
           {editPayments.map((payment, index) => (
-            <Box key={payment.id} sx={{ my: 2 }}>
+            <Box
+              key={payment.id}
+              sx={{
+                my: 2,
+                display: "flex",
+                flexDirection: "row",
+                gap: 2,
+              }}
+            >
               <TextField
-                label={`دفعة ${index + 1}`}
+                label={`دفعة ${index + 1} - القيمة`}
                 value={payment.amount}
-                onChange={(e) => handleEditChange(index, e.target.value)}
+                onChange={(e) =>
+                  handleEditChange(index, "amount", e.target.value)
+                }
                 fullWidth
                 type="number"
                 InputProps={{
                   inputProps: { min: 0 },
-                  readOnly: payment.status === "PAID", // Disable the input if the payment is fully paid
+                  readOnly: payment.status === "PAID",
                 }}
               />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label={`دفعة ${index + 1} - ميعاد الدفع`}
+                  value={dayjs(payment.dueDate)}
+                  onChange={(date) => handleEditChange(index, "dueDate", date)}
+                  renderInput={(params) => <TextField {...params} fullWidth />}
+                  format="DD/MM/YYYY"
+                />
+              </LocalizationProvider>
             </Box>
           ))}
           <Button
@@ -372,18 +423,11 @@ const Payments = ({
 };
 
 const PaymentRow = ({ item, setModalInputs, setId, index, showName }) => {
-  const { setOpenModal } = useTableForm();
+  const { setOpenModal, openModal } = useTableForm();
   const [paymentType, setPaymentType] = useState("CASH");
-
-  async function getOwnerAccountData() {
-    const res = await fetch("/api/clients/owner/" + item.clientId);
-    const data = await res.json();
-    const bankAccounts = data.bankAccounts.map((account) => ({
-      id: account.id,
-      name: account.accountNumber,
-    }));
-    return { data: bankAccounts };
-  }
+  useEffect(() => {
+    setPaymentType("CASH");
+  }, [openModal]);
 
   const modalInputs = [
     {
@@ -416,6 +460,7 @@ const PaymentRow = ({ item, setModalInputs, setId, index, showName }) => {
       options: [
         { label: "كاش", value: "CASH" },
         { label: "تحويل بنكي", value: "BANK" },
+        { label: "شيك", value: "CHEQUE" },
       ],
       onChange: (e) => {
         setPaymentType(e.target.value);
@@ -436,24 +481,20 @@ const PaymentRow = ({ item, setModalInputs, setId, index, showName }) => {
   ];
 
   useEffect(() => {
-    if (paymentType === "BANK") {
+    if (paymentType === "CHEQUE") {
       setModalInputs([
         ...modalInputs,
         {
           data: {
-            id: "bankAccountId",
-            type: "select",
-            label: "رقم حساب المالك",
-            name: "bankAccountId",
+            id: "chequeNumber",
+            type: "text",
+            label: "رقم الشيك ",
+            name: "checkNumber",
           },
-          createData: createInputs,
-          autocomplete: true,
-          extraId: false,
-          getData: getOwnerAccountData,
           pattern: {
             required: {
               value: true,
-              message: "يرجى إدخال رقم حساب المالك",
+              message: "يرجى إدخال رقم الشيك",
             },
           },
           sx: {
@@ -518,6 +559,7 @@ const PaymentRow = ({ item, setModalInputs, setId, index, showName }) => {
 };
 
 const InvoiceRows = ({ invoices, index }) => {
+  console.log(invoices, "inviociues");
   return invoices.map((invoice) => (
     <TableRow key={invoice.id} sx={{ backgroundColor: "#f9f9f9" }}>
       <TableCell colSpan={8}>
@@ -538,12 +580,19 @@ const InvoiceRows = ({ invoices, index }) => {
           <Typography variant="body2">القيمة: {invoice.amount}</Typography>
           <Typography variant="body2">
             طريقة الدفع:{" "}
-            {invoice.paymentTypeMethod === "CASH" ? "كاش" : "تحويل بنكي"}
+            {invoice.paymentTypeMethod === "CASH"
+              ? "كاش"
+              : invoice.paymentTypeMethod === "BANK"
+                ? "تحويل بنكي"
+                : "شيك"}
           </Typography>
           <Typography variant="body2">
             {invoice.bankAccount && (
               <>رقم حساب المالك: {invoice.bankAccount.accountNumber}</>
             )}
+          </Typography>
+          <Typography variant="body2">
+            {invoice.chequeNumber && <>رقم الشيك: {invoice.chequeNumber}</>}
           </Typography>
         </Box>
       </TableCell>

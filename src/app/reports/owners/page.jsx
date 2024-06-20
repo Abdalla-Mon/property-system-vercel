@@ -12,62 +12,67 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   TextField,
-  Grid,
+  TableRow,
+  TableCell,
 } from "@mui/material";
-import { Bar, Doughnut } from "react-chartjs-2";
 import { useReactToPrint } from "react-to-print";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/en-gb";
+import ReportTable from "@/app/components/Tables/ReportTable";
+import { formatCurrencyAED } from "@/helpers/functions/convertMoneyToArabic";
+import { PaymentType } from "@/app/constants/Enums";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-);
+const translateInvoiceType = (type) => {
+  return PaymentType[type] || type;
+};
 
 const columnsPropertyDetails = [
-  { col: "رقم التعريف", row: "id" },
-  { col: "الاسم", row: "name" },
-  { col: "المساحة المبنية", row: "builtArea" },
-  { col: "السعر", row: "price" },
-  { col: "عدد المصاعد", row: "numElevators" },
-  { col: "عدد مواقف السيارات", row: "numParkingSpaces" },
+  { arabic: "رقم التعريف", english: "id" },
+  { arabic: "الاسم", english: "name" },
+  { arabic: "المساحة المبنية", english: "builtArea" },
+  { arabic: "السعر", english: "price" },
+  { arabic: "عدد المصاعد", english: "numElevators" },
+  { arabic: "عدد مواقف السيارات", english: "numParkingSpaces" },
 ];
 
 const columnsUnits = [
-  { col: "رقم الوحدة", row: "id" },
-  { col: "الطابق", row: "floor" },
-  { col: "الإيجار السنوي", row: "yearlyRentPrice" },
-  { col: "عدد غرف النوم", row: "numBedrooms" },
-  { col: "عدد الحمامات", row: "numBathrooms" },
-  { col: "عدد أجهزة التكييف", row: "numACs" },
-  { col: "عدد غرف المعيشة", row: "numLivingRooms" },
-  { col: "الحالة", row: "status" },
+  { arabic: "رقم الوحدة", english: "id" },
+  { arabic: "الطابق", english: "floor" },
+  { arabic: "الإيجار السنوي", english: "yearlyRentPrice" },
+  { arabic: "عدد غرف النوم", english: "numBedrooms" },
+  { arabic: "عدد الحمامات", english: "numBathrooms" },
+  { arabic: "عدد أجهزة التكييف", english: "numACs" },
+  { arabic: "عدد غرف المعيشة", english: "numLivingRooms" },
+  { arabic: "الحالة", english: "status" },
 ];
+
+const columnsIncome = [
+  { arabic: "اسم العقار", english: "invoice.property.name" },
+  { arabic: "رقم الوحدة", english: "invoice.rentAgreement.unit.number" },
+  {
+    arabic: "رقم عقد الإيجار",
+    english: "invoice.rentAgreement.rentAgreementNumber",
+  },
+  { arabic: "تاريخ", english: "date" },
+  { arabic: "المبلغ", english: "amount" },
+  { arabic: "نوع الفاتورة", english: "invoice.invoiceType" },
+];
+
+const columnsExpenses = [
+  { arabic: "اسم العقار", english: "invoice.property.name" },
+  { arabic: "تاريخ", english: "date" },
+  { arabic: "المبلغ", english: "amount" },
+  { arabic: "نوع الفاتورة", english: "invoice.invoiceType" },
+];
+
+const calculateStatus = (rentAgreements) => {
+  return rentAgreements.some((agreement) => agreement.status === "ACTIVE")
+    ? "مؤجرة"
+    : "شاغرة";
+};
 
 const Reports = () => {
   const [owners, setOwners] = useState([]);
@@ -122,120 +127,77 @@ const Reports = () => {
     documentTitle: "تقرير المالك",
   });
 
-  const renderChart = (data, title, backgroundColor) => (
-    <Bar
-      data={{
-        labels: data.map((d) => d.label),
-        datasets: [
-          {
-            label: title,
-            data: data.map((d) => d.value),
-            backgroundColor: backgroundColor,
-          },
-        ],
-      }}
-      options={{
-        responsive: true,
-        plugins: {
-          legend: {
-            position: "top",
-          },
-        },
-      }}
-    />
-  );
+  const renderTableRows = (data, columns, colSpan) => {
+    let totalAmount = 0;
 
-  const renderTable = (data, columns) => (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            {columns.map((col) => (
-              <TableCell key={col.row}>{col.col}</TableCell>
-            ))}
+    return (
+      <>
+        {data.map((row, index) => (
+          <TableRow key={index}>
+            {columns.map((col, colIndex) => {
+              let cellValue = col.english
+                .split(".")
+                .reduce((acc, part) => acc && acc[part], row);
+
+              if (
+                col.english.includes("date") ||
+                col.english.includes("Date")
+              ) {
+                cellValue = new Date(cellValue).toLocaleDateString();
+              } else if (
+                col.english.includes("price") ||
+                col.english.includes("amount") ||
+                col.english.includes("totalPrice") ||
+                col.english.includes("paidAmount") ||
+                col.english.includes("yearlyRentPrice")
+              ) {
+                cellValue = formatCurrencyAED(cellValue);
+              }
+              if (col.english === "invoice.invoiceType") {
+                cellValue = translateInvoiceType(cellValue);
+              }
+
+              if (col.english.includes("amount")) {
+                totalAmount += row[col.english];
+              }
+
+              return (
+                <TableCell
+                  key={colIndex}
+                  sx={{ backgroundColor: "#ffffff", padding: "8px" }}
+                >
+                  {cellValue}
+                </TableCell>
+              );
+            })}
           </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row, index) => (
-            <TableRow key={index}>
-              {columns.map((col) => (
-                <TableCell key={col.row}>{row[col.row]}</TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-
-  const renderComparisonChart = (income, expenses) => (
-    <Box sx={{ width: "100%", height: 400, mx: "auto" }}>
-      <Doughnut
-        data={{
-          labels: ["الدخل", "المصروفات"],
-          datasets: [
-            {
-              data: [
-                income.reduce((sum, i) => sum + i.amount, 0),
-                expenses.reduce((sum, e) => sum + e.amount, 0),
-              ],
-              backgroundColor: [
-                "rgba(75, 192, 192, 0.6)",
-                "rgba(255, 99, 132, 0.6)",
-              ],
-            },
-          ],
-        }}
-        options={{
-          responsive: true,
-          plugins: {
-            legend: {
-              position: "top",
-            },
-          },
-          cutout: "70%",
-        }}
-      />
-    </Box>
-  );
-
-  const calculateStatus = (rentAgreements) => {
-    return rentAgreements.some((agreement) => agreement.status === "ACTIVE")
-      ? "مؤجرة"
-      : "شاغرة";
+        ))}
+        {columns.some((col) => col.english.includes("amount")) && (
+          <TableRow>
+            <TableCell
+              colSpan={colSpan ? colSpan : columns.length - 1}
+              sx={{
+                backgroundColor: "#f0f0f0",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              الإجمالي
+            </TableCell>
+            <TableCell
+              sx={{
+                backgroundColor: "#ffffff",
+                padding: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              {formatCurrencyAED(totalAmount)}
+            </TableCell>
+          </TableRow>
+        )}
+      </>
+    );
   };
-
-  const calculateTotal = (items) => {
-    return items.reduce((sum, item) => sum + item.amount, 0);
-  };
-
-  const renderTotalChart = (income, expenses) => (
-    <Box sx={{ width: "100%", height: 400, mx: "auto", mt: 4 }}>
-      <Doughnut
-        data={{
-          labels: ["إجمالي الدخل", "إجمالي المصروفات"],
-          datasets: [
-            {
-              data: [calculateTotal(income), calculateTotal(expenses)],
-              backgroundColor: [
-                "rgba(75, 192, 192, 0.6)",
-                "rgba(255, 99, 132, 0.6)",
-              ],
-            },
-          ],
-        }}
-        options={{
-          responsive: true,
-          plugins: {
-            legend: {
-              position: "top",
-            },
-          },
-          cutout: "70%",
-        }}
-      />
-    </Box>
-  );
 
   if (loading) return <CircularProgress />;
   return (
@@ -326,10 +288,18 @@ const Reports = () => {
                       gap: "10px",
                     }}
                   >
-                    <strong>اسم المالك:</strong> {owner.name}
-                    <strong> هوية المالك:</strong> {owner.nationalId}
-                    <strong> ايميل المالك:</strong> {owner.email}
-                    <strong> رقمة هاتف المالك:</strong> {owner.phone}
+                    <div>
+                      <strong>اسم المالك:</strong> {owner.name}
+                    </div>
+                    <div>
+                      <strong> هوية المالك:</strong> {owner.nationalId}
+                    </div>
+                    <div>
+                      <strong> ايميل المالك:</strong> {owner.email}
+                    </div>
+                    <div>
+                      <strong> رقمة هاتف المالك:</strong> {owner.phone}
+                    </div>
                   </Typography>
                 </Box>
 
@@ -337,57 +307,70 @@ const Reports = () => {
                 {owner.properties.map((property) => (
                   <Box key={property.id} sx={{ mb: 4 }}>
                     <Typography variant="h6">{property.name}</Typography>
-                    <Typography variant="subtitle1" className={"mt-3"}>
-                      تفاصيل العقار
-                    </Typography>
-                    {renderTable([property], columnsPropertyDetails)}
-                    <Typography variant="subtitle1" className={"mt-3"}>
-                      الوحدات
-                    </Typography>
-                    {renderTable(
-                      property.units.map((unit) => ({
-                        ...unit,
-                        status: calculateStatus(unit.rentAgreements),
-                      })),
-                      columnsUnits,
-                    )}
+                    <ReportTable
+                      headings={columnsPropertyDetails}
+                      title="تفاصيل العقار"
+                    >
+                      {renderTableRows([property], columnsPropertyDetails)}
+                    </ReportTable>
 
-                    <Grid container spacing={2} sx={{ mt: 4 }}>
-                      <Grid item xs={6}>
-                        <Typography variant="subtitle1">الدخل</Typography>
-                        {renderChart(
-                          property.incomes.map((income) => ({
-                            label: new Date(income.date).toLocaleDateString(),
-                            value: income.amount,
-                          })),
-                          "الدخل",
-                          "rgba(75, 192, 192, 0.6)",
-                        )}
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Typography variant="subtitle1">المصروفات</Typography>
-                        {renderChart(
-                          property.expenses.map((expense) => ({
-                            label: new Date(expense.date).toLocaleDateString(),
-                            value: expense.amount,
-                          })),
-                          "المصروفات",
-                          "rgba(255, 99, 132, 0.6)",
-                        )}
-                      </Grid>
-                    </Grid>
+                    <ReportTable headings={columnsUnits} title="الوحدات">
+                      {renderTableRows(
+                        property.units.map((unit) => ({
+                          ...unit,
+                          status: calculateStatus(unit.rentAgreements),
+                        })),
+                        columnsUnits,
+                      )}
+                    </ReportTable>
 
-                    <Typography variant="subtitle1" sx={{ mt: 4 }}>
-                      مقارنة بين الدخل والمصروفات
-                    </Typography>
-                    {renderComparisonChart(property.incomes, property.expenses)}
+                    <ReportTable headings={columnsIncome} title="الدخل">
+                      {renderTableRows(property.incomes, columnsIncome, 4)}
+                    </ReportTable>
+
+                    <ReportTable headings={columnsExpenses} title="المصروفات">
+                      {renderTableRows(property.expenses, columnsExpenses, 2)}
+                    </ReportTable>
                   </Box>
                 ))}
 
                 <Typography variant="h6" sx={{ mt: 4 }}>
                   إجمالي الدخل والمصروفات للمالك
                 </Typography>
-                {renderTotalChart(owner.incomes, owner.expenses)}
+                <ReportTable headings={["الدخل", "المصروفات"]} title=" ">
+                  <TableRow>
+                    <TableCell>إجمالي الدخل</TableCell>
+                    <TableCell>
+                      {formatCurrencyAED(
+                        owner.properties.reduce(
+                          (sum, property) =>
+                            sum +
+                            property.incomes.reduce(
+                              (acc, income) => acc + income.amount,
+                              0,
+                            ),
+                          0,
+                        ),
+                      )}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>إجمالي المصروفات</TableCell>
+                    <TableCell>
+                      {formatCurrencyAED(
+                        owner.properties.reduce(
+                          (sum, property) =>
+                            sum +
+                            property.expenses.reduce(
+                              (acc, expense) => acc + expense.amount,
+                              0,
+                            ),
+                          0,
+                        ),
+                      )}
+                    </TableCell>
+                  </TableRow>
+                </ReportTable>
               </Box>
             ))}
           </Box>

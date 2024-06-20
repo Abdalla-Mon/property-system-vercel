@@ -8,6 +8,11 @@ export default function TableFormProvider({ children, url }) {
   const [openModal, setOpenModal] = useState(false);
   const [id, setId] = useState(null);
   const { setLoading, setOpen, setMessage, setSeverity } = useSubmitLoader();
+  useEffect(() => {
+    if (!openModal) {
+      setId(null);
+    }
+  }, [openModal]);
 
   async function submitData(
     data,
@@ -50,6 +55,8 @@ export default function TableFormProvider({ children, url }) {
         openModal,
         setOpenModal,
         submitData,
+        setMessage,
+        setSeverity,
       }}
     >
       {children}

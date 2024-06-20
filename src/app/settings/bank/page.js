@@ -101,7 +101,7 @@ const BankWrapper = () => {
     <>
       <ViewComponent
         inputs={bankInputs}
-        formTitle={"تعديل"}
+        formTitle={"بنك"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

@@ -92,7 +92,7 @@ const PropertyTypeWrapper = () => {
     <>
       <ViewComponent
         inputs={propertyTypeInputs}
-        formTitle={"تعديل"}
+        formTitle={"نوع العقار"}
         totalPages={totalPages}
         rows={data}
         columns={columns}

@@ -10,10 +10,10 @@ import {
   ListItemText,
   IconButton,
   Hidden,
+  Button,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import HouseIcon from "@mui/icons-material/House";
-
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import BuildIcon from "@mui/icons-material/Build";
@@ -23,33 +23,42 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import GroupIcon from "@mui/icons-material/Group";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/AuthProvider/AuthProvider";
+import { handleRequestSubmit } from "@/helpers/functions/handleRequestSubmit";
+import { useToastContext } from "@/app/context/ToastLoading/ToastLoadingProvider";
 
 const drawerWidth = 240;
 
 const navItems = [
-  { href: "/", Icon: HomeIcon, text: "الرئيسيه" },
-  { href: "/follow-up", Icon: HomeIcon, text: "متابعة المستحقات" },
-
-  { href: "/properties", Icon: HouseIcon, text: "العقارات" },
-  { href: "/units", Icon: ApartmentIcon, text: "الوحدات" },
-  { href: "/rent", Icon: PaymentIcon, text: "عقود الايجار" },
-  { href: "/invoices", Icon: ReceiptIcon, text: "الفواتير" },
-  { href: "/maintenance", Icon: BuildIcon, text: "الصيانه" },
-  { href: "/reports", Icon: ReceiptIcon, text: "التقارير" },
-  { href: "/owners", Icon: PeopleIcon, text: "الملاك" },
-  { href: "/renters", Icon: GroupIcon, text: "المستأجرين" },
-
-  { href: "/settings", Icon: SettingsIcon, text: "الاعدادات" },
-
-  { href: "/tasks", Icon: PeopleIcon, text: "مهام المطور" },
+  { href: "/", Icon: HomeIcon, text: "الرئيسيه", area: "HOME" },
+  {
+    href: "/follow-up",
+    Icon: HomeIcon,
+    text: "متابعة المستحقات",
+    area: "FOLLOW_UP",
+  },
+  { href: "/properties", Icon: HouseIcon, text: "العقارات", area: "PROPERTY" },
+  { href: "/units", Icon: ApartmentIcon, text: "الوحدات", area: "UNIT" },
+  { href: "/rent", Icon: PaymentIcon, text: "عقود الايجار", area: "RENT" },
+  { href: "/invoices", Icon: ReceiptIcon, text: "الفواتير", area: "INVOICE" },
+  {
+    href: "/maintenance",
+    Icon: BuildIcon,
+    text: "الصيانه",
+    area: "MAINTENANCE",
+  },
+  { href: "/reports", Icon: ReceiptIcon, text: "التقارير", area: "REPORT" },
+  { href: "/owners", Icon: PeopleIcon, text: "الملاك", area: "OWNER" },
+  { href: "/renters", Icon: GroupIcon, text: "المستأجرين", area: "RENTER" },
+  { href: "/settings", Icon: SettingsIcon, text: "الاعدادات", area: "SETTING" },
 ];
 
 export default function DashboardNav({ children }) {
   const [open, setOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-
+  const { isLoggedIn, user, setIsLoggedIn, setUser } = useAuth();
   const handleDrawerToggle = () => {
     setOpen(!open);
   };
@@ -57,12 +66,46 @@ export default function DashboardNav({ children }) {
   const handleMobileDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+  const { setLoading } = useToastContext();
+  const router = useRouter();
+  const handleLogout = async () => {
+    const signout = await handleRequestSubmit(
+      {},
+      setLoading,
+      `auth/signout`,
+      false,
+      "جاري تسجيل الخروج",
+    );
+    if (signout?.status === 200) {
+      router.push("/login");
+      setIsLoggedIn(false);
+      setUser({});
+    }
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <Box component="main" sx={{ flexGrow: 1, p: 3, minHeight: "100vh" }}>
+        {children}
+      </Box>
+    );
+  }
+
+  const userPrivileges = user?.privileges?.reduce((acc, priv) => {
+    acc[priv.area] = priv.privilege;
+    return acc;
+  }, {});
+
+  const filteredNavItems = navItems.filter(
+    (item) => userPrivileges[item.area]?.canRead,
+  );
 
   const drawerContent = (
     <List>
-      {navItems.map((item) => (
+      {filteredNavItems.map((item) => (
         <Link href={item.href} passHref key={item.href}>
           <ListItem
+            button
             sx={{
               backgroundColor: pathname === item.href ? "#efefef" : "inherit",
             }}
@@ -74,19 +117,17 @@ export default function DashboardNav({ children }) {
           </ListItem>
         </Link>
       ))}
+      <ListItem button onClick={handleLogout}>
+        <ListItemIcon>
+          <SettingsIcon />
+        </ListItemIcon>
+        <ListItemText primary="تسجيل الخروج" />
+      </ListItem>
     </List>
   );
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: {
-          xs: "column",
-          lg: "row",
-        },
-      }}
-    >
+    <Box sx={{ display: "flex", flexDirection: { xs: "column", lg: "row" } }}>
       <Hidden lgUp>
         <Box
           sx={{

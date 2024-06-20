@@ -46,23 +46,6 @@ const RentWrapper = ({ propperty }) => {
     setSearch,
   } = useDataFetcher(`main/rentAgreements?rented=true&`);
   const {
-    data: nonRentedData,
-    loading: nonRentedLoading,
-    page: nonRentedPage,
-    setPage: setNonRentedPage,
-    limit: nonRentedLimit,
-    setLimit: setNonRentedLimit,
-    totalPages: nonRentedTotalPages,
-    setData: setNonRentedData,
-    total: nonRentedTotal,
-    setTotal: setNonRentedTotal,
-    setRender: setNonRentedRender,
-    others: nonRentedOthers,
-    setOthers: setNonRentedOthers,
-    search: nonRentedSearch,
-    setSearch: setNonRentedSearch,
-  } = useDataFetcher(`main/rentAgreements?rented=false&`);
-  const {
     data: expiredData,
     loading: expiredLoading,
     page: expiredPage,
@@ -110,18 +93,6 @@ const RentWrapper = ({ propperty }) => {
     const data = await res.json();
 
     return { data };
-  }
-
-  async function getRentTypes() {
-    const res = await fetch("/api/fast-handler?id=rentType");
-    const data = await res.json();
-    const dataWithLabel = data.map((item) => {
-      return {
-        ...item,
-        name: item.title,
-      };
-    });
-    return { data: dataWithLabel };
   }
 
   async function getProperties() {
@@ -183,12 +154,7 @@ const RentWrapper = ({ propperty }) => {
           extraId: false,
           getData: getRenters,
         };
-      case "typeId":
-        return {
-          ...input,
-          extraId: false,
-          getData: getRentTypes,
-        };
+
       case "propertyId":
         return {
           ...input,
@@ -276,7 +242,6 @@ const RentWrapper = ({ propperty }) => {
     });
     setData(newData);
     cancelData.status = "CANCELED";
-    setNonRentedData((old) => [...old, cancelData]);
     handleCloseCancelModal();
   };
 
@@ -310,10 +275,9 @@ const RentWrapper = ({ propperty }) => {
     if (!returedData) return;
     setData((old) =>
       [...old, returedData].map((item) => {
-        if (item.id === renewData.id) {
-          return { ...item, status: "EXPIRED" };
+        if (item.id !== data.id) {
+          return item;
         }
-        return item;
       }),
     );
     handleCloseRenewModal();
@@ -402,7 +366,7 @@ const RentWrapper = ({ propperty }) => {
             }}
           >
             {params.row.status === "ACTIVE" && endDate < today
-              ? "يجب الغاءه"
+              ? "يجب اتخاذ اجراء"
               : StatusType[params.row.status]}
           </Typography>
         );
@@ -480,7 +444,6 @@ const RentWrapper = ({ propperty }) => {
 
   function handlePropertyFilterChange(event) {
     setOthers("propertyId=" + event.target.value);
-    setNonRentedOthers("propertyId=" + event.target.value);
     setExpiredOthers("propertyId=" + event.target.value);
   }
 
@@ -514,10 +477,15 @@ const RentWrapper = ({ propperty }) => {
             ))}
           </Select>
         </FormControl>
+        <Link href="rent/canceled">
+          <Button variant="text" color="secondary">
+            عقود الايجار الملغية
+          </Button>
+        </Link>
       </Box>
       <ViewComponent
         inputs={dataInputs}
-        formTitle={"انشاء عقد ايجار "}
+        formTitle={"عقد ايجار "}
         totalPages={totalPages}
         rows={data}
         columns={columns}
@@ -537,10 +505,11 @@ const RentWrapper = ({ propperty }) => {
         reFetch={reFetch}
         submitFunction={submit}
         url={"main/rentAgreements"}
+        title={"عقود الايجار النشطة"}
       ></ViewComponent>
       <ViewComponent
         inputs={dataInputs}
-        formTitle={"انشاء عقد ايجار "}
+        formTitle={"عقد ايجار "}
         totalPages={expiredTotalPages}
         rows={expiredData}
         columns={columns}
@@ -559,29 +528,9 @@ const RentWrapper = ({ propperty }) => {
         submitFunction={submit}
         noTabs={true}
         url={"main/expiredRentAgreements"}
+        title={"عقود ايجار بحاجة الي اتخاذ اجراء معها"}
       />
-      <ViewComponent
-        inputs={dataInputs}
-        formTitle={"انشاء عقد ايجار "}
-        totalPages={nonRentedTotalPages}
-        rows={nonRentedData}
-        columns={columns}
-        page={nonRentedPage}
-        setPage={setNonRentedPage}
-        limit={nonRentedLimit}
-        setLimit={setNonRentedLimit}
-        id={id}
-        loading={nonRentedLoading}
-        setData={setNonRentedData}
-        setTotal={setNonRentedTotal}
-        total={nonRentedTotal}
-        noModal={true}
-        disabled={disabled}
-        reFetch={reFetch}
-        submitFunction={submit}
-        noTabs={true}
-        url={"main/rentAgreements"}
-      />
+
       <RenewRentModal
         open={renewModalOpen}
         handleClose={handleCloseRenewModal}
