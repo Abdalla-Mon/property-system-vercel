@@ -43,6 +43,7 @@ const TaxPaymentsReport = () => {
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+
   useEffect(() => {
     async function fetchData() {
       setLoading(true);

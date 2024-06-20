@@ -60,7 +60,6 @@ export default function AuthProvider({ children }) {
           "/renters": "RENTER",
           "/settings": "SETTING",
         };
-        console.log(pathName.split("/").length, 'pathName.split("/").length');
         if (pathName.split("/").length > 2) {
           pathName = "/" + pathName.split("/")[1];
         }
