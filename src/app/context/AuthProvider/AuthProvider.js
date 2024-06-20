@@ -11,7 +11,7 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState({});
   const [redirect, setRedirect] = useState(false);
   const router = useRouter();
-  const pathName = usePathname();
+  let pathName = usePathname();
   const [checkAccess, setCheckAccess] = useState(false);
   useEffect(() => {
     async function auth() {
@@ -60,7 +60,7 @@ export default function AuthProvider({ children }) {
           "/renters": "RENTER",
           "/settings": "SETTING",
         };
-
+        pathName = pathName.split("/")[1];
         let area = Object.keys(pathMap).find((key) => pathName.includes(key))
           ? pathMap[Object.keys(pathMap).find((key) => pathName == key)]
           : null;
