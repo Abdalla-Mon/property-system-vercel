@@ -92,7 +92,44 @@ const Dashboard = () => {
 
     fetchExpenses();
   }, [selectedProperty]);
+  useEffect(() => {
+    async function fetchTotalIncome() {
+      setLoadingTotalIncome(true);
+      try {
+        const propertyParam = selectedProperty
+          ? `&propertyId=${selectedProperty}`
+          : "";
+        const res = await fetch(`/api/main/home/totalIncome?${propertyParam}`);
+        const data = await res.json();
+        setTotalIncome(data.data);
+      } catch (error) {
+        console.error("Failed to fetch expenses", error);
+      }
+      setLoadingTotalIncome(false);
+    }
 
+    fetchTotalIncome();
+  }, [selectedProperty]);
+  useEffect(() => {
+    async function fetchTotalExpenses() {
+      setLoadingTotalExpenses(true);
+      try {
+        const propertyParam = selectedProperty
+          ? `&propertyId=${selectedProperty}`
+          : "";
+        const res = await fetch(
+          `/api/main/home/totalExpences?${propertyParam}`,
+        );
+        const data = await res.json();
+        setTotalExpenses(data.data);
+      } catch (error) {
+        console.error("Failed to fetch expenses", error);
+      }
+      setLoadingTotalExpenses(false);
+    }
+
+    fetchTotalExpenses();
+  }, []);
   useEffect(() => {
     async function fetchIncome() {
       setLoadingIncome(true);
@@ -419,11 +456,11 @@ const Dashboard = () => {
           <Grid item xs={12} md={4} lg={4}>
             {renderCard(
               "إجمالي الدخل",
-              loadingIncome ? (
+              loadingTotalIncome ? (
                 <CircularProgress />
               ) : (
                 <Typography variant="h5">{`${formatCurrencyAED(
-                  income.reduce((sum, inc) => sum + inc.amount, 0),
+                  totalIncome,
                 )} `}</Typography>
               ),
             )}
@@ -432,11 +469,11 @@ const Dashboard = () => {
           <Grid item xs={12} md={4} lg={4}>
             {renderCard(
               "إجمالي المصاريف",
-              loadingExpenses ? (
+              loadingTotalExpenses ? (
                 <CircularProgress />
               ) : (
                 <Typography variant="h5">{`${formatCurrencyAED(
-                  expenses.reduce((sum, exp) => sum + exp.amount, 0),
+                  totalExpenses,
                 )} `}</Typography>
               ),
             )}

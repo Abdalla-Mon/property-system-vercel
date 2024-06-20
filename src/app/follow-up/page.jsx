@@ -232,7 +232,6 @@ const PaymentSection = ({
   loadingMessage,
 }) => {
   const [data, setData] = useState([]);
-  console.log(data, "data");
   const [id, setId] = useState(null);
   const [modalInputs, setModalInputs] = useState([]);
   const { setOpenModal } = useTableForm();
