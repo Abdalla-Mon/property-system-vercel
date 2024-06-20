@@ -61,11 +61,14 @@ export default function AuthProvider({ children }) {
           "/settings": "SETTING",
         };
 
-        const area = Object.keys(pathMap).find((key) => pathName.includes(key))
+        let area = Object.keys(pathMap).find((key) => pathName.includes(key))
           ? pathMap[Object.keys(pathMap).find((key) => pathName == key)]
           : null;
 
         setCheckAccess(false);
+        if (pathName === "/" || pathName === "/login" || pathName === "") {
+          area = "HOME";
+        }
         if (area && userPrivileges[area]?.canRead) {
           return true;
         } else {
