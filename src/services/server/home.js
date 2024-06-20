@@ -13,7 +13,7 @@ export async function getTotalExpenses(page, limit, searchParams) {
   const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
 
   return {
-    total,
+    data: total,
   };
 }
 
@@ -29,7 +29,7 @@ export async function getTotalIncome(page, limit, searchParams) {
   const total = income.reduce((sum, inc) => sum + inc.amount, 0);
 
   return {
-    total,
+    data: total,
   };
 }
 

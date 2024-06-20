@@ -92,6 +92,7 @@ const Dashboard = () => {
 
     fetchExpenses();
   }, [selectedProperty]);
+
   useEffect(() => {
     async function fetchTotalIncome() {
       setLoadingTotalIncome(true);
@@ -101,15 +102,17 @@ const Dashboard = () => {
           : "";
         const res = await fetch(`/api/main/home/totalIncome?${propertyParam}`);
         const data = await res.json();
+
         setTotalIncome(data.data);
       } catch (error) {
-        console.error("Failed to fetch expenses", error);
+        console.error("Failed to fetch total income", error);
       }
       setLoadingTotalIncome(false);
     }
 
     fetchTotalIncome();
   }, [selectedProperty]);
+
   useEffect(() => {
     async function fetchTotalExpenses() {
       setLoadingTotalExpenses(true);
@@ -121,15 +124,17 @@ const Dashboard = () => {
           `/api/main/home/totalExpences?${propertyParam}`,
         );
         const data = await res.json();
+        console.log(data, "data of exp");
         setTotalExpenses(data.data);
       } catch (error) {
-        console.error("Failed to fetch expenses", error);
+        console.error("Failed to fetch total expenses", error);
       }
       setLoadingTotalExpenses(false);
     }
 
     fetchTotalExpenses();
-  }, []);
+  }, [selectedProperty]);
+
   useEffect(() => {
     async function fetchIncome() {
       setLoadingIncome(true);
@@ -404,6 +409,62 @@ const Dashboard = () => {
     </Card>
   );
 
+  const renderCombinedUnitsCard = () => (
+    <Card
+      sx={{
+        minHeight: 200,
+        minWidth: 250,
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: theme.palette.background.paper,
+      }}
+    >
+      <CardHeader
+        title={
+          <Typography variant="h6" gutterBottom>
+            الوحدات
+          </Typography>
+        }
+        sx={{
+          width: "100%",
+          backgroundColor: theme.palette.primary.main,
+          color: theme.palette.common.white,
+          textAlign: "center",
+        }}
+      />
+      <CardContent
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-around",
+          width: "100%",
+          height: "100%",
+        }}
+      >
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="h5">المؤجرة</Typography>
+          {loadingRentedUnits ? (
+            <CircularProgress />
+          ) : (
+            <Typography variant="h5">{rentedUnits.length}</Typography>
+          )}
+        </Box>
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="h5">غير المؤجرة</Typography>
+          {loadingNonRentedUnits ? (
+            <CircularProgress />
+          ) : (
+            <Typography variant="h5">{nonRentedUnits.length}</Typography>
+          )}
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <>
       <Box
@@ -493,7 +554,7 @@ const Dashboard = () => {
             )}
           </Grid>
 
-          <Grid item xs={12} md={8} lg={8}>
+          <Grid item xs={12} md={12} lg={8}>
             {renderCard(
               "الدخل والمصاريف الإجمالية لهذا الشهر",
               loadingIncome || loadingExpenses ? (
@@ -550,6 +611,10 @@ const Dashboard = () => {
                 )
               ),
             )}
+          </Grid>
+
+          <Grid item xs={12} md={6} lg={4}>
+            {renderCombinedUnitsCard()}
           </Grid>
         </Grid>
       </Box>
