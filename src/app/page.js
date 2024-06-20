@@ -201,9 +201,7 @@ const Dashboard = () => {
               position: "top",
             },
             datalabels: {
-              anchor: "end",
-              align: "end",
-              formatter: (value) => `${formatCurrencyAED(value)} `,
+              display: false, // Disable datalabels
             },
           },
         }}
@@ -237,9 +235,7 @@ const Dashboard = () => {
               position: "top",
             },
             datalabels: {
-              anchor: "end",
-              align: "end",
-              formatter: (value) => `${formatCurrencyAED(value)} `,
+              display: false, // Disable datalabels
             },
           },
         }}
@@ -275,9 +271,7 @@ const Dashboard = () => {
               position: "top",
             },
             datalabels: {
-              anchor: "end",
-              align: "end",
-              formatter: (value) => `${formatCurrencyAED(value)} `,
+              display: false, // Disable datalabels
             },
           },
         }}
@@ -319,6 +313,11 @@ const Dashboard = () => {
           plugins: {
             legend: {
               position: "top",
+            },
+            datalabels: {
+              anchor: "end",
+              align: "end",
+              formatter: (value) => `${formatCurrencyAED(value)} `,
             },
           },
           cutout: "70%",

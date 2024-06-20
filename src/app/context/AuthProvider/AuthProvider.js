@@ -46,7 +46,6 @@ export default function AuthProvider({ children }) {
           acc[priv.area] = priv.privilege;
           return acc;
         }, {});
-
         const pathMap = {
           "/login": "HOME",
           "/": "HOME",
@@ -63,15 +62,15 @@ export default function AuthProvider({ children }) {
         };
 
         const area = Object.keys(pathMap).find((key) => pathName.includes(key))
-          ? pathMap[Object.keys(pathMap).find((key) => pathName.includes(key))]
+          ? pathMap[Object.keys(pathMap).find((key) => pathName == key)]
           : null;
 
         setCheckAccess(false);
-
         if (area && userPrivileges[area]?.canRead) {
           return true;
+        } else {
+          router.push("/not-allowed");
         }
-        router.push("/not-allowed");
 
         return false;
       };
