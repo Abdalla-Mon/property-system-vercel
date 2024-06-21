@@ -11,6 +11,7 @@ import TinyMCEEditor from "@/app/components/WordComponent/Tiny";
 import DeleteBtn from "@/app/UiComponents/Buttons/DeleteBtn";
 
 export default function RentAgreementTypePage() {
+  return "deprecated";
   return (
     <TableFormProvider url={"settings/rent-agreement-types"}>
       <RentAgreementTypeWrapper />

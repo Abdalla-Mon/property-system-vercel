@@ -56,10 +56,7 @@ const tabLinks = [
     label: "إعدادات انواع الصيانة ",
     href: "/settings/property-expense-type",
   },
-  {
-    label: "نصوص اتفاقية الإيجار",
-    href: "/settings/rent-agreement-type",
-  },
+
   {
     label: "المحصلون",
     href: "/settings/collectors",
