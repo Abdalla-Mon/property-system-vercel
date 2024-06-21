@@ -13,5 +13,8 @@ export const getCurrentPrivilege = (user, pathName) => {
     "/renters": "RENTER",
     "/settings": "SETTING",
   };
+  if (pathName.split("/").length > 2) {
+    pathName = "/" + pathName.split("/")[1];
+  }
   return user.privileges.find((priv) => priv.area === pathMap[pathName]);
 };
