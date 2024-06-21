@@ -52,6 +52,7 @@ export default function ViewComponent({
 
   function canEdit() {
     const currentPrivilege = getCurrentPrivilege(user, pathName);
+    console.log(currentPrivilege, "currentPrivilege");
     return currentPrivilege?.privilege.canEdit;
   }
 
